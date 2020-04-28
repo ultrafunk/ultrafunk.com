@@ -2,7 +2,6 @@
 /*
  * The header for our theme
  *
- * @package Ultrafunk
  */
 
 

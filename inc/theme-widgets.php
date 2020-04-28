@@ -2,7 +2,6 @@
 /*
  * Theme custom widgets
  *
- * @package Ultrafunk
  */
 
 class UF_Widget_Taxonomies extends WP_Widget

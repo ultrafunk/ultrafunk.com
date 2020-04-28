@@ -2,7 +2,6 @@
 /*
  * Custom request URL parsing, validation, sanitization and handling
  *
- * @package Ultrafunk
  */
 
 

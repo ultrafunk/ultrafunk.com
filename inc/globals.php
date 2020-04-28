@@ -1,9 +1,7 @@
 <?php
 /*
- * Minimal global variables & functions for the theme
- * Not the best solution, but it will have to do for now...
+ * Minimal global variables & functions for the theme, not the best solution, but it will have to do for now...
  *
- * @package Ultrafunk
  */
 
 

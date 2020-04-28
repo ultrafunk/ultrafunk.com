@@ -2,7 +2,6 @@
 /*
  * Theme setup and customization
  *
- * @package Ultrafunk
  */
 
 // START: Minimal global stuff for the theme

@@ -2,7 +2,6 @@
 /*
  * The singular template file.
  *
- * @package Ultrafunk
  */
 
 get_header();

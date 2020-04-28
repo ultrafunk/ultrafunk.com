@@ -2,7 +2,6 @@
 /*
  * The 404 template file.
  *
- * @package Ultrafunk
  */
 
 get_header();

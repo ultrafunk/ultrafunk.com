@@ -1,8 +1,7 @@
 //
 // Ultrafunk theme JavaScript
-// https://ultrafunk.com
 //
-// @package Ultrafunk
+// https://ultrafunk.com
 //
 
 

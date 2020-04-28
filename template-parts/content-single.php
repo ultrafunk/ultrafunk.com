@@ -2,7 +2,6 @@
 /*
  * Template part for displaying single post
  *
- * @package Ultrafunk
  */
 
 ?>

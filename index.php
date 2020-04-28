@@ -2,7 +2,6 @@
 /*
  * The main / index template file.
  *
- * @package Ultrafunk
  */
 
 if (!defined('ABSPATH')) exit;

@@ -2,7 +2,6 @@
 /*
  * Custom tags for this theme
  *
- * @package Ultrafunk
  */
 
 

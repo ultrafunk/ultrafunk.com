@@ -2,7 +2,6 @@
 /*
  * The page template file.
  *
- * @package Ultrafunk
  */
 
 get_header();
