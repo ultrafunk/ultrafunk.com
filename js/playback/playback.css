@@ -1,0 +1,215 @@
+/*
+* playback.css
+*
+* https://ultrafunk.com
+*
+*/
+
+.site-theme-light {
+  --playback-text-color: #333;
+  --playback-text-hover-color: #dd0000;
+  --playback-ctrl-disabled-color: #ddd;
+  --playback-play-pause-color: #dd0000;
+  --playback-play-pause-hover-color: #ff0000;
+  --playback-play-pause-color-no-autoplay: #3264c8;
+  --playback-play-pause-hover-color-no-autoplay: #4080ff;
+  --playback-prev-next-color: #111;
+  --playback-prev-next-hover-color: #555;
+}
+
+.site-theme-dark {
+  --playback-text-color: #eee;
+  --playback-text-hover-color: #dd0000;
+  --playback-ctrl-disabled-color: #444;
+  --playback-play-pause-color: #dd0000;
+  --playback-play-pause-hover-color: #ff0000;
+  --playback-play-pause-color-no-autoplay: #3264c8;
+  --playback-play-pause-hover-color-no-autoplay: #4080ff;
+  --playback-prev-next-color: #eee;
+  --playback-prev-next-hover-color: #aaa;
+}
+
+#playback-controls {
+  line-height: 0;
+  float: right;
+  display: flex;
+  align-items: center;  
+  height: 64px;
+  margin-right: -15px;
+  min-width: 0;
+}
+
+#playback-controls .material-icons {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+}
+
+#playback-controls .progress-control {
+  font-size: 45px;
+  line-height: 45px;
+  font-weight: 700;
+  margin-top: -23px;
+  padding-right: 13px;
+  display: inline-block;
+  color: var(--playback-text-color);
+}
+
+#playback-controls .details-control {
+  display: none;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 400;
+  text-overflow: ellipsis;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  margin-right: 5px;
+  color: var(--playback-text-color);
+  user-select: none;
+}
+
+#playback-controls .details-control .details-artist {
+  font-weight: 700;
+}
+
+#playback-controls .details-control:hover {
+  color: var(--playback-text-hover-color);
+  cursor: pointer;
+}
+
+#playback-controls .play-pause-control,
+#playback-controls .prev-control,
+#playback-controls .next-control {
+  display: none;
+}
+
+#playback-controls .play-pause-control.state-disabled,
+#playback-controls .prev-control.state-disabled,
+#playback-controls .next-control.state-disabled {
+  color: var(--playback-ctrl-disabled-color);
+  pointer-events: none;
+}
+
+#playback-controls .play-pause-control.state-disabled:hover,
+#playback-controls .prev-control.state-disabled:hover,
+#playback-controls .next-control.state-disabled:hover {
+  color: var(--playback-ctrl-disabled-color);
+  cursor: default;
+}
+
+#playback-controls .play-pause-control {
+  color: var(--playback-play-pause-color);
+}
+
+#playback-controls .play-pause-control:hover {
+  color: var(--playback-play-pause-hover-color);
+  cursor: pointer;
+}
+
+#playback-controls .play-pause-control.no-autoplay {
+  color: var(--playback-play-pause-color-no-autoplay);
+}
+
+#playback-controls .play-pause-control.no-autoplay:hover {
+  color: var(--playback-play-pause-hover-color-no-autoplay);
+}
+
+#playback-controls .play-pause-control {
+  background-image: url(../../img/play_pause_bg_filler.png);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+#playback-controls .prev-control,
+#playback-controls .next-control {
+  color: var(--playback-prev-next-color);
+}
+
+#playback-controls .prev-control:hover,
+#playback-controls .next-control:hover {
+  color: var(--playback-prev-next-hover-color);
+  cursor: pointer;
+}
+
+#playback-controls .play-pause-control.no-autoplay.state-pause.time-remaining-warning {
+  opacity: 0.25;
+}
+
+@media not all and (pointer: fine) {
+
+  #playback-controls .details-control {
+    color: var(--playback-text-color);
+  }
+
+  #playback-controls .details-control:hover {
+    color: var(--playback-text-color);
+  }
+    
+  #playback-controls .play-pause-control {
+    color: var(--playback-play-pause-color);
+  }
+
+  #playback-controls .play-pause-control:hover {
+    color: var(--playback-play-pause-color);
+  }
+
+  #playback-controls .play-pause-control.no-autoplay {
+    color: var(--playback-play-pause-color-no-autoplay);
+  }
+
+  #playback-controls .play-pause-control.no-autoplay:hover {
+    color: var(--playback-play-pause-color-no-autoplay);
+  }
+
+  #playback-controls .prev-control,
+  #playback-controls .next-control {
+    color: var(--playback-prev-next-color);
+  }
+
+  #playback-controls .prev-control:hover,
+  #playback-controls .next-control:hover {
+    color: var(--playback-prev-next-color);
+  }
+
+}
+
+@media screen and (max-width: 650px) {
+
+  #playback-controls {
+    min-width: auto;
+  }
+
+  #playback-controls .details-control {
+    display: none !important;
+  }
+
+}
+
+@media screen and (max-width: 500px) {
+
+  #playback-controls {
+    margin-right: -11px;
+    height: 48px;
+    max-width: calc(100% + 12px);
+  }
+  
+  #playback-controls .material-icons {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+  }
+
+  #playback-controls .progress-control {
+    position: relative;
+    right: -9px;
+    top: -1px;
+  }
+
+  #playback-controls .details-control {
+    font-size: 13px;
+    line-height: 18px;
+    display: inline-block !important;
+  }
+  
+}

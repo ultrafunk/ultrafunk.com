@@ -1,0 +1,37 @@
+/*
+Theme CSS when JavaScript is disabled or not available, tries to degrade gracefully when possible
+*/
+
+:root {
+  --site-header-full: 0px;
+  --site-header-1350px: 0px;
+  --site-header-1200px: 0px;
+  --site-header-1100px: 0px;
+  --site-header-900px: 0px;
+  --site-header-768px: 0px;
+  --site-header-500px: 0px;
+  --site-header-no-playback-500px: 0px;
+
+  --branding-logo-filter: unset;
+  --body-background-focus: #fff;
+  --body-background-blurred: #ddd;
+  --dark-font-color: #333;
+  --light-font-color: #eee;
+  --link-hover-color: #dd0000;
+  --site-theme-color: #0a1428;
+  --site-theme-font-color: #eee;
+  --intro-banner-background: #505050;
+  --intro-banner-button-background: #323232;
+  --header-gradient-bg-blur: linear-gradient(0deg, rgba(230, 230, 230, 0.80) 0%, rgba(255, 255, 255, 0.80) 100%);
+  --header-gradient-no-blur: linear-gradient(0deg, rgba(230, 230, 230, 0.95) 0%, rgba(255, 255, 255, 0.95) 100%);
+  --form-search-field-background: #fff;
+  --form-search-field-outline: none !important;
+  --form-search-field-border: 1px solid #bbb;
+  --form-search-field-border-focus: 2px solid #666;
+  --form-input-autofill-box-shadow: 0 0 0 50px #fff inset;
+}
+
+header#masthead {
+  position: relative;
+}
+
