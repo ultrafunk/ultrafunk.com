@@ -10,7 +10,7 @@ namespace Ultrafunk\Globals;
 
 class Globals
 {
-  public $build_number = '103';
+  public $build_number = '104';
 
   public $shuffle_params = array(
     'is_shuffle' => false,

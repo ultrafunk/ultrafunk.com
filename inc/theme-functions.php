@@ -10,7 +10,7 @@ namespace Ultrafunk\ThemeFunctions;
 
 use SimpleXMLElement;
 use function Ultrafunk\Request\ { get_term_field_by_slug };
-use function Ultrafunk\Globals\{
+use function Ultrafunk\Globals\ {
   console_log,
   is_shuffle,
   get_shuffle_params,

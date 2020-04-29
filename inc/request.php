@@ -8,7 +8,7 @@
 namespace Ultrafunk\Request;
 
 
-use function Ultrafunk\Globals\{
+use function Ultrafunk\Globals\ {
   console_log,
   get_shuffle_params,
   perf_start,
@@ -233,18 +233,18 @@ function create_shuffle_transient($request)
 {
   $args = get_posts_args($request);
 
-  console_log($args);
+//console_log($args);
 
   if (null !== $args)
   {
     $posts_array['shuffle'] = $request->params['path'];
     $posts_array['postIds'] = get_posts($args);
 
-    console_log($posts_array);
+  //console_log($posts_array);
   
     if(true === shuffle($posts_array['postIds']))
     {
-      console_log($posts_array);
+    //console_log($posts_array);
   
       $transient_name = get_transient_name();
       
@@ -273,17 +273,10 @@ function shuffle_page_num($request, $max_page_num)
   $page_num = 0;
   
   if ((true === $request->shuffle_all) || (true === $request->shuffle_slug))
-  {
     return 1;
-  }
-  else if (true === $request->shuffle_all_page)
-  {
+
+  if ((true === $request->shuffle_all_page) || (true === $request->shuffle_slug_page))
     $page_num = $request->params['page_num'];
-  }
-  else if (true === $request->shuffle_slug_page)
-  {
-    $page_num = $request->params['page_num'];
-  }
 
   if (($page_num >= 1) && ($page_num < $max_page_num))
     return $page_num;
@@ -302,9 +295,9 @@ function do_parse_request($do_parse, $wp)
 
     if (true === $request->is_valid())
     {
-      $paged = shuffle_page_num($request, 99999);
+      $paged = shuffle_page_num($request, 9999);
     
-      console_log($request);
+    //console_log($request);
   
       if (0 !== $paged)
       {
@@ -324,7 +317,7 @@ function do_parse_request($do_parse, $wp)
 
           if ((false !== $transient) && ($request->params['path'] !== $transient['shuffle']))
           {
-            console_log('transient[shuffle] does not match: (' . $request->params['path'] . ' !== ' . $transient['shuffle'] . ')');
+          //console_log('transient[shuffle] does not match: (' . $request->params['path'] . ' !== ' . $transient['shuffle'] . ')');
             $transient = false;
           }
 

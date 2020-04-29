@@ -5,11 +5,11 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=103';
-import * as storage     from '../common/storage.js?ver=103';
-import * as utils       from '../common/utils.js?ver=103';
-import * as eventLogger from './eventlogger.js?ver=103';
-import * as playback    from './playback.js?ver=103';
+import * as debugLogger from '../common/debuglogger.js?ver=104';
+import * as storage     from '../common/storage.js?ver=104';
+import * as utils       from '../common/utils.js?ver=104';
+import * as eventLogger from './eventlogger.js?ver=104';
+import * as playback    from './playback.js?ver=104';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -397,26 +397,40 @@ document.addEventListener('keydown', (event) =>
 
       case 'ArrowLeft':
         {
-          event.preventDefault();
-          eventLog.add(eventLogger.SOURCE.KEYBOARD, Date.now(), eventLogger.EVENT.KEY_ARROW_LEFT, null);
-          
-          if (!doubleTapNavPrev(navigationVars.prevUrl, playback.getStatus())) // eslint-disable-line no-undef
+          if (event.shiftKey === true)
           {
-            exitFullscreenTrack();
-            playback.prevClick(event);
+            subPaginationClick(event, navigationVars.prevUrl); // eslint-disable-line no-undef
+          }
+          else
+          {
+            event.preventDefault();
+            eventLog.add(eventLogger.SOURCE.KEYBOARD, Date.now(), eventLogger.EVENT.KEY_ARROW_LEFT, null);
+
+            if (!doubleTapNavPrev(navigationVars.prevUrl, playback.getStatus())) // eslint-disable-line no-undef
+            {
+              exitFullscreenTrack();
+              playback.prevClick(event);
+            }
           }
         }
         break;
         
       case 'ArrowRight':
         {
-          event.preventDefault();
-          eventLog.add(eventLogger.SOURCE.KEYBOARD, Date.now(), eventLogger.EVENT.KEY_ARROW_RIGHT, null);
-
-          if (!doubleTapNavNext(navigationVars.nextUrl, playback.getStatus())) // eslint-disable-line no-undef
+          if (event.shiftKey === true)
           {
-            exitFullscreenTrack();
-            playback.nextClick(event);
+            subPaginationClick(event, navigationVars.nextUrl); // eslint-disable-line no-undef
+          }
+          else
+          {
+            event.preventDefault();
+            eventLog.add(eventLogger.SOURCE.KEYBOARD, Date.now(), eventLogger.EVENT.KEY_ARROW_RIGHT, null);
+
+            if (!doubleTapNavNext(navigationVars.nextUrl, playback.getStatus())) // eslint-disable-line no-undef
+            {
+              exitFullscreenTrack();
+              playback.nextClick(event);
+            }
           }
         }
         break;

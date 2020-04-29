@@ -5,9 +5,9 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=103';
-import * as mediaPlayer from './mediaplayer.js?ver=103';
-import * as eventLogger from './eventlogger.js?ver=103';
+import * as debugLogger from '../common/debuglogger.js?ver=104';
+import * as mediaPlayer from './mediaplayer.js?ver=104';
+import * as eventLogger from './eventlogger.js?ver=104';
 
 
 export {

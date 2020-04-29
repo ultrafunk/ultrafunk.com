@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=103';
+import * as debugLogger from '../common/debuglogger.js?ver=104';
 
 
 export {
@@ -78,7 +78,7 @@ function getCssPropValue(prop)
   return value;
 }
 
-// Match against CSS media queries defined in style.css
+// Match against live CSS media queries defined in style.css
 function matchesMedia(matchMedia)
 {
   let matches = false;
