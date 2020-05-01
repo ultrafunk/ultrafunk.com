@@ -4,7 +4,7 @@ Theme URI: https://github.com/ultrafunk/ultrafunk.com
 Author: Ultrafunk
 Author URI: https://ultrafunk.com
 Description: ultrafunk.com WordPress theme
-Version: 5.4
+Version: 5.5
 License: Apache License 2.0
 License URI: https://www.apache.org/licenses/LICENSE-2.0
 Text Domain: ultrafunk
@@ -51,13 +51,19 @@ Tags: one-column
   --site-theme-font-color: #eee;
   --intro-banner-background: #505050;
   --intro-banner-button-background: #323232;
+
+  /*
   --header-gradient-bg-blur: linear-gradient(0deg, rgba(230, 230, 230, 0.80) 0%, rgba(255, 255, 255, 0.80) 100%);
+  */
+  --header-gradient-bg-blur: linear-gradient(0deg, rgba(230, 230, 230, 0.95) 0%, rgba(255, 255, 255, 0.95) 100%);
+  
   --header-gradient-no-blur: linear-gradient(0deg, rgba(230, 230, 230, 0.95) 0%, rgba(255, 255, 255, 0.95) 100%);
   --form-search-field-background: #fff;
   --form-search-field-outline: none !important;
   --form-search-field-border: 1px solid #bbb;
   --form-search-field-border-focus: 2px solid #666;
   --form-input-autofill-box-shadow: 0 0 0 50px #fff inset;
+  --date-page-border-color: #888;
 }
 
 .site-theme-dark {
@@ -71,13 +77,19 @@ Tags: one-column
   --site-theme-font-color: #eee;
   --intro-banner-background: #444;
   --intro-banner-button-background: #222;
+
+  /*
   --header-gradient-bg-blur: linear-gradient(0deg, rgba(45, 45, 45, 0.80) 0%, rgba(55, 55, 55, 0.80) 100%);
+  */
+  --header-gradient-bg-blur: linear-gradient(0deg, rgba(45, 45, 45, 0.97) 0%, rgba(55, 55, 55, 0.97) 100%);
+
   --header-gradient-no-blur: linear-gradient(0deg, rgba(45, 45, 45, 0.97) 0%, rgba(55, 55, 55, 0.97) 100%);
   --form-search-field-background: #222;
   --form-search-field-outline: none !important;
   --form-search-field-border: 1px solid #666;
   --form-search-field-border-focus: 2px solid #aaa;
   --form-input-autofill-box-shadow: 0 0 0 50px #222 inset;
+  --date-page-border-color: #bbb;
 }
 
 
@@ -408,7 +420,7 @@ nav .nav-links ul {
 
 .nav-links .page-numbers li a {
   padding: 8px 10px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--date-page-border-color);
   color: var(--dark-font-color);
   text-decoration: none;
 }
@@ -581,6 +593,24 @@ h2.widget-title {
   margin: 30px 0 10px 0;
 }
 
+h2.entry-title,
+h2.entry-title a {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+h2,
+h2.widget-title,
+.single h2.entry-title,
+.single h2.entry-title a,
+.page h2.entry-title,
+.page h2.entry-title a {
+  white-space: initial;
+  overflow: initial;
+  text-overflow: initial;
+}
+
 body.single-post h2.screen-reader-text {
   display: none;
 }
@@ -615,13 +645,30 @@ strong {
   text-decoration: underline;
 }
 
+.entry-meta-channels,
+.entry-meta-artists {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.single .entry-meta-channels,
+.single .entry-meta-artists,
+.page .entry-meta-channels,
+.page .entry-meta-artists {
+  white-space: initial;
+  overflow: initial;
+  text-overflow: initial;
+}
+
 .entry-meta-date-author {
   float: right;
-  border: 1px solid #ccc;
+  border: 1px solid var(--date-page-border-color);
   padding: 10px 15px;
   max-width: 250px;
   margin-top: 6px;
   margin-left: 20px;
+  display: none;
 }
 
 .date-author-short {
@@ -1251,6 +1298,7 @@ aside.widget-area ul {
     margin-top: calc(var(--content-top-margin-mobile) + var(--site-header-no-playback-500px));
   }
 
+  /*
   .entry-meta-date-author {
     margin-top: 4px;
     margin-left: 10px;
@@ -1264,6 +1312,7 @@ aside.widget-area ul {
   .date-author-short {
     display: block;
   }
+  */
 
   .entry {
     margin-top: 50px;
@@ -1291,13 +1340,22 @@ aside.widget-area ul {
     display:none;
   }
   
+  h2.entry-title,
+  h2.entry-title a {
+    font-size: 18px;
+    line-height: 26px;
+  }
+
   h2,
-  h2.entry-title a,
-  h2.widget-title {
+  h2.widget-title,
+  .single h2.entry-title,
+  .single h2.entry-title a,
+  .page h2.entry-title,
+  .page h2.entry-title a {
     font-size: 20px;
     line-height: 28px;
   }
-  
+
   h3 {
     font-size: 18px;
     line-height: 26px;
@@ -1319,6 +1377,16 @@ aside.widget-area ul {
 
   aside.widget-area ul {
     margin-left: 20px;
+  }
+
+}
+
+@media screen and (max-width: 400px) {
+
+  h2.entry-title,
+  h2.entry-title a {
+    font-size: 17px;
+    line-height: 25px;
   }
 
 }

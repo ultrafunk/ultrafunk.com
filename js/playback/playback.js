@@ -5,9 +5,9 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=104';
-import * as mediaPlayer from './mediaplayer.js?ver=104';
-import * as eventLogger from './eventlogger.js?ver=104';
+import * as debugLogger from '../common/debuglogger.js?ver=105';
+import * as mediaPlayer from './mediaplayer.js?ver=105';
+import * as eventLogger from './eventlogger.js?ver=105';
 
 
 export {
@@ -255,7 +255,7 @@ function setDetailsControl(state)
   }
     
   controls.details.div.querySelector('.details-artist').textContent = artist;
-  controls.details.div.querySelector('.details-title').textContent = title;
+  controls.details.div.querySelector('.details-title').textContent  = title;
 }
 
 
@@ -689,7 +689,7 @@ function onYouTubePlayerStateChange(event)
         getMediaPlayer(playerIndex).setDuration(Math.round(event.target.getDuration()));
         startPlaybackTimer();
 
-        if(getMediaPlayer(playerIndex).setArtistTitleFromServer(null, event.target.getVideoData().title))
+        if(getMediaPlayer(playerIndex).setArtistTitleFromServer(event.target.getVideoData().title))
           setDetailsControl(STATE.PLAY);
       }
       break;

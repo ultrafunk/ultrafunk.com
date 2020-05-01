@@ -13,16 +13,16 @@
       <div class="entry-meta-date-author">
         <?php \Ultrafunk\ThemeTags\meta_date_author(); ?>
       </div>
-      <?php echo '<b>Channels:</b> ' . get_the_category_list(', '); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-      <?php echo get_the_tag_list('<br><b>Artists:</b> ', ', '); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+      <?php
+      echo '<div class="entry-meta-channels"><b>Channels:</b> ' . get_the_category_list(', ') . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+      echo get_the_tag_list('<div class="entry-meta-artists"><b>Artists:</b> ', ', ', '</div>');          // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+      ?>
     </div><!-- .entry-meta -->
   </header><!-- .entry-header -->
   <div class="entry-content">
     <?php the_content(); ?>
   </div><!-- .entry-content -->
   <footer class="entry-footer">
-    <?php //the_category(); ?>
-    <?php //the_tags(); ?>
   </footer><!-- .entry-footer -->
 </article><!-- #post-<?php the_ID(); ?> -->
 

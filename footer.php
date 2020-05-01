@@ -16,6 +16,7 @@
         <a href="https://old.ultrafunk.com">Previous Projects</a><br>
         <a href="https://old.ultrafunk.com/about/">Our History</a><br>
         <a href="<?php echo esc_url(home_url()); ?>/privacy-policy/">Privacy Policy</a><br>
+        <a href="https://github.com/ultrafunk/">GitHub</a><br>
         <a href="mailto:contact@ultrafunk.com">Contact</a>
         <div class="footer-toggles">
           <a href="#" id="footer-autoplay-toggle" title="Toggle AutoPlay ON / OFF">AutoPlay = <span class="autoplay-on-off">ON</span></a>

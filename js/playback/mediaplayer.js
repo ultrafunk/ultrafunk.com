@@ -22,7 +22,7 @@ const DATA_SOURCE = {
 };
 
 // Used to split details string into Artist and Title strings
-const detailsRegEx = /\s{1,}[–·-]\s{1,}/i;
+const artistTitleRegEx = /\s{1,}[–·-]\s{1,}/i;
 
 
 // ************************************************************************************************
@@ -62,29 +62,33 @@ class MediaPlayer
   getTitle()                { return this.title;            }
   setTitle(title)           { this.title = title;           }
 
-  setArtistTitle(detailsString)
+  setArtistTitle(artistTitle)
   {
-    if ((detailsString !== null) && (detailsString.length > 0))
+    if ((artistTitle !== null) && (artistTitle.length > 0))
     {
-      const match = detailsString.match(detailsRegEx);
+      const match = artistTitle.match(artistTitleRegEx);
         
       if (match !== null)
       {
-        this.setArtist(detailsString.slice(0, match.index));
-        this.setTitle(detailsString.slice(match.index + match[0].length));
+        this.setArtist(artistTitle.slice(0, match.index));
+        this.setTitle(artistTitle.slice(match.index + match[0].length));
       }
       else
       {
-        this.setArtist(detailsString);
+        this.setArtist(artistTitle);
       }
     }
   }
 
-  setArtistTitleFromServer(artist, title)
+  setArtistTitleFromServer(artistTitle)
   {
     if (this.getDataSource() === DATA_SOURCE.GET_FROM_SERVER)
     {
-      this.setArtistTitle(title);
+      if (artistTitle.match(artistTitleRegEx) !== null)
+        this.setArtistTitle(artistTitle);
+      else
+        this.setArtistTitle(`${this.getArtist()} - ${artistTitle}`);
+
       this.setDataSource(DATA_SOURCE.ISSET_FROM_SERVER);
       return true;
     }
