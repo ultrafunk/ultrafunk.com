@@ -8,13 +8,13 @@
 namespace Ultrafunk\ThemeTags;
 
 
-use function Ultrafunk\Globals\{ get_build_number, is_shuffle, get_perf_data };
-use function Ultrafunk\ThemeFunctions\{ get_prev_next_urls, get_title };
+use function Ultrafunk\Globals\ { get_version, is_shuffle, get_perf_data };
+use function Ultrafunk\ThemeFunctions\ { get_prev_next_urls, get_title };
 
 
 function pre_wp_head()
 {
-  $build_number = get_build_number();
+  $version      = get_version();
   $template_uri = esc_url(get_template_directory_uri());
 
   ?>
@@ -30,12 +30,13 @@ function pre_wp_head()
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://s.ytimg.com" crossorigin>
-  <link rel="preload" href="<?php echo $template_uri . '/js/common/debuglogger.js?ver='   . $build_number; ?>" as="script" crossorigin>
-  <link rel="preload" href="<?php echo $template_uri . '/js/common/storage.js?ver='       . $build_number; ?>" as="script" crossorigin>
-  <link rel="preload" href="<?php echo $template_uri . '/js/common/utils.js?ver='         . $build_number; ?>" as="script" crossorigin>
-  <link rel="preload" href="<?php echo $template_uri . '/js/playback/eventlogger.js?ver=' . $build_number; ?>" as="script" crossorigin>
-  <link rel="preload" href="<?php echo $template_uri . '/js/playback/mediaplayer.js?ver=' . $build_number; ?>" as="script" crossorigin>
-  <link rel="preload" href="<?php echo $template_uri . '/js/playback/playback.js?ver='    . $build_number; ?>" as="script" crossorigin>
+  <link rel="preload" href="<?php echo $template_uri . '/js/common/debuglogger.js?ver='         . $version; ?>" as="script" crossorigin>
+  <link rel="preload" href="<?php echo $template_uri . '/js/common/storage.js?ver='             . $version; ?>" as="script" crossorigin>
+  <link rel="preload" href="<?php echo $template_uri . '/js/common/utils.js?ver='               . $version; ?>" as="script" crossorigin>
+  <link rel="preload" href="<?php echo $template_uri . '/js/playback/eventlogger.js?ver='       . $version; ?>" as="script" crossorigin>
+  <link rel="preload" href="<?php echo $template_uri . '/js/playback/mediaplayer.js?ver='       . $version; ?>" as="script" crossorigin>
+  <link rel="preload" href="<?php echo $template_uri . '/js/playback/playback-controls.js?ver=' . $version; ?>" as="script" crossorigin>
+  <link rel="preload" href="<?php echo $template_uri . '/js/playback/playback.js?ver='          . $version; ?>" as="script" crossorigin>
   <?php
 }
 

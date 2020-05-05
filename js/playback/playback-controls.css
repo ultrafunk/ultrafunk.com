@@ -1,11 +1,14 @@
 /*
-* playback.css
+* playback-controls.css
 *
 * https://ultrafunk.com
 *
 */
 
 .site-theme-light {
+  --playback-progress-bar-color: #dd0000;
+  --playback-progress-bar-color-no-autoplay: #4080ff;
+  
   --playback-text-color: #333;
   --playback-text-hover-color: #dd0000;
   --playback-ctrl-disabled-color: #ddd;
@@ -18,6 +21,9 @@
 }
 
 .site-theme-dark {
+  --playback-progress-bar-color: #dd0000;
+  --playback-progress-bar-color-no-autoplay: #4080ff;
+  
   --playback-text-color: #eee;
   --playback-text-hover-color: #dd0000;
   --playback-ctrl-disabled-color: #444;
@@ -27,6 +33,23 @@
   --playback-play-pause-hover-color-no-autoplay: #4080ff;
   --playback-prev-next-color: #eee;
   --playback-prev-next-hover-color: #aaa;
+}
+
+#playback-progress {
+  background: rgba(0, 0, 0, 0.3);
+  width: 100%;
+}
+
+#playback-progress .playback-progress-bar {
+  background: var(--playback-progress-bar-color);
+  height: 5px;
+  transform: scaleX(0);
+  transform-origin: left;
+  will-change: transform;
+}
+
+#playback-progress .playback-progress-bar.no-autoplay {
+  background: var(--playback-progress-bar-color-no-autoplay);
 }
 
 #playback-controls {

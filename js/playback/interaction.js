@@ -5,11 +5,11 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=105';
-import * as storage     from '../common/storage.js?ver=105';
-import * as utils       from '../common/utils.js?ver=105';
-import * as eventLogger from './eventlogger.js?ver=105';
-import * as playback    from './playback.js?ver=105';
+import * as debugLogger from '../common/debuglogger.js?ver=1.5.6';
+import * as storage     from '../common/storage.js?ver=1.5.6';
+import * as utils       from '../common/utils.js?ver=1.5.6';
+import * as eventLogger from './eventlogger.js?ver=1.5.6';
+import * as playback    from './playback.js?ver=1.5.6';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -30,7 +30,7 @@ const config = {
 
 const defaultSettings = {
   // Incremental version to check for new properties
-  version: 3,
+  version: 4,
   // User (public) settings
   user: {
     autoPlay:             true,
@@ -171,7 +171,7 @@ function playbackEventCallback(playbackEvent, eventData = null)
       {
         if (settings.user.autoExitFsOnWarning && (eventData.timeRemainingSeconds <= settings.user.timeRemainingSeconds))
         {
-          debug.log(`playbackEventCallback(): ${debug.getObjectKeyForValue(playback.EVENT, playbackEvent)} (${playbackEvent})`);
+        //debug.log(`playbackEventCallback(): ${debug.getObjectKeyForValue(playback.EVENT, playbackEvent)} (${playbackEvent})`);
           exitFullscreenTrack();
         }
       }

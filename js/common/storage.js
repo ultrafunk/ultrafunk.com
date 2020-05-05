@@ -6,7 +6,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=105';
+import * as debugLogger from '../common/debuglogger.js?ver=1.5.6';
 
 
 export {
@@ -116,12 +116,39 @@ function mergeObjectProps(oldObject, newObject, keyName)
   {
     // Handle playback settings only properties here
   }
-      
-  debug.log(oldObject);
-  debug.log(mergedObject);
   
   return mergedObject;
-}      
+}
+
+function deleteOrphanedKeys(oldObject, newObject)
+{
+  Object.keys(oldObject).forEach((key) => 
+  {
+    if ((key in newObject) === false)
+    {
+      debug.log(`deleteOrphanedKeys(): Deleting '${key}'`);
+      delete oldObject[key];
+    }
+  });
+}
+
+function removeOrphanedObjectProps(oldObject, newObject, keyName)
+{
+  debug.log(`removeOrphanedObjectProps() for ${keyName}`);
+
+  deleteOrphanedKeys(oldObject,      newObject);
+  deleteOrphanedKeys(oldObject.user, newObject.user);
+  deleteOrphanedKeys(oldObject.priv, newObject.priv);
+
+  if (keyName === KEY.UF_SITE_SETTINGS)
+  {
+    deleteOrphanedKeys(oldObject.priv.banners, newObject.priv.banners);
+  }
+  else if (keyName === KEY.UF_PLAYBACK_SETTINGS)
+  {
+    // Handle playback settings only keys / properties here
+  }
+}
 
 function readWriteJsonProxy(keyName, defaultValue = null, setDefault = true)
 {
@@ -131,14 +158,19 @@ function readWriteJsonProxy(keyName, defaultValue = null, setDefault = true)
   {
     let onChangeObject = null;
     
-    if (parsedJson.version === defaultValue.version)
+    // If version is new, perform object merge and cleanup
+    if (parsedJson.version < defaultValue.version)
     {
-      onChangeObject = parsedJson;
+      debug.log(parsedJson);
+      onChangeObject = mergeObjectProps(parsedJson, defaultValue, keyName);
+      removeOrphanedObjectProps(onChangeObject, defaultValue, keyName);
+      debug.log(onChangeObject);
+
+      writeJson(keyName, onChangeObject);
     }
     else
     {
-      onChangeObject = mergeObjectProps(parsedJson, defaultValue, keyName);
-      writeJson(keyName, onChangeObject);
+      onChangeObject = parsedJson;
     }
 
     return onChangeWrite(onChangeObject, keyName);

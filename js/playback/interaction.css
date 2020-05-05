@@ -6,9 +6,6 @@
 */
 
 .site-theme-light {
-  --playback-progress-bar-color: #dd0000;
-  --playback-progress-bar-color-no-autoplay: #4080ff;
-  
   --snackbar-background-color: #444;
   --snackbar-text-color: #fff;
   --snackbar-link-color: #4b96ff;
@@ -18,32 +15,12 @@
 }
 
 .site-theme-dark {
-  --playback-progress-bar-color: #dd0000;
-  --playback-progress-bar-color-no-autoplay: #4080ff;
-  
   --snackbar-background-color: #555;
   --snackbar-text-color: #fff;
   --snackbar-link-color: #4b96ff;
   --snackbar-link-hover-color: #4b96ff;
   --snackbar-button-color: #999;
   --snackbar-button-hover-color: #fff;
-}
-
-#playback-progress {
-  background: rgba(0, 0, 0, 0.3);
-  width: 100%;
-}
-
-#playback-progress .playback-progress-bar {
-  background: var(--playback-progress-bar-color);
-  height: 5px;
-  transform: scaleX(0);
-  transform-origin: left;
-  will-change: transform;
-}
-
-#playback-progress .playback-progress-bar.no-autoplay {
-  background: var(--playback-progress-bar-color-no-autoplay);
 }
 
 #snackbar {

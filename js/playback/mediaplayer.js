@@ -46,6 +46,7 @@ class MediaPlayer
   
   getPostId()               { return this.postId;           }
   getIframeId()             { return this.iframeId;         }
+  getUid()                  { return this.iframeId;         }
   getEmbeddedPlayer()       { return this.embeddedPlayer;   }
 
   setPlayable(playable)     { this.playable = playable;     }
@@ -95,6 +96,9 @@ class MediaPlayer
     
     return false;
   }
+
+  seekTo(position)  { this.embeddedPlayer.seekTo(position);  }
+  setVolume(volume) { this.embeddedPlayer.setVolume(volume); }
 }
 
 class YouTube extends MediaPlayer
@@ -104,11 +108,8 @@ class YouTube extends MediaPlayer
     super(postId, iframeId, embeddedPlayer);
   }
 
-  getUid()              { return this.getIframeId();             }
-  pause()               { this.embeddedPlayer.pauseVideo();      }
-  stop()                { this.embeddedPlayer.stopVideo();       }
-  seekTo(position)      { this.embeddedPlayer.seekTo(position);  }
-  setVolume(volume)     { this.embeddedPlayer.setVolume(volume); }
+  pause() { this.embeddedPlayer.pauseVideo(); }
+  stop()  { this.embeddedPlayer.stopVideo();  }
 
   play(playerErrorCallback)
   {
@@ -136,11 +137,10 @@ class SoundCloud extends MediaPlayer
     super(postId, iframeId, embeddedPlayer);
     this.soundId = soundId;
   }
-  
-  getUid()          { return this.soundId;                   }
-  pause()           { this.embeddedPlayer.pause();           }
-  seekTo(position)  { this.embeddedPlayer.seekTo(position);  }
-  setVolume(volume) { this.embeddedPlayer.setVolume(volume); }
+
+  // Override parent class since SoundCloud provides its own UID
+  getUid() { return this.soundId;         }
+  pause()  { this.embeddedPlayer.pause(); }
   
   play(playerErrorCallback)
   {

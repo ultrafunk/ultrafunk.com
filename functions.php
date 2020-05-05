@@ -66,15 +66,15 @@ add_filter('widget_archives_args', 'ultrafunk_limit_archives');
 //
 function ultrafunk_scripts()
 {
-  $ultrafunk_build_number = \Ultrafunk\Globals\get_build_number();
+  $version = \Ultrafunk\Globals\get_version();
   
   wp_enqueue_style('google-fonts-material-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons&display=block', array(), null);
   wp_enqueue_script('soundcloud-api-script', 'https://w.soundcloud.com/player/api.js', array(), null);
-  wp_enqueue_style('playback-style', get_theme_file_uri('/js/playback/playback.css'), array(), $ultrafunk_build_number);
-  wp_enqueue_style('interaction-style', get_theme_file_uri('/js/playback/interaction.css'), array(), $ultrafunk_build_number);
-  wp_enqueue_script('interaction-script', get_theme_file_uri('/js/playback/interaction.js'), array(), $ultrafunk_build_number);
-  wp_enqueue_style('ultrafunk-style', get_stylesheet_uri(), array(), $ultrafunk_build_number);
-  wp_enqueue_script('ultrafunk-script', get_theme_file_uri('/js/index.js'), array(), $ultrafunk_build_number);
+  wp_enqueue_style('playback-controls-style', get_theme_file_uri('/js/playback/playback-controls.css'), array(), $version);
+  wp_enqueue_style('interaction-style', get_theme_file_uri('/js/playback/interaction.css'), array(), $version);
+  wp_enqueue_script('interaction-script', get_theme_file_uri('/js/playback/interaction.js'), array(), $version);
+  wp_enqueue_style('ultrafunk-style', get_stylesheet_uri(), array(), $version);
+  wp_enqueue_script('ultrafunk-script', get_theme_file_uri('/js/index.js'), array(), $version);
   wp_localize_script('interaction-script', 'navigationVars', \Ultrafunk\ThemeFunctions\get_prev_next_urls());
 }
 add_action('wp_enqueue_scripts', 'ultrafunk_scripts');

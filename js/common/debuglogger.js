@@ -19,16 +19,11 @@ class DebugLog
 {
   constructor(caller = 'unknown')
   {
-    this.DEBUG  = DEBUG;
     this.caller = padString(caller.toUpperCase(), 11, '.');
   }
   
-  isDebug() { return this.DEBUG; }
-
-  error(data)
-  {
-    console.error(`${this.caller}:`, data);
-  }
+  isDebug()   { return DEBUG;                           }
+  error(data) { console.error(`${this.caller}:`, data); }
 }
 
 class DevBuild extends DebugLog

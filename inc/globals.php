@@ -10,7 +10,7 @@ namespace Ultrafunk\Globals;
 
 class Globals
 {
-  public $build_number = '105';
+  public $version = '1.5.6';
 
   public $shuffle_params = array(
     'is_shuffle' => false,
@@ -37,7 +37,7 @@ function console_log($output)
 
 function instance()                      { return $GLOBALS['ultrafunk_globals'];            }
 
-function get_build_number()              { return instance()->build_number;                 }
+function get_version()                   { return instance()->version;                      }
 
 function is_shuffle()                    { return instance()->shuffle_params['is_shuffle']; }
 
