@@ -5,9 +5,9 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.5.6';
-import * as storage     from './common/storage.js?ver=1.5.6';
-import * as utils       from './common/utils.js?ver=1.5.6';
+import * as debugLogger from './common/debuglogger.js?ver=1.6.0';
+import * as storage     from './common/storage.js?ver=1.6.0';
+import * as utils       from './common/utils.js?ver=1.6.0';
 
 
 const debug                  = debugLogger.getInstance('index');
@@ -15,31 +15,42 @@ const allowKeyboardShortcuts = new Event('allowKeyboardShortcuts');
 const denyKeyboardShortcuts  = new Event('denyKeyboardShortcuts');
 const navMainMenuObserver    = new IntersectionObserver(navMainMenuObserverCallback);
 let settings                 = {};
+let currentSiteTheme         = {};
+let currentTrackLayout       = {};
 let lastScrollTop            = 0;
 let scrolledUpMenuReveal     = false;
 let isWindowScrolled         = false;
 let headerHeight             = 0;
-let lastWindowWidth          = 0;
+let lastWindowInnerWidth     = 0;
 let isNavSearchVisible       = false;
 
 const config = {
   smoothScrolling:     false,
-  themeToggleId:       '#footer-theme-toggle',
+  siteThemeToggleId:   '#footer-site-theme-toggle',
   prefColorSchemeDark: '(prefers-color-scheme: dark)',
+  trackLayoutToggleId: '#footer-track-layout-toggle',
+  trackLayoutMinWidth: `(max-width: ${utils.getCssPropString('--content-track-layout-min-width')})`,
 };
 
-const THEME = {
-  LIGHT: 'light',
-  DARK:  'dark',
-  AUTO:  'auto',
+const siteThemes = {
+  light: { id: 'light', text: 'light', class: 'site-theme-light' },
+  dark:  { id: 'dark',  text: 'dark',  class: 'site-theme-dark'  },
+  auto:  { id: 'auto',  text: 'auto'                             }, // This has no CSS class since auto is always light or dark
+};
+
+const trackLayouts = {
+  list:        { id: 'list',     text: 'list',     class: 'track-layout-list'     },
+  twoColumn:   { id: '2-column', text: '2 column', class: 'track-layout-2-column' },
+  threeColumn: { id: '3-column', text: '3 column', class: 'track-layout-3-column' },
 };
 
 const defaultSettings = {
   // Incremental version to check for new properties
-  version: 1,
+  version: 2,
   // User (public) settings
   user: {
-    siteTheme: THEME.AUTO,
+    siteTheme:   siteThemes.auto.id,
+    trackLayout: trackLayouts.threeColumn.id,
   },
   // Priv (private / internal) settings
   priv: {
@@ -52,15 +63,16 @@ const defaultSettings = {
 
 // Cached elements from document.querySelector(selectors)
 const elements = {
-  page:             null,
-  searchContainer:  null,
-  navMainMenu:      null,
-  navSubMenu:       null,
-  introBanner:      null,
-  content:          null,
-  mainForm:         null,
-  colophon:         null,
-  themeToggleState: null,
+  page:              null,
+  searchContainer:   null,
+  navMainMenu:       null,
+  navSubMenu:        null,
+  introBanner:       null,
+  content:           null,
+  mainForm:          null,
+  colophon:          null,
+  siteThemeToggle:   null,
+  trackLayoutToggle: null,
 };
 
 
@@ -78,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () =>
   if (elements.introBanner !== null)
     showIntroBanner();
   
-  if (document.querySelector('#main form.search-form') !== null)
+  if (document.querySelector('#content form.search-form') !== null)
   {
     elements.mainForm.focus();
     elements.mainForm.setSelectionRange(9999, 9999);
@@ -86,20 +98,30 @@ document.addEventListener('DOMContentLoaded', () =>
 
   setTopMargin();
 
-  lastWindowWidth = window.innerWidth;
+  lastWindowInnerWidth = window.innerWidth;
 });
 
 document.addEventListener('keydown', (event) =>
 {
-  if ((event.shiftKey === false) && (event.ctrlKey === false) && (event.altKey === false))
+  if ((event.ctrlKey === false) && (event.altKey === false))
   {
     switch (event.key)
     {
       case 's':
+      case 'S':
         if ((isNavSearchVisible === false) && (elements.mainForm !== document.activeElement))
         {
           event.preventDefault();
           navSearchToggle();
+        }
+        break;
+
+      case 'm':
+      case 'M':
+        if ((isNavSearchVisible === false) && (elements.mainForm !== document.activeElement))
+        {
+          event.preventDefault();
+          navMenuToggle();
         }
         break;
     }
@@ -127,15 +149,16 @@ function initIndex()
 {
   debug.log('initIndex()');
 
-  elements.page             = document.getElementById('page');
-  elements.searchContainer  = document.getElementById('search-container');
-  elements.navMainMenu      = document.querySelector('#site-navigation .main-navigation-menu-outer');
-  elements.navSubMenu       = document.querySelector('#site-navigation .sub-navigation-menu-outer');
-  elements.introBanner      = document.getElementById('intro-banner');
-  elements.content          = document.getElementById('content');
-  elements.mainForm         = document.querySelector('#main form input.search-field');
-  elements.colophon         = document.getElementById('colophon');
-  elements.themeToggleState = document.querySelector(config.themeToggleId + ' .theme-light-dark-auto');
+  elements.page              = document.getElementById('page');
+  elements.searchContainer   = document.getElementById('search-container');
+  elements.navMainMenu       = document.querySelector('#site-navigation .main-navigation-menu-outer');
+  elements.navSubMenu        = document.querySelector('#site-navigation .sub-navigation-menu-outer');
+  elements.introBanner       = document.getElementById('intro-banner');
+  elements.content           = document.getElementById('content');
+  elements.mainForm          = document.querySelector('#content form input.search-field');
+  elements.colophon          = document.getElementById('colophon');
+  elements.siteThemeToggle   = document.querySelector(config.siteThemeToggleId);
+  elements.trackLayoutToggle = document.querySelector(config.trackLayoutToggleId);
   
   // Nav menu-toggle click handler
   utils.addEventListeners('.nav-menu-toggle', 'click', navMenuToggle);
@@ -153,16 +176,22 @@ function initIndex()
   // Hide nav search bar on ESC
   utils.addEventListeners('#search-container .search-field', 'keydown', (event) => { if (event.key === 'Escape') hideNavSearch(); });
   
-  // Theme handling
-  const mediaQueryList = window.matchMedia(config.prefColorSchemeDark);
-  mediaQueryList.addListener(matchMediaPrefColorScheme);
-  updateThemeDOM();
-  utils.addEventListeners(config.themeToggleId, 'click', themeToggle);
+  // Site theme handling
+  const siteThemeMediaQueryList = window.matchMedia(config.prefColorSchemeDark);
+  siteThemeMediaQueryList.addListener(matchMediaPrefColorScheme);
+  setCurrentSiteTheme();
+  utils.addEventListeners(config.siteThemeToggleId, 'click', siteThemeToggle);
+
+  // Track layout handling
+  const trackLayoutMediaQueryList = window.matchMedia(config.trackLayoutMinWidth);
+  trackLayoutMediaQueryList.addListener(matchMediaTrackLayoutMinWidth);
+  setCurrentTrackLayout();
+  utils.addEventListeners(config.trackLayoutToggleId, 'click', trackLayoutToggle);
 }
 
 
 // ************************************************************************************************
-//
+// 
 // ************************************************************************************************
 
 function windowEventStorage(event)
@@ -178,57 +207,141 @@ function windowEventStorage(event)
 
     // Check what has changed (old settings vs. new settings) and update data / UI where needed
     if(settings.user.siteTheme !== oldSettings.user.siteTheme)
-      updateThemeDOM();
+    {
+      setCurrentSiteTheme();
+    }
+
+    if (settings.user.trackLayout !== oldSettings.user.trackLayout)
+    {
+      setCurrentTrackLayout();
+      updateTrackLayoutDOM();
+    }
   }
-}
-
-function matchMediaPrefColorScheme()
-{
-  if (settings.user.siteTheme === THEME.AUTO)
-    updateThemeDOM();
-}
-
-function themeToggle(event)
-{
-  event.preventDefault();
-  const themeToggleState = elements.themeToggleState.textContent;
-
-  switch (themeToggleState)
-  {
-    case THEME.LIGHT:
-      settings.user.siteTheme = THEME.DARK;
-      break;
-
-    case THEME.DARK:
-      settings.user.siteTheme = THEME.AUTO;
-      break;
-
-    default:
-      settings.user.siteTheme = THEME.LIGHT;
-      break;
-  }
-  
-  updateThemeDOM();  
-}
-
-function updateThemeDOM()
-{
-  debug.log(`updateThemeDOM(): ${settings.user.siteTheme}`);
-
-  let siteTheme = window.matchMedia(config.prefColorSchemeDark).matches ? THEME.DARK : THEME.LIGHT;
-
-  if ((settings.user.siteTheme === THEME.LIGHT) || (settings.user.siteTheme === THEME.DARK))
-    siteTheme = settings.user.siteTheme;
-
-  storage.setValue(storage.KEY.UF_SITE_THEME, siteTheme);
-  document.querySelector('html').classList.remove('site-theme-dark', 'site-theme-light');
-  document.querySelector('html').classList.add(`site-theme-${siteTheme}`);
-  elements.themeToggleState.textContent = settings.user.siteTheme;
 }
 
 
 // ************************************************************************************************
-//
+// Site theme handling
+// ************************************************************************************************
+
+function setCurrentSiteTheme()
+{
+  currentSiteTheme = utils.getObjectFromKeyValue(siteThemes, 'id', settings.user.siteTheme, siteThemes.auto);
+  updateSiteThemeData();
+}
+
+function matchMediaPrefColorScheme()
+{
+  if (currentSiteTheme.id === siteThemes.auto.id)
+    updateSiteThemeData();
+}
+
+function siteThemeToggle(event)
+{
+  event.preventDefault();
+
+  switch (currentSiteTheme.id)
+  {
+    case siteThemes.light.id:
+      currentSiteTheme = siteThemes.dark;
+      break;
+
+    case siteThemes.dark.id:
+      currentSiteTheme = siteThemes.auto;
+      break;
+
+    case siteThemes.auto.id:
+      currentSiteTheme = siteThemes.light;
+      break;
+    }
+
+  settings.user.siteTheme = currentSiteTheme.id;
+  updateSiteThemeData();  
+}
+
+function updateSiteThemeData()
+{
+  let newSiteTheme = currentSiteTheme;
+
+  if (currentSiteTheme.id === siteThemes.auto.id)
+    newSiteTheme = window.matchMedia(config.prefColorSchemeDark).matches ? siteThemes.dark : siteThemes.light;
+
+  storage.setValue(storage.KEY.UF_SITE_THEME, newSiteTheme.id);
+  updateSiteThemeDOM(newSiteTheme);
+}
+
+function updateSiteThemeDOM(newSiteTheme)
+{
+  debug.log(`updateSiteThemeDOM() - newSiteTheme: ${newSiteTheme.id}`);
+
+  document.documentElement.classList.remove(siteThemes.light.class, siteThemes.dark.class);
+  document.documentElement.classList.add(newSiteTheme.class);
+  elements.siteThemeToggle.querySelector('span').textContent = currentSiteTheme.text;
+}
+
+
+// ************************************************************************************************
+// Track layout handling
+// ************************************************************************************************
+
+function setCurrentTrackLayout()
+{
+  currentTrackLayout = utils.getObjectFromKeyValue(trackLayouts, 'id', settings.user.trackLayout, trackLayouts.threeColumn);
+  elements.trackLayoutToggle.querySelector('span').textContent = currentTrackLayout.text;
+}
+
+function matchMediaTrackLayoutMinWidth(event)
+{
+  if (event.matches)
+    document.documentElement.classList.remove(currentTrackLayout.class);
+  else
+    document.documentElement.classList.add(currentTrackLayout.class);
+}
+
+function trackLayoutToggle(event)
+{
+  event.preventDefault();
+
+  switch (currentTrackLayout.id)
+  {
+    case trackLayouts.list.id:
+      currentTrackLayout = trackLayouts.twoColumn;
+      break;
+
+    case trackLayouts.twoColumn.id:
+      currentTrackLayout = trackLayouts.threeColumn;
+      break;
+
+    case trackLayouts.threeColumn.id:
+      currentTrackLayout = trackLayouts.list;
+      break;
+  }
+
+  settings.user.trackLayout = currentTrackLayout.id;
+  updateTrackLayoutData();
+}
+
+function updateTrackLayoutData()
+{
+  storage.setValue(storage.KEY.UF_TRACK_LAYOUT, currentTrackLayout.id);
+  updateTrackLayoutDOM();
+}
+
+function updateTrackLayoutDOM()
+{
+  debug.log(`updateTrackLayoutDOM() - newTrackLayout: ${currentTrackLayout.id}`);
+
+  document.documentElement.classList.remove(trackLayouts.list.class, trackLayouts.twoColumn.class, trackLayouts.threeColumn.class);
+
+  if (window.matchMedia(config.trackLayoutMinWidth).matches === false)
+    document.documentElement.classList.add(currentTrackLayout.class);
+
+  elements.trackLayoutToggle.querySelector('span').textContent = currentTrackLayout.text;
+}
+
+
+// ************************************************************************************************
+// Navigation menu and search handling
 // ************************************************************************************************
 
 function isMobileNavMainMenuVisible()
@@ -264,8 +377,11 @@ function navMenuToggle()
   }
   else
   {
-    elements.page.classList.toggle('hide-main-nav-menu');
-    setTopMargin();
+    if (elements.page.classList.contains('sticky-nav-down') === false)
+    {
+      elements.page.classList.toggle('hide-main-nav-menu');
+      setTopMargin();
+    }
   }
 }
 
@@ -371,21 +487,21 @@ function showIntroBanner()
 
 function windowEventResize()
 {
-  const width = window.innerWidth;
+  const innerWidth = window.innerWidth;
 
-  // Fix for strange Chrome mobile resize events that are not supposed to happen...
-  if (lastWindowWidth !== width)
+  // "Fix" for strange Chrome mobile resize events that are not supposed to happen...
+  if (lastWindowInnerWidth !== innerWidth)
   {
     setTopMargin();
-    lastWindowWidth = width;
+    lastWindowInnerWidth = innerWidth;
   }
 }
 
-const contentTopMarginPx       = utils.getCssPropValue('--content-top-margin');
-const contentTopMarginMobilePx = utils.getCssPropValue('--content-top-margin-mobile');
-
 function setTopMargin()
 {
+  const contentTopMarginPx       = utils.getCssPropValue('--content-top-margin');
+  const contentTopMarginMobilePx = utils.getCssPropValue('--content-top-margin-mobile');
+
   let topMargin = contentTopMarginPx;
   
   if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
@@ -399,7 +515,7 @@ function setTopMargin()
   {
     headerHeight = document.getElementById('masthead').offsetHeight;
   }
-  
+
   if ((elements.introBanner !== null) && (elements.introBanner.style.display.length !== 0))
   {
     elements.introBanner.style.marginTop = `${headerHeight}px`;
@@ -418,11 +534,12 @@ function setTopMargin()
 
 function windowEventScroll()
 {
-  const scrollTop = window.pageYOffset;
+  const scrollTop          = window.pageYOffset;
+  const scrollDownMenuHide = Math.round((headerHeight > 150) ? (headerHeight / 2) : (headerHeight / 3));
 
   if (scrollTop === 0)
     scrolledTop();
-  else if ((scrollTop > (headerHeight / 2)) && (scrollTop > lastScrollTop))
+  else if ((scrollTop > scrollDownMenuHide) && (scrollTop > lastScrollTop))
     scrolledDown();
   else
     scrolledUp();
@@ -442,7 +559,11 @@ function setScrolledUpMenuReveal(navMainDisplay, navSubDisplay, revealMenu)
       
 function scrolledTop()
 {
-  elements.page.classList.remove('sticky-nav-down', 'sticky-nav-up', 'hide-main-nav-menu');
+  if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
+    elements.page.classList.remove('sticky-nav-down', 'sticky-nav-up', 'hide-main-nav-menu');
+  else
+    elements.page.classList.remove('sticky-nav-down', 'sticky-nav-up');
+
   setScrolledUpMenuReveal('', '', false);
   setTopMargin();
 }

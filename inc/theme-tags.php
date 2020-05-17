@@ -9,7 +9,12 @@ namespace Ultrafunk\ThemeTags;
 
 
 use function Ultrafunk\Globals\ { get_version, is_shuffle, get_perf_data };
-use function Ultrafunk\ThemeFunctions\ { get_prev_next_urls, get_title };
+use function Ultrafunk\ThemeFunctions\ {
+  get_prev_next_urls,
+  get_title,
+  get_shuffle_menu_item_url,
+  get_shuffle_menu_item_title,
+};
 
 
 function pre_wp_head()
@@ -19,13 +24,26 @@ function pre_wp_head()
 
   ?>
   <script>
-    const siteTheme      = localStorage.getItem('UF_SITE_THEME');
-    let   siteThemeClass = 'site-theme-light';
+    const siteTheme        = localStorage.getItem('UF_SITE_THEME');
+    let   siteThemeClass   = 'site-theme-light';
+    const trackLayout      = localStorage.getItem('UF_TRACK_LAYOUT');
+    let   trackLayoutClass = 'track-layout-3-column';
 
     if (siteTheme !== null)
-      siteThemeClass = (siteTheme.toLowerCase() === 'dark') ? 'site-theme-dark' : 'site-theme-light';
+      siteThemeClass = (siteTheme === 'dark') ? 'site-theme-dark' : 'site-theme-light';
 
-    document.querySelector('html').classList.add(siteThemeClass);
+    document.documentElement.classList.add(siteThemeClass);
+
+    if (trackLayout !== null)
+    {
+      if (trackLayout === 'list')
+        trackLayoutClass = 'track-layout-list';
+      else if (trackLayout === '2-column')
+        trackLayoutClass = 'track-layout-2-column';
+    }
+
+    if (window.innerWidth > 1100)
+      document.documentElement.classList.add(trackLayoutClass);
   </script>
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
@@ -50,7 +68,7 @@ function head()
   }
 
   ?>
-  <noscript><link rel="stylesheet" href="<?php echo esc_url(get_template_directory_uri()); ?>/style_noscript.css" media="all" /></noscript>
+  <noscript><link rel="stylesheet" href="<?php echo esc_url(get_template_directory_uri()); ?>/style-noscript.css" media="all" /></noscript>
   <?php
 
   if (true === WP_DEBUG)
@@ -81,6 +99,20 @@ function head()
   }
 }
 
+function header_logo()
+{
+  ?>
+  <img src="<?php echo wp_get_attachment_image_src(get_theme_mod('custom_logo'), 'full')[0]; ?>" alt="">
+  <?php
+}
+
+function footer_logo()
+{
+  ?>
+  <img src="<?php echo get_theme_mod('ultrafunk_footer_logo'); ?>" alt="">
+  <?php
+}
+
 function nav_progress_bar()
 {
   ?>
@@ -96,9 +128,11 @@ function nav_playback_controls()
   <div id="playback-controls">
     <div class="progress-control"></div>
     <div class="details-control" title="Current track"><span class="details-artist"></span><br><span class="details-title"></span></div>
-    <div class="prev-control" title="Previous track / seek"><i class="material-icons">skip_previous</i></div>
-    <div class="play-pause-control" title="Play / Pause"><i class="material-icons">play_circle_filled</i></div>
-    <div class="next-control" title="Next track"><i class="material-icons">skip_next</i></div>
+    <div class="timer-control" title="Track position &amp; duration"><span class="timer-position"></span><br><span class="timer-duration"></span></div>
+    <div class="prev-control" title="Previous track / seek (arrow left)"><i class="material-icons">skip_previous</i></div>
+    <div class="play-pause-control" title="Play / Pause (space)"><i class="material-icons">play_circle_filled</i></div>
+    <div class="next-control" title="Next track (arrow right)"><i class="material-icons">skip_next</i></div>
+    <div class="shuffle-control" title="<?php echo esc_attr(get_shuffle_menu_item_title()); ?>"><a href="<?php echo esc_url(get_shuffle_menu_item_url()); ?>"><i class="material-icons">shuffle</i></a></div>
   </div>
   <?php
 }
@@ -114,8 +148,8 @@ function nav_items($class)
 {
   ?>
   <div class="<?php echo $class; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>">
-    <div class="nav-menu-toggle" title="Toggle menu"><i class="material-icons">menu</i></div>
-    <div class="nav-search-toggle" title="Show / Hide search"><i class="material-icons">search</i></div>
+    <div class="nav-menu-toggle" title="Toggle menu (m)"><i class="material-icons">menu</i></div>
+    <div class="nav-search-toggle" title="Show / Hide search (s)"><i class="material-icons">search</i></div>
   </div>
   <?php
 }
@@ -130,12 +164,12 @@ function nav_pagination()
     
     if (!empty($prev_next_urls['prevUrl']))
     {
-      ?><a href="<?php echo $prev_next_urls['prevUrl']; ?>"><i class="material-icons sub-pagination-prev" title="Previous track / page">arrow_backward</i></a><?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+      ?><a href="<?php echo $prev_next_urls['prevUrl']; ?>"><i class="material-icons sub-pagination-prev" title="Previous track / page (shift + arrow left)">arrow_backward</i></a><?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
     
     if (!empty($prev_next_urls['nextUrl']))
     {
-      ?><a href="<?php echo $prev_next_urls['nextUrl']; ?>"><i class="material-icons sub-pagination-next" title="Next track / page">arrow_forward</i></a><?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+      ?><a href="<?php echo $prev_next_urls['nextUrl']; ?>"><i class="material-icons sub-pagination-next" title="Next track / page (shift + arrow right)">arrow_forward</i></a><?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
 
     ?></div><?php
@@ -149,7 +183,6 @@ function nav_pagination()
     <?php
   }
 }
-
 
 function get_pagednum()
 {
@@ -165,6 +198,21 @@ function get_pagination($before = ' ( ', $separator = ' / ', $after = ' ) ')
     $pagination = $before . get_pagednum() . $separator . $wp_query->max_num_pages . $after;
   
   return $pagination;
+}
+
+function get_search_hits()
+{
+  global $wp_query;
+    
+  if ($wp_query->found_posts > 1)
+  {
+    if ($wp_query->max_num_pages <= 1)
+      return ' (' . $wp_query->found_posts . ' hits)';
+    else
+      return ' (' . $wp_query->found_posts . ' hits - page ' . get_pagination('', ' of ', ')');
+  }
+
+  return '';
 }
 
 function nav_title()
@@ -199,7 +247,7 @@ function nav_title()
   {
     $prefix = '<b>Artist: </b>';
   }
-  
+
   echo $prefix . $title . $pagination; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }
 
@@ -212,17 +260,9 @@ function index_title()
   
   if (is_search() && have_posts())
   {
-    global $wp_query;
-    $prefix = 'Search results:';
-    $title  = get_search_query();
-    
-    if ($wp_query->found_posts > 1)
-    {
-      if ($wp_query->max_num_pages <= 1)
-        $pagination = ' (' . $wp_query->found_posts . ' hits)';
-      else
-        $pagination = ' (' . $wp_query->found_posts . ' hits - page ' . get_pagination('', ' of ', ')');
-    }
+    $prefix     = 'Search results:';
+    $title      = get_search_query();
+    $pagination = get_search_hits();
   }
   else if (is_tag() && $show_title)
   {
@@ -248,7 +288,7 @@ function index_title()
   }
 
   ?>
-  <h1 class="entry-header pages-header"><?php echo esc_html($prefix); ?> <span class="light-text"><?php echo esc_html($title); ?></span><span class="lightest-text"><?php echo esc_html($pagination); ?></span></h1>
+  <h1 class="content-header"><?php echo esc_html($prefix); ?> <span class="light-text"><?php echo esc_html($title); ?></span><span class="lightest-text"><?php echo esc_html($pagination); ?></span></h1>
   <?php
 }
 
@@ -280,12 +320,12 @@ function footer_title()
   echo $title_pagination; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }
 
-function content_title()
+function entry_title()
 {
   if (is_singular())
-    the_title('<h2 class="entry-title">', '</h2>');
+    the_title('<h2 class="entry-title"><span class="currently-playing material-icons">equalizer</span>', '</h2>');
   else
-    the_title(sprintf('<h2 class="entry-title"><a href="%s" rel="bookmark">', esc_url(get_permalink())), '</a></h2>');
+    the_title(sprintf('<h2 class="entry-title"><span class="currently-playing material-icons">equalizer</span><a href="%s" rel="bookmark">', esc_url(get_permalink())), '</a></h2>');
 }
 
 function meta_date_author()

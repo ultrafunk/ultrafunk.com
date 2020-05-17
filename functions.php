@@ -34,9 +34,26 @@ function ultrafunk_theme_setup()
   
   add_theme_support('html5', array('search-form', 'script', 'style'));
   add_theme_support('title-tag');
+  add_theme_support('custom-logo');
 }
 add_action('after_setup_theme', 'ultrafunk_theme_setup');
 
+// Add custom footer logo
+function ultrafunk_customizer_setting($wp_customize)
+{
+  $wp_customize->add_setting('ultrafunk_footer_logo');
+
+  $customize_options = array(
+    'label'    => 'Footer Logo',
+    'section'  => 'title_tagline',
+    'settings' => 'ultrafunk_footer_logo',
+    'priority' => 8,
+  );
+
+  $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'ultrafunk_footer_logo', $customize_options));
+}
+add_action('customize_register', 'ultrafunk_customizer_setting');
+  
 // Add theme taxonomy widget
 function ultrafunk_widgets_init()
 {
@@ -75,6 +92,7 @@ function ultrafunk_scripts()
   wp_enqueue_script('interaction-script', get_theme_file_uri('/js/playback/interaction.js'), array(), $version);
   wp_enqueue_style('ultrafunk-style', get_stylesheet_uri(), array(), $version);
   wp_enqueue_script('ultrafunk-script', get_theme_file_uri('/js/index.js'), array(), $version);
+  \Ultrafunk\ThemeFunctions\enqueue_style_track_layout($version);
   wp_localize_script('interaction-script', 'navigationVars', \Ultrafunk\ThemeFunctions\get_prev_next_urls());
 }
 add_action('wp_enqueue_scripts', 'ultrafunk_scripts');

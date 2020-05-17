@@ -58,7 +58,7 @@
   display: flex;
   align-items: center;  
   height: 64px;
-  margin-right: -15px;
+  margin-right: -5px;
   min-width: 0;
 }
 
@@ -73,9 +73,21 @@
   line-height: 45px;
   font-weight: 700;
   margin-top: -23px;
-  padding-right: 13px;
+  padding-right: 3px;
   display: inline-block;
   color: var(--playback-text-color);
+}
+
+#playback-controls .timer-control {
+  display: none;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 400;
+  text-align: right;
+  margin-right: 7px;
+  color: var(--playback-text-color);
+  user-select: none;
+  min-width: 38px;
 }
 
 #playback-controls .details-control {
@@ -87,7 +99,7 @@
   text-align: right;
   white-space: nowrap;
   overflow: hidden;
-  margin-right: 5px;
+  margin-right: 20px;
   color: var(--playback-text-color);
   user-select: none;
 }
@@ -144,6 +156,10 @@
   background-position: center;
 }
 
+#playback-controls .play-pause-control.no-autoplay.state-pause.time-remaining-warning {
+  opacity: 0.25;
+}
+
 #playback-controls .prev-control,
 #playback-controls .next-control {
   color: var(--playback-prev-next-color);
@@ -155,8 +171,22 @@
   cursor: pointer;
 }
 
-#playback-controls .play-pause-control.no-autoplay.state-pause.time-remaining-warning {
-  opacity: 0.25;
+#playback-controls .shuffle-control {
+  display: none;
+}
+
+#playback-controls .shuffle-control .material-icons {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+#playback-controls .shuffle-control a {
+  color: var(--playback-text-color);
+}
+
+#playback-controls .shuffle-control a:hover {
+  color: var(--playback-text-hover-color);
 }
 
 @media not all and (pointer: fine) {
@@ -195,6 +225,38 @@
     color: var(--playback-prev-next-color);
   }
 
+}
+
+.currently-playing.material-icons {
+  color: var(--playback-play-pause-color);
+}
+
+.currently-playing.material-icons.no-autoplay {
+  color: var(--playback-play-pause-color-no-autoplay);
+}
+
+@media screen and (max-width: 900px) {
+
+  #playback-controls {
+    margin-right: -15px;
+  }
+  
+  #playback-controls .progress-control {
+    padding-right: 13px;
+  }
+
+  #playback-controls .timer-control {
+    display: none !important;
+  }
+
+  #playback-controls .shuffle-control {
+    display: none !important;
+  }
+
+  #playback-controls .details-control {
+    margin-right: 5px;
+  }
+  
 }
 
 @media screen and (max-width: 650px) {

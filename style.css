@@ -4,7 +4,7 @@ Theme URI: https://github.com/ultrafunk/ultrafunk.com
 Author: Ultrafunk
 Author URI: https://ultrafunk.com
 Description: ultrafunk.com WordPress theme
-Version: 1.5.6
+Version: 1.6.0
 License: Apache License 2.0
 License URI: https://www.apache.org/licenses/LICENSE-2.0
 Text Domain: ultrafunk
@@ -17,14 +17,15 @@ Tags: one-column
 ***************************************************************************************************/
 
 :root {
+  --site-min-width-wide: 1351px;
   --site-max-width: 1200px;
   --site-max-width-mobile: 500px;
 
   --site-header-full: 217px;
   --site-header-1350px: 217px;
   --site-header-1200px: 217px;
-  --site-header-1100px: 213px;
-  --site-header-900px: 250px;
+  --site-header-1100px: 204px;
+  --site-header-900px: 238px;
   --site-header-768px: 267px;
   --site-header-500px: 185px;
   --site-header-no-playback-500px: 125px;
@@ -38,6 +39,8 @@ Tags: one-column
   --content-top-margin-mobile: 50px;
   --content-top-margin-no-playback: 70px;
   --content-top-margin-no-playback-mobile: 45px;
+
+  --content-track-layout-min-width: 1100px;
 }
 
 .site-theme-light {
@@ -309,9 +312,9 @@ ul#menu-primary-menu {
 }
 
 .sub-navigation-pagination .material-icons {
-  font-size: 46px;
-  width: 46px;
-  height: 46px;
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
   color: var(--dark-font-color);
 }
 
@@ -405,7 +408,7 @@ body.no-playback-controls #content {
 
 nav.navigation.pagination,
 nav.navigation.post-navigation {
-  margin: 175px auto;
+  margin: 160px auto 175px auto;
 }
 
 nav .nav-links ul {
@@ -520,28 +523,33 @@ nav .nav-links ul {
 
 #colophon .footer-toggles {
   margin-top: 25px;
+  white-space: nowrap;
 }
 
 #footer-autoplay-toggle,
-#footer-theme-toggle {
+#footer-site-theme-toggle,
+#footer-track-layout-toggle {
   display: block;
 }
 
 #footer-autoplay-toggle .autoplay-on-off,
-#footer-theme-toggle .theme-light-dark-auto {
+#footer-site-theme-toggle .site-theme-light-dark-auto,
+#footer-track-layout-toggle .track-layout-list-2x-3x {
   font-weight: 700;
   text-transform: uppercase;
 }
 
 a:hover#footer-autoplay-toggle,
-a:hover#footer-theme-toggle  {
+a:hover#footer-site-theme-toggle,
+a:hover#footer-track-layout-toggle {
   text-decoration: none;
 }
 
 @media not all and (pointer: fine) {
 
   a:hover#footer-autoplay-toggle,
-  a:hover#footer-theme-toggle {
+  a:hover#footer-site-theme-toggle,
+  a:hover#footer-track-layout-toggle {
       color: var(--site-theme-font-color);
   }
   
@@ -559,9 +567,11 @@ body.no-playback-controls #footer-autoplay-toggle {
 h1 {
   font-size: 40px;
   line-height: 50px;
+  margin-block-start: 0.83em;
+  margin-block-end: 0.83em;
 }
 
-h1.pages-header {
+h1.content-header {
   margin: 0;
   padding-top: 0;
   padding-bottom: 45px;
@@ -598,6 +608,16 @@ h2.entry-title a {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.currently-playing.material-icons {
+  font-size: 38px;
+  line-height: 0;
+  position: relative;
+  top: 6px;
+  margin-right: 10px;
+  margin-left: -6px;
+  display: none;
 }
 
 h2,
@@ -833,13 +853,6 @@ aside.widget-area ul {
     padding-bottom: 0;
   }
  
-  /*
-  .sticky-nav-down #search-container,
-  .sticky-nav-up #search-container {
-    display: none !important;
-  }
-  */
-
   .sticky-nav-down #masthead #playback-controls,
   .sticky-nav-up #masthead #playback-controls {
     margin-top: 6px;
@@ -874,7 +887,7 @@ aside.widget-area ul {
   display: flex;
 }
 
-@media screen and (max-width: 500px) {
+@media screen and (max-width: 500px), (min-width: 1351px) {
 
   #site-navigation .main-navigation-menu-outer {
     display: none;
@@ -913,19 +926,35 @@ aside.widget-area ul {
 * Responsive
 ***************************************************************************************************/
 
+@media screen and (min-width: 1351px) {
+
+  #content {
+    margin-top: calc(var(--content-top-margin) + var(--site-header-up));
+  }
+
+  body.no-playback-controls #content {
+    margin-top: calc(var(--content-top-margin-no-playback) + var(--site-header-up));
+  }
+
+  h1.content-header {
+    display: none;
+  }
+
+}
+
 @media screen and (max-width: 1350px) {
   
   .site-header-container,
   nav.navigation,
   #intro-banner,
   #colophon,
+  h1.content-header,
   .entry-header,
   .entry-content h2,
   .entry-content h3,
   .entry-content p,
   .entry-content ul,
   .entry-content form,
-  .entry-footer,
   aside  {
     padding-left: 75px;
     padding-right: 75px;
@@ -974,7 +1003,7 @@ aside.widget-area ul {
   #menu-primary-menu li {
     font-size: unset;
     line-height: unset;
-    margin-bottom: 7px;
+    margin-bottom: 4px;
   }
 
   #content {
@@ -1015,13 +1044,13 @@ aside.widget-area ul {
   nav.navigation,
   #intro-banner,
   #colophon,
+  h1.content-header,
   .entry-header,
   .entry-content h2,
   .entry-content h3,
   .entry-content p,
   .entry-content ul,
   .entry-content form,
-  .entry-footer,
   aside  {
     padding-left: 50px;
     padding-right: 50px;
@@ -1050,6 +1079,13 @@ aside.widget-area ul {
     line-height: 40px;
   }
 
+  .currently-playing.material-icons {
+    font-size: 33px;
+    top: 5px;
+    margin-right: 8px;
+    margin-left: -5px;
+  }
+
   h3 {
     font-size: 25px;
     line-height: 35px;
@@ -1063,13 +1099,6 @@ aside.widget-area ul {
     line-height: unset;
   }
 
-  /*
-  form .search-field {
-    max-width: 100%;
-    width: 75%;
-  }
-  */
-
 }
 
 @media screen and (max-width: 768px) {
@@ -1078,13 +1107,13 @@ aside.widget-area ul {
   nav.navigation,
   #intro-banner,
   #colophon,
+  h1.content-header,
   .entry-header,
   .entry-content h2,
   .entry-content h3,
   .entry-content p,
   .entry-content ul,
   .entry-content form,
-  .entry-footer,
   aside  {
     padding-left: 25px;
     padding-right: 25px;
@@ -1103,6 +1132,7 @@ aside.widget-area ul {
 
   #menu-primary-menu li {
     width: 32.5%;
+    margin-bottom: 7px;
   }
 
   #content {
@@ -1145,6 +1175,13 @@ aside.widget-area ul {
     line-height: 35px;
   }
 
+  .currently-playing.material-icons {
+    font-size: 27px;
+    top: 4px;
+    margin-right: 8px;
+    margin-left: -4px;
+  }
+
   h3 {
     font-size: 20px;
     line-height: 30px;
@@ -1184,7 +1221,6 @@ aside.widget-area ul {
   .entry-content p,
   .entry-content ul,
   .entry-content form,
-  .entry-footer,
   aside  {
     padding-left: 20px;
     padding-right: 20px;
@@ -1273,6 +1309,7 @@ aside.widget-area ul {
   
   #menu-primary-menu li {
     width: 49%;
+    margin-bottom: 10px;
   }
   
   .sub-navigation-pagination {
@@ -1280,9 +1317,9 @@ aside.widget-area ul {
   }
 
   .sub-navigation-pagination .material-icons {
-    font-size: 34px;
-    width: 34px;
-    height: 34px;
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
   }
 
   .sub-navigation-details {
@@ -1336,7 +1373,7 @@ aside.widget-area ul {
     line-height: 35px;
   }
   
-  h1.pages-header {
+  h1.content-header {
     display:none;
   }
   
@@ -1344,6 +1381,13 @@ aside.widget-area ul {
   h2.entry-title a {
     font-size: 18px;
     line-height: 26px;
+  }
+
+  .currently-playing.material-icons {
+    font-size: 20px;
+    top: 3px;
+    margin-right: 6px;
+    margin-left: -3px;
   }
 
   h2,

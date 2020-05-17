@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.5.6';
+import * as debugLogger from '../common/debuglogger.js?ver=1.6.0';
 
 
 export {
@@ -16,6 +16,7 @@ export {
   getCssPropString,
   getCssPropValue,
   matchesMedia,
+  getObjectFromKeyValue,
   showSnackbar,
 };
 
@@ -23,12 +24,14 @@ export {
 const debug = debugLogger.getInstance('utils');
 
 const MATCH = {
-  SITE_MAX_WIDTH:        1,
-  SITE_MAX_WIDTH_MOBILE: 2,
+  SITE_MIN_WIDTH_WIDE:   1,
+  SITE_MAX_WIDTH:        2,
+  SITE_MAX_WIDTH_MOBILE: 3,
 };
 
-const siteMaxWidth       = window.matchMedia(`(max-width:${getCssPropString('--site-max-width')})`);
-const siteMaxWidthMobile = window.matchMedia(`(max-width:${getCssPropString('--site-max-width-mobile')})`);
+const siteMinWidthWide   = window.matchMedia(`(min-width: ${getCssPropString('--site-min-width-wide')})`);
+const siteMaxWidth       = window.matchMedia(`(max-width: ${getCssPropString('--site-max-width')})`);
+const siteMaxWidthMobile = window.matchMedia(`(max-width: ${getCssPropString('--site-max-width-mobile')})`);
 
 const config = {
   snackbarAfterId: 'colophon',
@@ -85,6 +88,9 @@ function matchesMedia(matchMedia)
 
   switch (matchMedia)
   {
+    case MATCH.SITE_MIN_WIDTH_WIDE:
+      return siteMinWidthWide.matches;
+      
     case MATCH.SITE_MAX_WIDTH:
       return siteMaxWidth.matches;
 
@@ -93,6 +99,19 @@ function matchesMedia(matchMedia)
   }
 
   return matches;
+}
+
+function getObjectFromKeyValue(object, key, value, defaultObject)
+{
+  const values = Object.values(object);
+
+  for (let i = 0; i < values.length; i++)
+  {
+    if (values[i][key] === value)
+      return values[i];
+  }
+
+  return defaultObject;
 }
 
 

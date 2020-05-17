@@ -6,9 +6,9 @@
 
 ?>
 
-<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+<article id="post-<?php the_ID(); ?>" data-entry-title="<?php echo get_the_title(); ?>" <?php post_class(); ?>>
   <header class="entry-header">
-    <?php \Ultrafunk\ThemeTags\content_title(); ?>
+    <?php \Ultrafunk\ThemeTags\entry_title(); ?>
     <div class="entry-meta">
       <div class="entry-meta-date-author">
         <?php \Ultrafunk\ThemeTags\meta_date_author(); ?>
@@ -22,7 +22,5 @@
   <div class="entry-content">
     <?php the_content(); ?>
   </div><!-- .entry-content -->
-  <footer class="entry-footer">
-  </footer><!-- .entry-footer -->
 </article><!-- #post-<?php the_ID(); ?> -->
 

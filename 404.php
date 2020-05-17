@@ -6,21 +6,8 @@
 
 get_header();
 
-?>
+get_template_part('template-parts/content', 'none');
 
-  <section id="primary" class="content-area">
-    <main id="main" class="site-main">
-  
-    <?php
-    get_template_part('template-parts/content', 'none');
-    ?>
-  
-    </main><!-- #main -->
-  </section><!-- .content-area -->
-
-<?php
-
-// get_sidebar();
 get_footer(); 
 
 ?>

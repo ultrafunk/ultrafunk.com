@@ -1,6 +1,6 @@
 {
   "name": "ultrafunk.com",
-  "version": "1.5.6",
+  "version": "1.6.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,14 +11,6 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "^6.8.0",
-    "eslint-config-standard": "^14.1.1",
-    "eslint-plugin-import": "^2.20.2",
-    "eslint-plugin-node": "^10.0.0",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.1"
-  },
-  "dependencies": {
-    "minify": "^5.1.1"
+    "eslint": "^7.0.0"
   }
 }

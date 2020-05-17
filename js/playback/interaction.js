@@ -5,11 +5,11 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.5.6';
-import * as storage     from '../common/storage.js?ver=1.5.6';
-import * as utils       from '../common/utils.js?ver=1.5.6';
-import * as eventLogger from './eventlogger.js?ver=1.5.6';
-import * as playback    from './playback.js?ver=1.5.6';
+import * as debugLogger from '../common/debuglogger.js?ver=1.6.0';
+import * as storage     from '../common/storage.js?ver=1.6.0';
+import * as utils       from '../common/utils.js?ver=1.6.0';
+import * as eventLogger from './eventlogger.js?ver=1.6.0';
+import * as playback    from './playback.js?ver=1.6.0';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -55,6 +55,7 @@ const elements = {
   playbackProgressBar:    null,
   playbackControls:       { playPause: null, details: null },
   fullscreenChangeTarget: null,
+  currentlyPlayingIcons:  null,
   footerAutoPlayToggle:   null,
 };
 
@@ -122,6 +123,7 @@ function initInteraction()
   elements.playbackProgressBar        = document.getElementById('playback-progress').querySelector('.playback-progress-bar');
   elements.playbackControls.playPause = document.getElementById('playback-controls').querySelector('.play-pause-control');
   elements.playbackControls.details   = document.getElementById('playback-controls').querySelector('.details-control');
+  elements.currentlyPlayingIcons      = document.querySelectorAll('.currently-playing.material-icons');
   elements.footerAutoPlayToggle       = document.getElementById(config.autoPlayToggleId);
 
   window.addEventListener('blur',    windowEventBlur);
@@ -158,6 +160,11 @@ function playbackEventCallback(playbackEvent, eventData = null)
       elements.footerAutoPlayToggle.addEventListener('click', autoPlayToggle);
       break;
 
+    case playback.EVENT.MEDIA_START:
+      elements.currentlyPlayingIcons.forEach(element => element.style.display = 'none');
+      document.querySelector(`#${eventData.postId} .currently-playing.material-icons`).style.display = 'inline-block';
+      break;
+      
     case playback.EVENT.MEDIA_PLAYING:
       if (eventData !== null)
       {
@@ -201,7 +208,7 @@ function playbackEventCallback(playbackEvent, eventData = null)
       break;
       
     case playback.EVENT.AUTOPLAY_BLOCKED:
-      utils.showSnackbar('Autoplay was blocked, click or tap Play to continue...', 30);
+      utils.showSnackbar('Autoplay was blocked, click or tap Play to continue...', 15);
       break;
       
     case playback.EVENT.PLAYBACK_BLOCKED:
@@ -499,6 +506,11 @@ function showInteractionHint(hintProperty, hintText, snackbarTimeout = 0)
   }
 }
 
+
+// ************************************************************************************************
+// AutoPlay
+// ************************************************************************************************
+
 function autoPlayToggle(event)
 {
   event.preventDefault();
@@ -506,23 +518,23 @@ function autoPlayToggle(event)
   updateAutoPlayData(settings.user.autoPlay);
 }
 
-function updateAutoPlayData(autoPlay)
+function updateAutoPlayData(newAutoPlay)
 {
-  const snackbarText = autoPlay ? 'AutoPlay enabled (Shift + F12 to disable)' : 'AutoPlay disabled (Shift + F12 to enable)';
-  playback.setConfig({ autoPlay: autoPlay });
-  utils.showSnackbar(snackbarText, 5);
-  updateAutoPlayDOM(autoPlay);
+  utils.showSnackbar(newAutoPlay ? 'Autoplay enabled (Shift + F12 to disable)' : 'Autoplay disabled (Shift + F12 to enable)', 5);
+  playback.setConfig({ autoPlay: newAutoPlay });
+  updateAutoPlayDOM(newAutoPlay);
 }
 
-function updateAutoPlayDOM(autoPlay)
+function updateAutoPlayDOM(newAutoPlay)
 {
-  debug.log(`updateAutoPlayDOM(): ${autoPlay}`);
+  debug.log(`updateAutoPlayDOM() - newAutoPlay: ${newAutoPlay}`);
 
-  if (autoPlay)
+  if (newAutoPlay)
   {
     document.body.classList.remove('blurred');
     elements.playbackProgressBar.classList.remove('no-autoplay');
     elements.playbackControls.playPause.classList.remove('no-autoplay');
+    elements.currentlyPlayingIcons.forEach(element => element.classList.remove('no-autoplay'));
     elements.footerAutoPlayToggle.querySelector('.autoplay-on-off').textContent = 'ON';
   }
   else
@@ -532,6 +544,7 @@ function updateAutoPlayDOM(autoPlay)
     
     elements.playbackProgressBar.classList.add('no-autoplay');
     elements.playbackControls.playPause.classList.add('no-autoplay');
+    elements.currentlyPlayingIcons.forEach(element => element.classList.add('no-autoplay'));
     elements.footerAutoPlayToggle.querySelector('.autoplay-on-off').textContent = 'OFF';
   }
 }
@@ -547,7 +560,7 @@ const siteHeaderDownMobilePx = utils.getCssPropValue('--site-header-down-mobile'
 const siteHeaderUpPx         = utils.getCssPropValue('--site-header-up');
 const siteHeaderUpMobilePx   = utils.getCssPropValue('--site-header-up-mobile');
 
-function getScrollHeaderHight(directionDown)
+function getScrollHeaderHeight(directionDown)
 {
   const matchesMaxWidthMobile = utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE);
   
@@ -557,21 +570,34 @@ function getScrollHeaderHight(directionDown)
     return ((matchesMaxWidthMobile === true) ? siteHeaderUpMobilePx : siteHeaderUpPx);
 }
 
+function getTopMargin()
+{
+  if (document.documentElement.classList.contains('track-layout-2-column'))
+    return 35;
+  
+  if (document.documentElement.classList.contains('track-layout-3-column'))
+    return 30;
+
+  return 40;
+}
+
 function scrollToId(postId, iframeId)
 {
   if (settings.user.autoScroll)
   {
-    const singlePlayer    = (document.querySelectorAll('#' + postId + ' iframe').length === 1) ? true : false;
+    const singlePlayer    = (document.querySelectorAll(`#${postId} iframe`).length === 1) ? true : false;
     const scrollToElement = singlePlayer ? postId : iframeId;
-    const topMargin       = singlePlayer ? 35 : 10;
+    const topMargin       = singlePlayer ? getTopMargin() : 10;
+
     // Actual functional 'offsetTop' calculation: https://stackoverflow.com/a/52477551
     const offsetTop       = Math.round(window.scrollY + document.getElementById(scrollToElement).getBoundingClientRect().top);
+
     const scrollTop       = Math.round(window.pageYOffset); // Don't want float results that can cause jitter
-    let   headerHeight    = getScrollHeaderHight(offsetTop > scrollTop);
+    let   headerHeight    = getScrollHeaderHeight(offsetTop > scrollTop);
 
     // If we get obscured by the sticky header menu, recalculate headerHeight to account for that
     if ((scrollTop + headerHeight + topMargin) > offsetTop)
-      headerHeight = getScrollHeaderHight(false);
+      headerHeight = getScrollHeaderHeight(false);
 
     // ToDo: This will not be smooth on iOS... Needs polyfill
     window.scroll(

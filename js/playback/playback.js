@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger      from '../common/debuglogger.js?ver=1.5.6';
-import * as mediaPlayer      from './mediaplayer.js?ver=1.5.6';
-import * as playbackControls from './playback-controls.js?ver=1.5.6';
-import * as eventLogger      from './eventlogger.js?ver=1.5.6';
+import * as debugLogger      from '../common/debuglogger.js?ver=1.6.0';
+import * as mediaPlayer      from './mediaplayer.js?ver=1.6.0';
+import * as playbackControls from './playback-controls.js?ver=1.6.0';
+import * as eventLogger      from './eventlogger.js?ver=1.6.0';
 
 
 export {
@@ -38,7 +38,7 @@ const config = {
   youTubeIframeIdRegEx:    null,
   soundCloudIframeIdRegEx: null,
   entriesSelector:         'article',
-  entryTitleSelector:      'h2.entry-title',
+  entryTitleData:          'data-entry-title',
   playbackControlsId:      'playback-controls',
   autoPlay:                true,
   autoScroll:              true,
@@ -50,15 +50,16 @@ const config = {
 // Callback events for interaction.js
 const EVENT = {
   READY:                10,
-  MEDIA_PLAYING:        20,
-  MEDIA_TIME_REMAINING: 30,
-  MEDIA_ENDED:          40,
-  SHOW_MEDIA:           50,
-  CONTINUE_AUTOPLAY:    60,
-  RESUME_AUTOPLAY:      70,
-  AUTOPLAY_BLOCKED:     80,
-  PLAYBACK_BLOCKED:     90,
-  MEDIA_UNAVAILABLE:    100,
+  MEDIA_START:          20,
+  MEDIA_PLAYING:        30,
+  MEDIA_TIME_REMAINING: 40,
+  MEDIA_ENDED:          50,
+  SHOW_MEDIA:           60,
+  CONTINUE_AUTOPLAY:    70,
+  RESUME_AUTOPLAY:      80,
+  AUTOPLAY_BLOCKED:     90,
+  PLAYBACK_BLOCKED:     100,
+  MEDIA_UNAVAILABLE:    110,
 };
 
 
@@ -90,7 +91,7 @@ function getAllEmbeddedPlayers()
   entries.forEach(entry => 
   {
     const postId     = entry.id;
-    const entryTitle = entry.querySelector(config.entryTitleSelector).textContent;
+    const entryTitle = entry.getAttribute(config.entryTitleData);
     const iframes    = entry.querySelectorAll('iframe');
 
     iframes.forEach(iframe =>
@@ -186,7 +187,7 @@ function togglePlayPause()
   }
   else
   {
-    controls.updatePlayState(getPlaybackData());
+    controls.updatePlayState(getPlaybackStatus());
     getMediaPlayer().play(onEmbeddedPlayerErrorCallback);
   }
 }
@@ -214,7 +215,7 @@ function prevClickCallback(positionMilliseconds)
       getMediaPlayer().stop();
     
     if (mediaPrev(controls.isPlaying()))
-      controls.updatePrevState(getPlaybackStatus(), getPlaybackData());
+      controls.updatePrevState(getPlaybackStatus());
   }
 }
 
@@ -230,7 +231,7 @@ function nextClick(event)
     if ((event !== null) || (config.autoPlay))
     {
       if(mediaNext(controls.isPlaying()))
-        controls.updateNextState(getPlaybackStatus(), getPlaybackData());
+        controls.updateNextState(getPlaybackStatus());
     }
     else
     {
@@ -260,7 +261,7 @@ function playTrack(track, playMedia = true)
     
     // Only supports jumping FORWARD for now...
     if (mediaTrack(track, playMedia))
-      controls.updateNextState(getPlaybackStatus(), getPlaybackData());
+      controls.updateNextState(getPlaybackStatus());
   }
 }
 
@@ -288,7 +289,7 @@ let syncPlayersState = function syncPlayersStateRecursive(nextPlayer, syncState)
   if (getCurrentPlayer() === nextPlayer)
   {
     if (syncState === SYNCSTATE.PLAY)
-      controls.updatePlayState(getPlaybackData());
+      controls.updatePlayState(getPlaybackStatus());
     else if (syncState === SYNCSTATE.PAUSE)
       controls.updatePauseState();
   }
@@ -302,9 +303,9 @@ let syncPlayersState = function syncPlayersStateRecursive(nextPlayer, syncState)
       setCurrentPlayer(nextPlayer);
 
       if (nextPlayer > prevPlayer)
-        controls.updateNextState(getPlaybackStatus(), getPlaybackData());
+        controls.updateNextState(getPlaybackStatus());
       else
-        controls.updatePrevState(getPlaybackStatus(), getPlaybackData());
+        controls.updatePrevState(getPlaybackStatus());
       
       syncPlayersStateRecursive(nextPlayer, syncState);
     }
@@ -334,14 +335,8 @@ function getPlaybackStatus()
   return {
     currentTrack: getCurrentTrack(),
     numTracks:    getNumTracks(),
-  };
-}
-
-function getPlaybackData()
-{
-  return {
-    artist: getMediaPlayer().getArtist(),
-    title:  getMediaPlayer().getTitle(),
+    artist:       getMediaPlayer().getArtist(),
+    title:        getMediaPlayer().getTitle(),
   };
 }
 
@@ -459,6 +454,7 @@ function startPlaybackTimer()
 {
   stopPlaybackTimer(false);
   playbackTimerId = setInterval(updatePlaybackTimer, config.updateTimerInterval);
+  eventCallback(EVENT.MEDIA_START, { postId: getMediaPlayer().getPostId() });
 }
 
 function stopPlaybackTimer(playbackEnded = false)
@@ -487,6 +483,7 @@ function updatePlaybackTimerCallback(posMilliseconds)
 {
   const duration = getMediaPlayer().getDuration();
   
+  controls.setTimer(Math.round(posMilliseconds / 1000), duration);
   updateTimeRemainingWarning(posMilliseconds, duration);
   eventCallback(EVENT.MEDIA_PLAYING, { currentTrack: getCurrentTrack(), position: posMilliseconds, duration: duration });
 }
@@ -583,7 +580,7 @@ function onYouTubePlayerStateChange(event)
         startPlaybackTimer();
 
         if(getMediaPlayer(playerIndex).setArtistTitleFromServer(event.target.getVideoData().title))
-          controls.setDetails(getPlaybackData());
+          controls.setDetails(getPlaybackStatus());
       }
       break;
 

@@ -32,7 +32,7 @@ use \Ultrafunk\ThemeTags as ultrafunk;
       <?php ultrafunk\nav_search(); ?>
       <div class="site-branding-flex-container">
         <div class="site-branding">
-          <a href="<?php echo esc_url(home_url('/')); ?>" aria-label="Home"><img src="<?php echo esc_url(get_template_directory_uri());?>/img/ultrafunk_logo_06.png" alt=""></a>
+          <a href="<?php echo esc_url(home_url('/')); ?>" aria-label="Home"><?php ultrafunk\header_logo(); ?></a>
         </div><!-- .site-branding -->
         <?php ultrafunk\nav_playback_controls(); ?>
       </div>

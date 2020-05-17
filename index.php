@@ -8,40 +8,31 @@ if (!defined('ABSPATH')) exit;
 
 get_header();
 
-?>
+\Ultrafunk\ThemeTags\index_title();
 
-  <section id="primary" class="content-area">
-    <main id="main" class="site-main">
-  
-    <?php
-    \Ultrafunk\ThemeTags\index_title();
-    
-    if (have_posts())
-    {
-      while (have_posts())
-      {
-        the_post();
+if (have_posts())
+{
+  ?><div id="track-layout"><?php
 
-        if ('page' === get_post_type())
-          get_template_part('template-parts/content', 'page');
-        else
-          get_template_part('template-parts/content');
-      }
-      
-      \Ultrafunk\ThemeTags\footer_title();
-    }
+  while (have_posts())
+  {
+    the_post();
+
+    if ('page' === get_post_type())
+      get_template_part('template-parts/content', 'page');
     else
-    {
-      get_template_part('template-parts/content', 'none');
-    }
-    ?>
+      get_template_part('template-parts/content');
+  }
+
+  ?></div><!-- #track-layout --><?php
   
-    </main><!-- #main -->
-  </section><!-- .content-area -->
+  \Ultrafunk\ThemeTags\footer_title();
+}
+else
+{
+  get_template_part('template-parts/content', 'none');
+}
 
-<?php
-
-// get_sidebar();
 get_footer(); 
 
 ?>

@@ -20,6 +20,20 @@ use function Ultrafunk\Globals\ {
 
 
 //
+// Only enqueues style-track-layout.css on pages where it is needed
+//
+function enqueue_style_track_layout($version)
+{
+  if (!is_singular() && !is_search() && !is_404())
+  {
+    global $wp_query;
+
+    if (isset($wp_query) && ($wp_query->found_posts >= 3))
+      wp_enqueue_style('ultrafunk-style-track-layout', get_theme_file_uri('style-track-layout.css'), array(), $version);
+  }
+}
+
+//
 // Get previous and next post/posts URLs
 //
 function get_prev_next_urls()
@@ -164,7 +178,7 @@ function add_body_class($classes)
   
   return $classes;
 }
-add_filter('body_class','\Ultrafunk\ThemeFunctions\add_body_class');
+add_filter('body_class', '\Ultrafunk\ThemeFunctions\add_body_class');
 
 //
 // Use webfonts loader for async CSS

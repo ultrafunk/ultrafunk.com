@@ -30,6 +30,7 @@
   --form-search-field-border: 1px solid #bbb;
   --form-search-field-border-focus: 2px solid #666;
   --form-input-autofill-box-shadow: 0 0 0 50px #fff inset;
+  --date-page-border-color: #888;
 }
 
 header#masthead {

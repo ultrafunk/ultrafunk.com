@@ -6,7 +6,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.5.6';
+import * as debugLogger from '../common/debuglogger.js?ver=1.6.0';
 
 
 export {
@@ -27,6 +27,7 @@ const KEY = {
   UF_PLAYBACK_SETTINGS: 'UF_PLAYBACK_SETTINGS',
   UF_SITE_SETTINGS:     'UF_SITE_SETTINGS',
   UF_SITE_THEME:        'UF_SITE_THEME',
+  UF_TRACK_LAYOUT:      'UF_TRACK_LAYOUT',
 };
 
 

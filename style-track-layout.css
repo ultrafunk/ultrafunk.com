@@ -1,0 +1,148 @@
+/*
+ * Track layout CSS
+ *
+ */
+
+.track-layout-2-column,
+.track-layout-3-column {
+  --site-max-width: 1800px;
+  --content-top-margin: 30px;
+  --intro-banner-max-width: 1200px;
+  --footer-max-width: 1200px;
+}
+
+.track-layout-2-column .site-header-container,
+.track-layout-3-column .site-header-container {
+  padding-left: 65px;
+  padding-right: 65px;
+}
+
+.track-layout-2-column .intro-banner-container,
+.track-layout-3-column .intro-banner-container {
+  max-width: var(--intro-banner-max-width);
+}
+
+.track-layout-2-column h1.content-header,
+.track-layout-3-column h1.content-header {
+  padding-top: 35px;
+  padding-bottom: 45px;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.track-layout-2-column #track-layout,
+.track-layout-3-column #track-layout {
+  display: inline-grid;
+  width: 100%;
+  box-sizing: border-box;  
+}
+
+.track-layout-2-column #track-layout {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-row-gap: 40px;
+  grid-column-gap: 80px;
+}
+
+.track-layout-3-column #track-layout {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-row-gap: 30px;
+  grid-column-gap: 60px;
+}
+
+.track-layout-2-column .entry,
+.track-layout-3-column .entry {
+  margin-top: 0;
+}
+
+.track-layout-2-column .entry-header,
+.track-layout-3-column .entry-header {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.track-layout-2-column h2.entry-title,
+.track-layout-2-column h2.entry-title a {
+  font-size: 25px;
+  line-height: 35px;
+  margin-top: 25px;
+  margin-bottom: 12px;
+}
+
+.track-layout-3-column h2.entry-title,
+.track-layout-3-column h2.entry-title a {
+  font-size: 20px;
+  line-height: 30px;
+  margin-top: 20px;
+  margin-bottom: 5px;
+}
+
+.track-layout-2-column .currently-playing.material-icons {
+  font-size: 27px;
+  top: 4px;
+  margin-right: 5px;
+  margin-left: -4px;
+}
+
+.track-layout-3-column .currently-playing.material-icons {
+  font-size: 23px;
+  top: 4px;
+  margin-right: 5px;
+  margin-left: -3px;
+}
+
+.track-layout-2-column .entry-meta {
+  font-size: 20px;
+  line-height: 30px;
+}
+
+.track-layout-3-column .entry-meta {
+  font-size: 15px;
+  line-height: 25px;
+}
+
+.track-layout-2-column figure.wp-block-embed {
+  margin: 20px 0 0 0;
+}
+
+.track-layout-3-column figure.wp-block-embed {
+  margin: 10px 0 0 0;
+}
+
+.track-layout-2-column nav.navigation.pagination,
+.track-layout-3-column nav.navigation.pagination {
+  margin: 145px auto 160px auto;
+}
+
+.track-layout-2-column .site-footer-container,
+.track-layout-3-column .site-footer-container {
+  max-width: var(--footer-max-width);
+}
+
+@media screen and (max-width: 1945px) {
+
+  .track-layout-2-column #content,
+  .track-layout-3-column #content {
+    max-width: 100%;
+  }
+
+  .track-layout-2-column #track-layout,
+  .track-layout-3-column #track-layout,
+  .track-layout-2-column h1.content-header,
+  .track-layout-3-column h1.content-header,  
+  .track-layout-2-column nav.navigation,
+  .track-layout-3-column nav.navigation,
+  .track-layout-2-column #colophon,
+  .track-layout-3-column #colophon {
+    padding-left: 65px;
+    padding-right: 65px;
+  }
+
+}
+
+@media screen and (max-width: 1600px) {
+
+  .track-layout-3-column #track-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+}
