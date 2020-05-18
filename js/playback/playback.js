@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger      from '../common/debuglogger.js?ver=1.6.0';
-import * as mediaPlayer      from './mediaplayer.js?ver=1.6.0';
-import * as playbackControls from './playback-controls.js?ver=1.6.0';
-import * as eventLogger      from './eventlogger.js?ver=1.6.0';
+import * as debugLogger      from '../common/debuglogger.js?ver=1.6.1';
+import * as mediaPlayer      from './mediaplayer.js?ver=1.6.1';
+import * as playbackControls from './playback-controls.js?ver=1.6.1';
+import * as eventLogger      from './eventlogger.js?ver=1.6.1';
 
 
 export {
@@ -50,16 +50,17 @@ const config = {
 // Callback events for interaction.js
 const EVENT = {
   READY:                10,
-  MEDIA_START:          20,
-  MEDIA_PLAYING:        30,
-  MEDIA_TIME_REMAINING: 40,
-  MEDIA_ENDED:          50,
-  SHOW_MEDIA:           60,
-  CONTINUE_AUTOPLAY:    70,
-  RESUME_AUTOPLAY:      80,
-  AUTOPLAY_BLOCKED:     90,
-  PLAYBACK_BLOCKED:     100,
-  MEDIA_UNAVAILABLE:    110,
+  MEDIA_PLAYING:        20,
+  MEDIA_PAUSED:         30,
+  MEDIA_ENDED:          40,
+  MEDIA_TIMER:          50,
+  MEDIA_TIME_REMAINING: 60,
+  GOTO_MEDIA:           70,
+  CONTINUE_AUTOPLAY:    80,
+  RESUME_AUTOPLAY:      90,
+  AUTOPLAY_BLOCKED:     100,
+  PLAYBACK_BLOCKED:     110,
+  MEDIA_UNAVAILABLE:    120,
 };
 
 
@@ -289,9 +290,15 @@ let syncPlayersState = function syncPlayersStateRecursive(nextPlayer, syncState)
   if (getCurrentPlayer() === nextPlayer)
   {
     if (syncState === SYNCSTATE.PLAY)
+    {
       controls.updatePlayState(getPlaybackStatus());
+      eventCallback(EVENT.MEDIA_PLAYING, { postId: getMediaPlayer().getPostId() });
+    }
     else if (syncState === SYNCSTATE.PAUSE)
+    {
       controls.updatePauseState();
+      eventCallback(EVENT.MEDIA_PAUSED, { postId: getMediaPlayer().getPostId() });      
+    }
   }
   else
   {
@@ -401,7 +408,7 @@ function mediaTrack(track, playMedia)
 
 function mediaGotoTrack(playMedia)
 {
-  eventCallback(EVENT.SHOW_MEDIA, { postId: getMediaPlayer().getPostId(), iframeId: getMediaPlayer().getIframeId() });
+  eventCallback(EVENT.GOTO_MEDIA, { postId: getMediaPlayer().getPostId(), iframeId: getMediaPlayer().getIframeId() });
   
   if (playMedia)
     getMediaPlayer().play(onEmbeddedPlayerErrorCallback);
@@ -454,7 +461,6 @@ function startPlaybackTimer()
 {
   stopPlaybackTimer(false);
   playbackTimerId = setInterval(updatePlaybackTimer, config.updateTimerInterval);
-  eventCallback(EVENT.MEDIA_START, { postId: getMediaPlayer().getPostId() });
 }
 
 function stopPlaybackTimer(playbackEnded = false)
@@ -485,7 +491,7 @@ function updatePlaybackTimerCallback(posMilliseconds)
   
   controls.setTimer(Math.round(posMilliseconds / 1000), duration);
   updateTimeRemainingWarning(posMilliseconds, duration);
-  eventCallback(EVENT.MEDIA_PLAYING, { currentTrack: getCurrentTrack(), position: posMilliseconds, duration: duration });
+  eventCallback(EVENT.MEDIA_TIMER, { currentTrack: getCurrentTrack(), position: posMilliseconds, duration: duration });
 }
 
 function resetTimeRemainingWarning()

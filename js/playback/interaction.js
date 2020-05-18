@@ -5,11 +5,11 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.6.0';
-import * as storage     from '../common/storage.js?ver=1.6.0';
-import * as utils       from '../common/utils.js?ver=1.6.0';
-import * as eventLogger from './eventlogger.js?ver=1.6.0';
-import * as playback    from './playback.js?ver=1.6.0';
+import * as debugLogger from '../common/debuglogger.js?ver=1.6.1';
+import * as storage     from '../common/storage.js?ver=1.6.1';
+import * as utils       from '../common/utils.js?ver=1.6.1';
+import * as eventLogger from './eventlogger.js?ver=1.6.1';
+import * as playback    from './playback.js?ver=1.6.1';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -144,7 +144,7 @@ function initInteraction()
 
 function playbackEventCallback(playbackEvent, eventData = null)
 {
-  if (debug.isDebug() && (playbackEvent !== playback.EVENT.MEDIA_PLAYING) && (playbackEvent !== playback.EVENT.MEDIA_TIME_REMAINING))
+  if (debug.isDebug() && (playbackEvent !== playback.EVENT.MEDIA_TIMER) && (playbackEvent !== playback.EVENT.MEDIA_TIME_REMAINING))
   {
     debug.log(`playbackEventCallback(): ${debug.getObjectKeyForValue(playback.EVENT, playbackEvent)} (${playbackEvent})`);
     
@@ -160,41 +160,45 @@ function playbackEventCallback(playbackEvent, eventData = null)
       elements.footerAutoPlayToggle.addEventListener('click', autoPlayToggle);
       break;
 
-    case playback.EVENT.MEDIA_START:
-      elements.currentlyPlayingIcons.forEach(element => element.style.display = 'none');
-      document.querySelector(`#${eventData.postId} .currently-playing.material-icons`).style.display = 'inline-block';
+    case playback.EVENT.MEDIA_PLAYING:
+      {
+        const currentlyPlayingIcon = document.querySelector(`#${eventData.postId} .currently-playing.material-icons`);
+
+        resetCurrentlyPlayingIcons(currentlyPlayingIcon);
+        currentlyPlayingIcon.style.display = 'inline-block';
+        currentlyPlayingIcon.classList.remove('pause-current-track');
+        currentlyPlayingIcon.classList.add('animate-current-track');
+      }
       break;
       
-    case playback.EVENT.MEDIA_PLAYING:
+    case playback.EVENT.MEDIA_PAUSED:
+      document.querySelector(`#${eventData.postId} .currently-playing.material-icons`).classList.add('pause-current-track');
+      break;
+      
+    case playback.EVENT.MEDIA_ENDED:
+      playbackEventMediaEnded();
+      break;
+  
+    case playback.EVENT.MEDIA_TIMER:
       if (eventData !== null)
       {
         const scaleX = (eventData.position / (eventData.duration * 1000));
         elements.playbackProgressBar.style.transform = `scaleX(${scaleX})`;
       }
       break;
-      
+
     case playback.EVENT.MEDIA_TIME_REMAINING:
       if (eventData !== null)
       {
         if (settings.user.autoExitFsOnWarning && (eventData.timeRemainingSeconds <= settings.user.timeRemainingSeconds))
-        {
-        //debug.log(`playbackEventCallback(): ${debug.getObjectKeyForValue(playback.EVENT, playbackEvent)} (${playbackEvent})`);
           exitFullscreenTrack();
-        }
       }
       break;
 
-    case playback.EVENT.MEDIA_ENDED:
-      if (settings.user.autoExitFullscreen)
-      {
-        exitFullscreenTrack();
-      }
-      break;
-
-    case playback.EVENT.SHOW_MEDIA:
+    case playback.EVENT.GOTO_MEDIA:
       if ((eventData !== null) && (eventData.postId !== null) && (eventData.iframeId !== null))
       {
-        elements.playbackProgressBar.style.transform = 'scaleX(0)';
+        playbackEventMediaEnded();
         scrollToId(eventData.postId, eventData.iframeId);
       }
       break;
@@ -238,6 +242,15 @@ function playbackEventMediaUnavailable(eventData)
       playbackEventErrorTryNext(eventData, 5);
     }
   }
+}
+
+function playbackEventMediaEnded()
+{
+  if (settings.user.autoExitFullscreen)
+    exitFullscreenTrack();
+
+  elements.playbackProgressBar.style.transform = 'scaleX(0)';
+  resetCurrentlyPlayingIcons();
 }
 
 function windowEventBlur()
@@ -316,6 +329,18 @@ function subPaginationClick(event, destUrl)
     event.preventDefault();
     navigateTo(destUrl, playback.getStatus().isPlaying);
   }
+}
+
+function resetCurrentlyPlayingIcons(currentlyPlayingElement)
+{
+  elements.currentlyPlayingIcons.forEach(element =>
+  {
+    if (element !== currentlyPlayingElement)
+    {
+      element.classList.remove('animate-current-track', 'pause-current-track');
+      element.style.display = 'none';
+    }
+  });
 }
 
 function isPremiumTrack(postId)

@@ -235,6 +235,46 @@
   color: var(--playback-play-pause-color-no-autoplay);
 }
 
+.animate-current-track {
+  animation: track-blinker-red 2s linear infinite;
+}
+
+@keyframes track-blinker-red {
+  0% { color: #660000; }
+ 10% { color: #770000; }
+ 20% { color: #990000; }
+ 30% { color: #bb0000; }
+ 40% { color: #dd0000; }
+ 50% { color: #ff0000; }
+ 60% { color: #dd0000; }
+ 70% { color: #bb0000; }
+ 80% { color: #990000; }
+ 90% { color: #770000; }
+100% { color: #660000; }
+}
+
+.animate-current-track.no-autoplay {
+  animation: track-blinker-blue 2s linear infinite;
+}
+
+@keyframes track-blinker-blue {
+  0% { color: #1530aa; }
+ 10% { color: #2040bb; }
+ 20% { color: #2550cc; }
+ 30% { color: #3060dd; }
+ 40% { color: #3570ee; }
+ 50% { color: #4080ff; }
+ 60% { color: #3570ee; }
+ 70% { color: #3060dd; }
+ 80% { color: #2550cc; }
+ 90% { color: #2040bb; }
+100% { color: #1530aa; }
+}
+
+.pause-current-track {
+  animation-play-state: paused !important;
+}
+
 @media screen and (max-width: 900px) {
 
   #playback-controls {

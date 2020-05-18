@@ -5,9 +5,9 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.6.0';
-import * as storage     from './common/storage.js?ver=1.6.0';
-import * as utils       from './common/utils.js?ver=1.6.0';
+import * as debugLogger from './common/debuglogger.js?ver=1.6.1';
+import * as storage     from './common/storage.js?ver=1.6.1';
+import * as utils       from './common/utils.js?ver=1.6.1';
 
 
 const debug                  = debugLogger.getInstance('index');
