@@ -5,11 +5,11 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.6.1';
-import * as storage     from '../common/storage.js?ver=1.6.1';
-import * as utils       from '../common/utils.js?ver=1.6.1';
-import * as eventLogger from './eventlogger.js?ver=1.6.1';
-import * as playback    from './playback.js?ver=1.6.1';
+import * as debugLogger from '../common/debuglogger.js?ver=1.6.2';
+import * as storage     from '../common/storage.js?ver=1.6.2';
+import * as utils       from '../common/utils.js?ver=1.6.2';
+import * as eventLogger from './eventlogger.js?ver=1.6.2';
+import * as playback    from './playback.js?ver=1.6.2';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -166,13 +166,13 @@ function playbackEventCallback(playbackEvent, eventData = null)
 
         resetCurrentlyPlayingIcons(currentlyPlayingIcon);
         currentlyPlayingIcon.style.display = 'inline-block';
-        currentlyPlayingIcon.classList.remove('pause-current-track');
-        currentlyPlayingIcon.classList.add('animate-current-track');
+        currentlyPlayingIcon.classList.remove('animation-paused');
+        currentlyPlayingIcon.classList.add('playing-animate');
       }
       break;
       
     case playback.EVENT.MEDIA_PAUSED:
-      document.querySelector(`#${eventData.postId} .currently-playing.material-icons`).classList.add('pause-current-track');
+      document.querySelector(`#${eventData.postId} .currently-playing.material-icons`).classList.add('animation-paused');
       break;
       
     case playback.EVENT.MEDIA_ENDED:
@@ -337,7 +337,7 @@ function resetCurrentlyPlayingIcons(currentlyPlayingElement)
   {
     if (element !== currentlyPlayingElement)
     {
-      element.classList.remove('animate-current-track', 'pause-current-track');
+      element.classList.remove('playing-animate', 'animation-paused');
       element.style.display = 'none';
     }
   });
