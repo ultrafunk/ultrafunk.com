@@ -5,10 +5,7 @@
 //
 
 
-export { playbackControls };
-
-
-let playbackControls = function()
+export let playbackControls = function()
 {
   const STATE = {
     DISABLED: 'state-disabled',
@@ -21,10 +18,9 @@ let playbackControls = function()
     details:    { div: null, state: STATE.DISABLED, artist:   null, title:    null },
     timer:      { div: null, state: STATE.DISABLED, position: null, duration: null, positionSecs: -1, durationSecs: -1 },
     prevTrack:  { div: null, state: STATE.DISABLED },
-    playPause:  { div: null, state: STATE.PLAY, icon: null },
+    playPause:  { div: null, state: STATE.DISABLED, icon: null },
     nextTrack:  { div: null, state: STATE.DISABLED },
     shuffle:    { div: null, state: STATE.DISABLED },
-    progress:   { div: null, state: STATE.ENABLED  },
   };
 
   function setState(control, state = STATE.DISABLED)
@@ -106,7 +102,6 @@ let playbackControls = function()
         controls.playPause.icon = controls.playPause.div.querySelector('i');
         controls.nextTrack.div  = playbackControls.querySelector('.next-control');
         controls.shuffle.div    = playbackControls.querySelector('.shuffle-control');
-        controls.progress.div   = playbackControls.querySelector('.progress-control');
       }
       else
       {
@@ -117,28 +112,18 @@ let playbackControls = function()
     ready: function(prevClick, playPauseClick, nextClick, numTracks)
     {
       setState(controls.details, STATE.ENABLED);
-      controls.details.div.style.display = 'inline-block';
-
       setState(controls.timer, STATE.ENABLED);
-      controls.timer.div.style.display = 'inline-block';
 
       setState(controls.prevTrack, STATE.DISABLED);
-      controls.prevTrack.div.style.display = 'inline-block';
       controls.prevTrack.div.addEventListener('click', prevClick);
 
       setState(controls.playPause, STATE.PLAY);
-      controls.playPause.div.style.display = 'inline-block';
       controls.playPause.div.addEventListener('click', playPauseClick);
 
       setState(controls.nextTrack, ((numTracks > 1) ? STATE.ENABLED : STATE.DISABLED));
-      controls.nextTrack.div.style.display = 'inline-block';
       controls.nextTrack.div.addEventListener('click', nextClick);
 
       setState(controls.shuffle, STATE.ENABLED);
-      controls.shuffle.div.style.display = 'inline-block';
-
-      setState(controls.progress, STATE.DISABLED);
-      controls.progress.div.style.display = 'none';
     },
 
     setDetails: function(playbackStatus)
@@ -190,11 +175,6 @@ let playbackControls = function()
         setState(controls.nextTrack, STATE.DISABLED);
     },
 
-    updateProgress: function()
-    {
-      controls.progress.div.append('.');
-    },
-
     blinkPlayPause: function()
     {
       controls.playPause.div.classList.toggle('time-remaining-warning');
@@ -206,4 +186,3 @@ let playbackControls = function()
     },
   };
 };
-

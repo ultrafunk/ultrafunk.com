@@ -68,18 +68,8 @@
   height: 64px;
 }
 
-#playback-controls .progress-control {
-  font-size: 45px;
-  line-height: 45px;
-  font-weight: 700;
-  margin-top: -23px;
-  padding-right: 3px;
-  display: inline-block;
-  color: var(--playback-text-color);
-}
-
 #playback-controls .timer-control {
-  display: none;
+  display: inline-block;
   font-size: 15px;
   line-height: 20px;
   font-weight: 400;
@@ -91,7 +81,7 @@
 }
 
 #playback-controls .details-control {
-  display: none;
+  display: inline-block;
   font-size: 15px;
   line-height: 20px;
   font-weight: 400;
@@ -113,21 +103,23 @@
   cursor: pointer;
 }
 
-#playback-controls .play-pause-control,
 #playback-controls .prev-control,
-#playback-controls .next-control {
-  display: none;
+#playback-controls .play-pause-control,
+#playback-controls .next-control,
+#playback-controls .shuffle-control {
+  display: inline-block;
 }
 
-#playback-controls .play-pause-control.state-disabled,
 #playback-controls .prev-control.state-disabled,
-#playback-controls .next-control.state-disabled {
+#playback-controls .play-pause-control.state-disabled,
+#playback-controls .next-control.state-disabled,
+#playback-controls .shuffle-control.state-disabled {
   color: var(--playback-ctrl-disabled-color);
   pointer-events: none;
 }
 
-#playback-controls .play-pause-control.state-disabled:hover,
 #playback-controls .prev-control.state-disabled:hover,
+#playback-controls .play-pause-control.state-disabled:hover,
 #playback-controls .next-control.state-disabled:hover {
   color: var(--playback-ctrl-disabled-color);
   cursor: default;
@@ -142,7 +134,8 @@
   cursor: pointer;
 }
 
-#playback-controls .play-pause-control.no-autoplay {
+#playback-controls .play-pause-control.no-autoplay.state-play,
+#playback-controls .play-pause-control.no-autoplay.state-pause {
   color: var(--playback-play-pause-color-no-autoplay);
 }
 
@@ -150,7 +143,8 @@
   color: var(--playback-play-pause-hover-color-no-autoplay);
 }
 
-#playback-controls .play-pause-control {
+#playback-controls .play-pause-control.state-play,
+#playback-controls .play-pause-control.state-pause {
   background-image: url(../../img/play_pause_bg_filler.png);
   background-repeat: no-repeat;
   background-position: center;
@@ -171,21 +165,25 @@
   cursor: pointer;
 }
 
-#playback-controls .shuffle-control {
-  display: none;
-}
-
 #playback-controls .shuffle-control .material-icons {
   font-size: 32px;
   width: 32px;
   height: 32px;
 }
 
-#playback-controls .shuffle-control a {
-  color: var(--playback-text-color);
+#playback-controls .shuffle-control.state-disabled a {
+  color: var(--playback-ctrl-disabled-color);
 }
 
-#playback-controls .shuffle-control a:hover {
+#playback-controls .shuffle-control.state-disabled a:hover {
+  color: var(---playback-ctrl-disabled-color);
+}
+
+#playback-controls .shuffle-control.state-enabled a {
+  color: var(--playback-prev-next-color);
+}
+
+#playback-controls .shuffle-control.state-enabled a:hover {
   color: var(--playback-text-hover-color);
 }
 
@@ -207,7 +205,8 @@
     color: var(--playback-play-pause-color);
   }
 
-  #playback-controls .play-pause-control.no-autoplay {
+  #playback-controls .play-pause-control.no-autoplay.state-play,
+  #playback-controls .play-pause-control.no-autoplay.state-pause {
     color: var(--playback-play-pause-color-no-autoplay);
   }
 
@@ -254,10 +253,6 @@
     margin-right: -15px;
   }
   
-  #playback-controls .progress-control {
-    padding-right: 13px;
-  }
-
   #playback-controls .timer-control {
     display: none !important;
   }
@@ -296,12 +291,6 @@
     font-size: 48px;
     width: 48px;
     height: 48px;
-  }
-
-  #playback-controls .progress-control {
-    position: relative;
-    right: -9px;
-    top: -1px;
   }
 
   #playback-controls .details-control {

@@ -5,16 +5,18 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.6.2';
-import * as storage     from '../common/storage.js?ver=1.6.2';
-import * as utils       from '../common/utils.js?ver=1.6.2';
-import * as eventLogger from './eventlogger.js?ver=1.6.2';
-import * as playback    from './playback.js?ver=1.6.2';
+import * as debugLogger from '../common/debuglogger.js?ver=1.6.3';
+import * as storage     from '../common/storage.js?ver=1.6.3';
+import * as utils       from '../common/utils.js?ver=1.6.3';
+import * as eventLogger from './eventlogger.js?ver=1.6.3';
+import * as playback    from './playback.js?ver=1.6.3';
 
 
 const debug              = debugLogger.getInstance('interaction');
 const eventLog           = new eventLogger.Interaction(10);
 let settings             = {};
+let playersCount         = 3;
+let playersReadyCount    = 1;
 let playbackReady        = false;
 let useKeyboardShortcuts = false;
 
@@ -78,9 +80,8 @@ document.addEventListener('DOMContentLoaded', () =>
       timeRemainingSeconds:    settings.user.timeRemainingSeconds,
     });
     
-    playback.init(playbackEventCallback);
-
     initInteraction();
+    playback.init(playbackEventCallback);
     updateAutoPlayDOM(settings.user.autoPlay);
   }
 });
@@ -97,7 +98,8 @@ document.addEventListener(config.denyKeyboardShortcuts,  () => { if (config.keyb
 // Search page for <iframes> and check if any of them contains an embedded player
 function hasEmbeddedPlayers()
 {
-  const players = document.querySelectorAll('iframe');
+  const players  = document.querySelectorAll('iframe');
+  playersCount  += players.length;
 
   for (let i = 0; i < players.length; i++)
   {
@@ -130,9 +132,9 @@ function initInteraction()
   window.addEventListener('focus',   windowEventFocus);
   window.addEventListener('storage', windowEventStorage);
   
-  document.onfullscreenchange       = onFullscreenChange;
-  document.onwebkitfullscreenchange = onFullscreenChange;
-
+  document.addEventListener('fullscreenchange',       onFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+  
   utils.addEventListeners('i.sub-pagination-prev', 'click', subPaginationClick, navigationVars.prevUrl); // eslint-disable-line no-undef
   utils.addEventListeners('i.sub-pagination-next', 'click', subPaginationClick, navigationVars.nextUrl); // eslint-disable-line no-undef
 }
@@ -154,8 +156,13 @@ function playbackEventCallback(playbackEvent, eventData = null)
   
   switch(playbackEvent)
   {
+    case playback.EVENT.LOADING:
+      updateProgressBar(playersReadyCount++ / playersCount);
+      break;
+
     case playback.EVENT.READY:
       playbackReady = true;
+      updateProgressBar(0);
       elements.playbackControls.details.addEventListener('click', playbackDetailsClick);
       elements.footerAutoPlayToggle.addEventListener('click', autoPlayToggle);
       break;
@@ -180,11 +187,7 @@ function playbackEventCallback(playbackEvent, eventData = null)
       break;
   
     case playback.EVENT.MEDIA_TIMER:
-      if (eventData !== null)
-      {
-        const scaleX = (eventData.position / (eventData.duration * 1000));
-        elements.playbackProgressBar.style.transform = `scaleX(${scaleX})`;
-      }
+      updateProgressBar(eventData.position / (eventData.duration * 1000));
       break;
 
     case playback.EVENT.MEDIA_TIME_REMAINING:
@@ -244,12 +247,17 @@ function playbackEventMediaUnavailable(eventData)
   }
 }
 
+function updateProgressBar(scaleX)
+{
+  elements.playbackProgressBar.style.transform = `scaleX(${scaleX})`;
+}
+
 function playbackEventMediaEnded()
 {
   if (settings.user.autoExitFullscreen)
     exitFullscreenTrack();
 
-  elements.playbackProgressBar.style.transform = 'scaleX(0)';
+  updateProgressBar(0);
   resetCurrentlyPlayingIcons();
 }
 
@@ -304,7 +312,6 @@ function windowEventStorage(event)
 function onFullscreenChange()
 {
   elements.fullscreenChangeTarget = (document.fullscreenElement !== null) ? document.fullscreenElement.id : null;
-  debug.log(`onFullscreenChange(): ${elements.fullscreenChangeTarget}`);
 }
 
 function enterFullscreenTrack()

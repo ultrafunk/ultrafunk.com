@@ -118,6 +118,7 @@ function nav_progress_bar()
   ?>
   <div id="playback-progress">
     <div class="playback-progress-bar"></div>
+    <div class="playback-progress-bar-background"></div>
   </div>
   <?php
 }
@@ -126,13 +127,12 @@ function nav_playback_controls()
 {
   ?>
   <div id="playback-controls">
-    <div class="progress-control"></div>
-    <div class="details-control" title="Current track"><span class="details-artist"></span><br><span class="details-title"></span></div>
-    <div class="timer-control" title="Track position &amp; duration"><span class="timer-position"></span><br><span class="timer-duration"></span></div>
-    <div class="prev-control" title="Previous track / seek (arrow left)"><i class="material-icons">skip_previous</i></div>
-    <div class="play-pause-control" title="Play / Pause (space)"><i class="material-icons">play_circle_filled</i></div>
-    <div class="next-control" title="Next track (arrow right)"><i class="material-icons">skip_next</i></div>
-    <div class="shuffle-control" title="<?php echo esc_attr(get_shuffle_menu_item_title()); ?>"><a href="<?php echo esc_url(get_shuffle_menu_item_url()); ?>"><i class="material-icons">shuffle</i></a></div>
+    <div class="details-control state-disabled" title="Current track"><span class="details-artist"></span><br><span class="details-title"></span></div>
+    <div class="timer-control state-disabled" title="Track position &amp; duration"><span class="timer-position"></span><br><span class="timer-duration"></span></div>
+    <div class="prev-control state-disabled" title="Previous track / seek (arrow left)"><i class="material-icons">skip_previous</i></div>
+    <div class="play-pause-control state-disabled" title="Play / Pause (space)"><i class="material-icons">play_circle_filled</i></div>
+    <div class="next-control state-disabled" title="Next track (arrow right)"><i class="material-icons">skip_next</i></div>
+    <div class="shuffle-control state-disabled" title="<?php echo esc_attr(get_shuffle_menu_item_title()); ?>"><a href="<?php echo esc_url(get_shuffle_menu_item_url()); ?>"><i class="material-icons">shuffle</i></a></div>
   </div>
   <?php
 }

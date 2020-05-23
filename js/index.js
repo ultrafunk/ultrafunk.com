@@ -5,9 +5,9 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.6.2';
-import * as storage     from './common/storage.js?ver=1.6.2';
-import * as utils       from './common/utils.js?ver=1.6.2';
+import * as debugLogger from './common/debuglogger.js?ver=1.6.3';
+import * as storage     from './common/storage.js?ver=1.6.3';
+import * as utils       from './common/utils.js?ver=1.6.3';
 
 
 const debug                  = debugLogger.getInstance('index');
@@ -18,6 +18,7 @@ let settings                 = {};
 let currentSiteTheme         = {};
 let currentTrackLayout       = {};
 let lastScrollTop            = 0;
+let enteredFullscreen        = false;
 let scrolledUpMenuReveal     = false;
 let isWindowScrolled         = false;
 let headerHeight             = 0;
@@ -532,8 +533,36 @@ function setTopMargin()
 //
 // ************************************************************************************************
 
+/*
+function preventFullscreenScroll()
+{
+  if (document.fullscreenElement !== null)
+  {
+    debug.log('preventFullscreenScroll() - fullscreenElement !== null');
+    enteredFullscreen = true;
+    return true;
+  }
+  else
+  {
+    if (enteredFullscreen)
+    {
+      debug.log('preventFullscreenScroll() - enteredFullscreen = true');
+      enteredFullscreen = false;
+      return true;
+    }
+  }
+
+  return false;
+}
+*/
+
 function windowEventScroll()
 {
+  /*
+  if (preventFullscreenScroll())
+    return;
+  */
+
   const scrollTop          = window.pageYOffset;
   const scrollDownMenuHide = Math.round((headerHeight > 150) ? (headerHeight / 2) : (headerHeight / 3));
 

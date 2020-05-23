@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger      from '../common/debuglogger.js?ver=1.6.2';
-import * as mediaPlayer      from './mediaplayer.js?ver=1.6.2';
-import * as playbackControls from './playback-controls.js?ver=1.6.2';
-import * as eventLogger      from './eventlogger.js?ver=1.6.2';
+import * as debugLogger      from '../common/debuglogger.js?ver=1.6.3';
+import * as mediaPlayer      from './mediaplayer.js?ver=1.6.3';
+import * as playbackControls from './playback-controls.js?ver=1.6.3';
+import * as eventLogger      from './eventlogger.js?ver=1.6.3';
 
 
 export {
@@ -49,18 +49,19 @@ const config = {
 
 // Callback events for interaction.js
 const EVENT = {
-  READY:                10,
-  MEDIA_PLAYING:        20,
-  MEDIA_PAUSED:         30,
-  MEDIA_ENDED:          40,
-  MEDIA_TIMER:          50,
-  MEDIA_TIME_REMAINING: 60,
-  GOTO_MEDIA:           70,
-  CONTINUE_AUTOPLAY:    80,
-  RESUME_AUTOPLAY:      90,
-  AUTOPLAY_BLOCKED:     100,
-  PLAYBACK_BLOCKED:     110,
-  MEDIA_UNAVAILABLE:    120,
+  LOADING:              10,
+  READY:                20,
+  MEDIA_PLAYING:        30,
+  MEDIA_PAUSED:         40,
+  MEDIA_ENDED:          50,
+  MEDIA_TIMER:          60,
+  MEDIA_TIME_REMAINING: 70,
+  GOTO_MEDIA:           80,
+  CONTINUE_AUTOPLAY:    90,
+  RESUME_AUTOPLAY:      100,
+  AUTOPLAY_BLOCKED:     110,
+  PLAYBACK_BLOCKED:     120,
+  MEDIA_UNAVAILABLE:    130,
 };
 
 
@@ -170,7 +171,7 @@ function updateMediaPlayersReadyProgress()
   }
   else
   {
-    controls.updateProgress();
+    eventCallback(EVENT.LOADING);
   }
 }
 
@@ -536,8 +537,8 @@ function updateTimeRemainingWarning(posMilliseconds, duration)
 function initYouTubeAPI()
 {
   debug.log('initYouTubeAPI()');
-  controls.updateProgress();
-  
+  eventCallback(EVENT.LOADING);
+
   let tag = document.createElement('script');
   tag.id = 'youtube-iframe-api';
   tag.src = 'https://www.youtube.com/iframe_api';
@@ -548,8 +549,8 @@ function initYouTubeAPI()
 window.onYouTubeIframeAPIReady = function()
 {
   debug.log('onYouTubeIframeAPIReady()');
-  controls.updateProgress();
-  
+  eventCallback(EVENT.LOADING);
+
   //ToDo: THIS SHOULD NOT BE TRIGGERED HERE ONLY?
   getAllEmbeddedPlayers();
 };
@@ -633,7 +634,7 @@ function onYouTubePlayerError(event)
 function initSoundCloudAPI()
 {
   debug.log('initSoundCloudAPI()');
-  controls.updateProgress();
+  eventCallback(EVENT.LOADING);
 }
 
 function onSoundCloudPlayerEventReady()
