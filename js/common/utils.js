@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.6.3';
+import * as debugLogger from '../common/debuglogger.js?ver=1.6.4';
 
 
 export {
@@ -23,6 +23,11 @@ export {
 
 const debug = debugLogger.getInstance('utils');
 
+const config = {
+  snackbarAfterId: 'colophon',
+  snackbarId:      'snackbar',
+};
+
 const MATCH = {
   SITE_MIN_WIDTH_WIDE:   1,
   SITE_MAX_WIDTH:        2,
@@ -32,11 +37,6 @@ const MATCH = {
 const siteMinWidthWide   = window.matchMedia(`(min-width: ${getCssPropString('--site-min-width-wide')})`);
 const siteMaxWidth       = window.matchMedia(`(max-width: ${getCssPropString('--site-max-width')})`);
 const siteMaxWidthMobile = window.matchMedia(`(max-width: ${getCssPropString('--site-max-width-mobile')})`);
-
-const config = {
-  snackbarAfterId: 'colophon',
-  snackbarId:      'snackbar',
-};
 
 const elements = {
   snackbar: null,
@@ -171,7 +171,7 @@ function resetSnackbar(hideSnackbar = false)
     elements.snackbar.classList.remove('fadein');
 }
 
-function showSnackbar(message, timeout = 5)
+function showSnackbar(message, timeout = 5, actionClickFunction = null)
 {
   debug.log(`showSnackbar(): ${message} (${timeout} sec)`);
 
@@ -186,6 +186,15 @@ function showSnackbar(message, timeout = 5)
     resetSnackbar();
     elements.snackbar.querySelector(`.${config.snackbarId}-message`).innerHTML = message;
     elements.snackbar.classList.add('fadein');
+
+    if (actionClickFunction !== null)
+    {
+      elements.snackbar.querySelector(`.action-verb`).addEventListener('click', () =>
+      {
+        actionClickFunction();
+        resetSnackbar(true);
+      });
+    }
     
     if (timeout !== 0)
     {

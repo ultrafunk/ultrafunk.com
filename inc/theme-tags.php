@@ -166,10 +166,18 @@ function nav_pagination()
     {
       ?><a href="<?php echo $prev_next_urls['prevUrl']; ?>"><i class="material-icons sub-pagination-prev" title="Previous track / page (shift + arrow left)">arrow_backward</i></a><?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
+    else
+    {
+      ?><i class="material-icons sub-pagination-prev disbled">arrow_backward</i><?php
+    }
     
     if (!empty($prev_next_urls['nextUrl']))
     {
       ?><a href="<?php echo $prev_next_urls['nextUrl']; ?>"><i class="material-icons sub-pagination-next" title="Next track / page (shift + arrow right)">arrow_forward</i></a><?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    }
+    else
+    {
+      ?><i class="material-icons sub-pagination-next disbled">arrow_forward</i><?php
     }
 
     ?></div><?php
@@ -179,6 +187,7 @@ function nav_pagination()
     ?>
     <div class="sub-navigation-pagination">
       <a href="" title="Go back" onclick="javascript:history.back();return false;"><i class="material-icons sub-pagination-prev" title="Go back">arrow_backward</i></a>
+      <i class="material-icons sub-pagination-next disbled">arrow_forward</i>
     </div>
     <?php
   }
@@ -257,6 +266,8 @@ function index_title()
   $title      = get_title();
   $pagination = '';
   $show_title = (have_posts() && (1 === get_pagednum())) ? true : false;
+  // Channels not shown in the header / nav menu
+  $channels   = array('rock', 'pop', 'easy-listening', 'afrobeat', 'r-and-b', 'fusion', 'go-go', 'premium', 'low-tempo', 'promo');
   
   if (is_search() && have_posts())
   {
@@ -278,7 +289,7 @@ function index_title()
   {
     // Do nothing on purpose!
   }
-  else if ($show_title && is_category(array('rock', 'pop', 'easy-listening', 'afrobeat', 'r-and-b', 'fusion', 'go-go', 'premium', 'low-tempo'))) // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
+  else if ($show_title && is_category($channels)) // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
   {
     // Do nothing on purpose!
   }

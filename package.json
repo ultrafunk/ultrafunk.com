@@ -1,6 +1,6 @@
 {
   "name": "ultrafunk.com",
-  "version": "1.6.3",
+  "version": "1.6.4",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,6 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "^7.0.0"
+    "eslint": "^7.1.0"
   }
 }

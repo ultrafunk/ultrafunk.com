@@ -4,7 +4,7 @@ Theme URI: https://github.com/ultrafunk/ultrafunk.com
 Author: Ultrafunk
 Author URI: https://ultrafunk.com
 Description: ultrafunk.com WordPress theme
-Version: 1.6.3
+Version: 1.6.4
 License: Apache License 2.0
 License URI: https://www.apache.org/licenses/LICENSE-2.0
 Text Domain: ultrafunk
@@ -54,6 +54,7 @@ Tags: one-column
   --site-theme-font-color: #eee;
   --intro-banner-background: #505050;
   --intro-banner-button-background: #323232;
+  --nav-ctrl-disabled-color: #d3d3d3;
 
   /*
   --header-gradient-bg-blur: linear-gradient(0deg, rgba(230, 230, 230, 0.80) 0%, rgba(255, 255, 255, 0.80) 100%);
@@ -80,6 +81,7 @@ Tags: one-column
   --site-theme-font-color: #eee;
   --intro-banner-background: #444;
   --intro-banner-button-background: #222;
+  --nav-ctrl-disabled-color: #4e4e4e;
 
   /*
   --header-gradient-bg-blur: linear-gradient(0deg, rgba(45, 45, 45, 0.80) 0%, rgba(55, 55, 55, 0.80) 100%);
@@ -321,6 +323,7 @@ ul#menu-primary-menu {
 .sub-navigation-pagination a {
   display: inline-flex;
   overflow: hidden;
+  text-decoration: none;
 }
 
 .sub-navigation-pagination a i:hover {
@@ -330,6 +333,12 @@ ul#menu-primary-menu {
 
 .sub-navigation-pagination .sub-pagination-prev {
   margin-right: 5px;
+}
+
+i.material-icons.sub-pagination-prev.disbled,
+i.material-icons.sub-pagination-next.disbled {
+  color: var(--nav-ctrl-disabled-color);
+  pointer-events: none;
 }
 
 .sub-navigation-details {
@@ -1324,7 +1333,8 @@ aside.widget-area ul {
   }
 
   .sub-navigation-details {
-    font-size: 16px; 
+    font-size: 15px;
+    line-height: 23px;
     margin-top: 1px;
   }
 

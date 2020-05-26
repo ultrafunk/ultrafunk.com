@@ -8,8 +8,8 @@
 .site-theme-light {
   --snackbar-background-color: #444;
   --snackbar-text-color: #fff;
-  --snackbar-link-color: #4b96ff;
-  --snackbar-link-hover-color: #4b96ff;
+  --snackbar-action-color: #4b96ff;
+  --snackbar-action-hover-color: #dd0000;
   --snackbar-button-color: #999;
   --snackbar-button-hover-color: #fff;
 }
@@ -17,8 +17,8 @@
 .site-theme-dark {
   --snackbar-background-color: #555;
   --snackbar-text-color: #fff;
-  --snackbar-link-color: #4b96ff;
-  --snackbar-link-hover-color: #4b96ff;
+  --snackbar-action-color: #4b96ff;
+  --snackbar-action-hover-color: #dd0000;
   --snackbar-button-color: #999;
   --snackbar-button-hover-color: #fff;
 }
@@ -50,14 +50,20 @@
   border-radius: 5px;
 }
 
-#snackbar .snackbar-wrapper a {
-  color: var(--snackbar-link-color);
+#snackbar .action-verb {
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--snackbar-action-color);
   text-decoration: none;
+  border: 2px solid;
+  margin: 0 5px;
+  padding: 0 5px;
+  text-transform: uppercase;
 }
 
-#snackbar .snackbar-wrapper a:hover {
-  color: var(--snackbar-link-hover-color);
-  text-decoration: underline;
+#snackbar .action-verb:hover {
+  color: var(--snackbar-action-hover-color);
+  text-decoration: none;
 }
 
 #snackbar .snackbar-message {

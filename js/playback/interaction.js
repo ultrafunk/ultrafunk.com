@@ -5,11 +5,11 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.6.3';
-import * as storage     from '../common/storage.js?ver=1.6.3';
-import * as utils       from '../common/utils.js?ver=1.6.3';
-import * as eventLogger from './eventlogger.js?ver=1.6.3';
-import * as playback    from './playback.js?ver=1.6.3';
+import * as debugLogger from '../common/debuglogger.js?ver=1.6.4';
+import * as storage     from '../common/storage.js?ver=1.6.4';
+import * as utils       from '../common/utils.js?ver=1.6.4';
+import * as eventLogger from './eventlogger.js?ver=1.6.4';
+import * as playback    from './playback.js?ver=1.6.4';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -32,17 +32,18 @@ const config = {
 
 const defaultSettings = {
   // Incremental version to check for new properties
-  version: 4,
+  version: 5,
   // User (public) settings
   user: {
-    autoPlay:             true,
-    autoScroll:           true,
-    smoothScrolling:      true,
-    autoExitFullscreen:   true,  // Automatically exit fullscreen when a track ends
-    blurFocusBgChange:    false, // Set different background color when focus is lost (blurred)
-    timeRemainingWarning: true,  // Flash Play / Pause button...
-    timeRemainingSeconds: 45,    // ...seconds left when warning is shown
-    autoExitFsOnWarning:  true,  // Automatically exit fullscreen early when timeRemainingWarning is enabled 
+    autoPlay:                    true,
+    autoScroll:                  true,
+    smoothScrolling:             true,
+    autoExitFullscreen:          true,  // Automatically exit fullscreen when a track ends
+    animateCurrentlyPlayingIcon: true,  // Current track indicator icon CSS pulse animation ON / OFF
+    blurFocusBgChange:           false, // Set different background color when focus is lost (blurred)
+    timeRemainingWarning:        true,  // Flash Play / Pause button...
+    timeRemainingSeconds:        45,    // ...seconds left when warning is shown
+    autoExitFsOnWarning:         true,  // Automatically exit fullscreen early when timeRemainingWarning is enabled 
   },
   // Priv (private / internal) settings
   priv: {
@@ -146,7 +147,10 @@ function initInteraction()
 
 function playbackEventCallback(playbackEvent, eventData = null)
 {
-  if (debug.isDebug() && (playbackEvent !== playback.EVENT.MEDIA_TIMER) && (playbackEvent !== playback.EVENT.MEDIA_TIME_REMAINING))
+  if (debug.isDebug() &&
+     (playbackEvent !== playback.EVENT.LOADING) &&
+     (playbackEvent !== playback.EVENT.MEDIA_TIMER) &&
+     (playbackEvent !== playback.EVENT.MEDIA_TIME_REMAINING))
   {
     debug.log(`playbackEventCallback(): ${debug.getObjectKeyForValue(playback.EVENT, playbackEvent)} (${playbackEvent})`);
     
@@ -174,7 +178,9 @@ function playbackEventCallback(playbackEvent, eventData = null)
         resetCurrentlyPlayingIcons(currentlyPlayingIcon);
         currentlyPlayingIcon.style.display = 'inline-block';
         currentlyPlayingIcon.classList.remove('animation-paused');
-        currentlyPlayingIcon.classList.add('playing-animate');
+
+        if (settings.user.animateCurrentlyPlayingIcon)
+          currentlyPlayingIcon.classList.add('playing-animate');
       }
       break;
       
@@ -215,7 +221,11 @@ function playbackEventCallback(playbackEvent, eventData = null)
       break;
       
     case playback.EVENT.AUTOPLAY_BLOCKED:
-      utils.showSnackbar('Autoplay was blocked, click or tap Play to continue...', 15);
+      utils.showSnackbar('Autoplay was blocked, click or tap <span class="action-verb">play</span> to continue...', 30, () =>
+      {
+        if (playback.getStatus().isPlaying === false)
+          playback.togglePlayPause();
+      });
       break;
       
     case playback.EVENT.PLAYBACK_BLOCKED:
@@ -235,6 +245,7 @@ function playbackEventMediaUnavailable(eventData)
   {
     if (isPremiumTrack(eventData.postId))
     {
+      // ToDo: Update to follow playback.EVENT.AUTOPLAY_BLOCKED if ever needed again...
       utils.showSnackbar('YouTube Premium track, skipping to next... <a href="/channel/premium/"><b>HELP</b></a>', 10);
       playbackEventErrorTryNext(eventData, 5);
     }

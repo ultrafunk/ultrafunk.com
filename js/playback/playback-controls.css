@@ -11,7 +11,7 @@
   
   --playback-text-color: #333;
   --playback-text-hover-color: #dd0000;
-  --playback-ctrl-disabled-color: #ddd;
+  --playback-ctrl-disabled-color: #d3d3d3;
   --playback-play-pause-color: #dd0000;
   --playback-play-pause-hover-color: #ff0000;
   --playback-play-pause-color-no-autoplay: #3264c8;
@@ -26,7 +26,7 @@
   
   --playback-text-color: #eee;
   --playback-text-hover-color: #dd0000;
-  --playback-ctrl-disabled-color: #444;
+  --playback-ctrl-disabled-color: #4e4e4e;
   --playback-play-pause-color: #dd0000;
   --playback-play-pause-hover-color: #ff0000;
   --playback-play-pause-color-no-autoplay: #3264c8;

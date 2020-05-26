@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger      from '../common/debuglogger.js?ver=1.6.3';
-import * as mediaPlayer      from './mediaplayer.js?ver=1.6.3';
-import * as playbackControls from './playback-controls.js?ver=1.6.3';
-import * as eventLogger      from './eventlogger.js?ver=1.6.3';
+import * as debugLogger      from '../common/debuglogger.js?ver=1.6.4';
+import * as mediaPlayer      from './mediaplayer.js?ver=1.6.4';
+import * as controls         from './playback-controls.js?ver=1.6.4';
+import * as eventLogger      from './eventlogger.js?ver=1.6.4';
 
 
 export {
@@ -28,7 +28,6 @@ export {
 
 const debug           = debugLogger.getInstance('playback');
 const mediaPlayers    = [];
-const controls        = playbackControls.playbackControls();
 const eventLog        = new eventLogger.Playback(10);
 let eventCallback     = null;
 let playersReadyCount = 0;

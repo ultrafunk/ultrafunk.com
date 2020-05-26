@@ -5,184 +5,184 @@
 //
 
 
-export let playbackControls = function()
-{
-  const STATE = {
-    DISABLED: 'state-disabled',
-    ENABLED:  'state-enabled',
-    PLAY:     'state-play',
-    PAUSE:    'state-pause',
-  };
-
-  const controls = {
-    details:    { div: null, state: STATE.DISABLED, artist:   null, title:    null },
-    timer:      { div: null, state: STATE.DISABLED, position: null, duration: null, positionSecs: -1, durationSecs: -1 },
-    prevTrack:  { div: null, state: STATE.DISABLED },
-    playPause:  { div: null, state: STATE.DISABLED, icon: null },
-    nextTrack:  { div: null, state: STATE.DISABLED },
-    shuffle:    { div: null, state: STATE.DISABLED },
-  };
-
-  function setState(control, state = STATE.DISABLED)
-  {
-    control.div.classList.remove(control.state);
-    control.div.classList.add(state);
-    control.state = state;
-    
-    if (state === STATE.PLAY)
-      controls.playPause.icon.textContent = 'play_circle_filled';
-    else if (state === STATE.PAUSE)
-      controls.playPause.icon.textContent = 'pause_circle_filled';
-  }
-
-  function setDetails(playbackStatus)
-  {
-    setTimer(-1, -1);
-    controls.details.artist.textContent = playbackStatus.artist || ''; // Artist will contain the post title if all else fails
-    controls.details.title.textContent  = playbackStatus.title  || '';
-  }
-
-  function getTimeString(seconds, from, length)
-  {
-    // ToDo: This can probably be optimized a bit?
-    return (new Date(seconds * 1000).toISOString().substr(from, length));
-  }
-
-  function setTimer(positionSecs, durationSecs)
-  {
-    if ((positionSecs !== -1) && (controls.timer.positionSecs !== positionSecs))
-    {
-      controls.timer.positionSecs = positionSecs;
-      controls.timer.position.textContent = (positionSecs > (60 * 60)) ? getTimeString(positionSecs, 11, 8) : getTimeString(positionSecs, 14, 5);
-    }
-    else if ((positionSecs === -1) && (controls.timer.positionSecs === -1))
-    {
-      controls.timer.position.textContent = '00:00';
-    }
-
-    if ((durationSecs !== -1) && (controls.timer.durationSecs !== durationSecs))
-    {
-      controls.timer.durationSecs = durationSecs;
-      controls.timer.duration.textContent = (durationSecs > (60 * 60)) ? getTimeString(durationSecs, 11, 8) : getTimeString(durationSecs, 14, 5);
-    }
-    else if ((durationSecs === -1) && (controls.timer.durationSecs === -1))
-    {
-      controls.timer.duration.textContent = '00:00';
-    }
-  }
-
-  function clearTimer()
-  {
-    controls.timer.position.textContent = '00:00';
-    controls.timer.duration.textContent = '00:00';
-  }
-
-  function isPlaying()
-  {
-    // ToDo: THIS NEEDS TO BE CONTROLLED IN playback.js instead of relying on UI state!?!?
-    return ((controls.playPause.state === STATE.PAUSE) ? true : false);    
-  }
-  
-  return {
-
-    init: function(controlsId)
-    {
-      const playbackControls = document.getElementById(controlsId);
-    
-      if (playbackControls !== null)
-      {
-        controls.details.div    = playbackControls.querySelector('.details-control');
-        controls.details.artist = controls.details.div.querySelector('.details-artist');
-        controls.details.title  = controls.details.div.querySelector('.details-title');
-        controls.timer.div      = playbackControls.querySelector('.timer-control');
-        controls.timer.position = controls.timer.div.querySelector('.timer-position');
-        controls.timer.duration = controls.timer.div.querySelector('.timer-duration');
-        controls.prevTrack.div  = playbackControls.querySelector('.prev-control');
-        controls.playPause.div  = playbackControls.querySelector('.play-pause-control');
-        controls.playPause.icon = controls.playPause.div.querySelector('i');
-        controls.nextTrack.div  = playbackControls.querySelector('.next-control');
-        controls.shuffle.div    = playbackControls.querySelector('.shuffle-control');
-      }
-      else
-      {
-        console.error(`PlayerControls: Unable to getElementById() for '#${controlsId}'`);
-      }
-    },
-
-    ready: function(prevClick, playPauseClick, nextClick, numTracks)
-    {
-      setState(controls.details, STATE.ENABLED);
-      setState(controls.timer, STATE.ENABLED);
-
-      setState(controls.prevTrack, STATE.DISABLED);
-      controls.prevTrack.div.addEventListener('click', prevClick);
-
-      setState(controls.playPause, STATE.PLAY);
-      controls.playPause.div.addEventListener('click', playPauseClick);
-
-      setState(controls.nextTrack, ((numTracks > 1) ? STATE.ENABLED : STATE.DISABLED));
-      controls.nextTrack.div.addEventListener('click', nextClick);
-
-      setState(controls.shuffle, STATE.ENABLED);
-    },
-
-    setDetails: function(playbackStatus)
-    {
-      setDetails(playbackStatus);
-    },
-
-    setTimer: function(position, duration)
-    {
-      setTimer(position, duration);
-    },
-
-    isPlaying: function()
-    {
-      return isPlaying();
-    },
-    
-    updatePrevState: function(playbackStatus)
-    {
-      clearTimer();
-      setDetails(playbackStatus);
-    
-      if ((isPlaying() === false) && (playbackStatus.currentTrack <= 1))
-        setState(controls.prevTrack, STATE.DISABLED);
-      
-      if (playbackStatus.currentTrack < playbackStatus.numTracks)
-        setState(controls.nextTrack, STATE.ENABLED);
-    },
-
-    updatePlayState: function(playbackStatus)
-    {
-      setState(controls.playPause, STATE.PAUSE);
-      setState(controls.prevTrack, STATE.ENABLED);
-      setDetails(playbackStatus);
-    },
-    
-    updatePauseState: function()
-    {
-      setState(controls.playPause, STATE.PLAY);
-    },
-
-    updateNextState: function(playbackStatus)
-    {
-      clearTimer();
-      setDetails(playbackStatus);
-      setState(controls.prevTrack, STATE.ENABLED);
-      
-      if (playbackStatus.currentTrack >= playbackStatus.numTracks)
-        setState(controls.nextTrack, STATE.DISABLED);
-    },
-
-    blinkPlayPause: function()
-    {
-      controls.playPause.div.classList.toggle('time-remaining-warning');
-    },
-    
-    stopBlinkPlayPause: function()
-    {
-      controls.playPause.div.classList.remove('time-remaining-warning');
-    },
-  };
+export {
+  init,
+  ready,
+  setDetails,
+  setTimer,
+  isPlaying,
+  updatePrevState,
+  updatePlayState,
+  updatePauseState,
+  updateNextState,
+  blinkPlayPause,
+  stopBlinkPlayPause,
 };
+
+
+const STATE = {
+  DISABLED: 'state-disabled',
+  ENABLED:  'state-enabled',
+  PLAY:     'state-play',
+  PAUSE:    'state-pause',
+};
+
+const controls = {
+  details:    { element: null, state: STATE.DISABLED, artistElement:   null, titleElement:    null },
+  timer:      { element: null, state: STATE.DISABLED, positionElement: null, durationElement: null, positionSecs: -1, durationSecs: -1 },
+  prevTrack:  { element: null, state: STATE.DISABLED },
+  playPause:  { element: null, state: STATE.DISABLED, iconElement: null },
+  nextTrack:  { element: null, state: STATE.DISABLED },
+  shuffle:    { element: null, state: STATE.DISABLED },
+};
+
+
+// ************************************************************************************************
+//
+// ************************************************************************************************
+
+function init(controlsId)
+{
+  const playbackControls = document.getElementById(controlsId);
+
+  if (playbackControls !== null)
+  {
+    controls.details.element       = playbackControls.querySelector('.details-control');
+    controls.details.artistElement = controls.details.element.querySelector('.details-artist');
+    controls.details.titleElement  = controls.details.element.querySelector('.details-title');
+    controls.timer.element         = playbackControls.querySelector('.timer-control');
+    controls.timer.positionElement = controls.timer.element.querySelector('.timer-position');
+    controls.timer.durationElement = controls.timer.element.querySelector('.timer-duration');
+    controls.prevTrack.element     = playbackControls.querySelector('.prev-control');
+    controls.playPause.element     = playbackControls.querySelector('.play-pause-control');
+    controls.playPause.iconElement = controls.playPause.element.querySelector('i');
+    controls.nextTrack.element     = playbackControls.querySelector('.next-control');
+    controls.shuffle.element       = playbackControls.querySelector('.shuffle-control');
+  }
+  else
+  {
+    console.error(`PlayerControls: Unable to getElementById() for '#${controlsId}'`);
+  }
+}
+
+function ready(prevClick, playPauseClick, nextClick, numTracks)
+{
+  setState(controls.details, STATE.ENABLED);
+  setState(controls.timer, STATE.ENABLED);
+
+  setState(controls.prevTrack, STATE.DISABLED);
+  controls.prevTrack.element.addEventListener('click', prevClick);
+
+  setState(controls.playPause, STATE.PLAY);
+  controls.playPause.element.addEventListener('click', playPauseClick);
+
+  setState(controls.nextTrack, ((numTracks > 1) ? STATE.ENABLED : STATE.DISABLED));
+  controls.nextTrack.element.addEventListener('click', nextClick);
+
+  setState(controls.shuffle, STATE.ENABLED);
+}
+
+function setState(control, state = STATE.DISABLED)
+{
+  control.element.classList.remove(control.state);
+  control.element.classList.add(state);
+  control.state = state;
+  
+  if (state === STATE.PLAY)
+    controls.playPause.iconElement.textContent = 'play_circle_filled';
+  else if (state === STATE.PAUSE)
+    controls.playPause.iconElement.textContent = 'pause_circle_filled';
+}
+
+function setDetails(playbackStatus)
+{
+  setTimer(-1, -1);
+  controls.details.artistElement.textContent = playbackStatus.artist || ''; // Artist will contain the post title if all else fails
+  controls.details.titleElement.textContent  = playbackStatus.title  || '';
+}
+
+function getTimeString(seconds, from, length)
+{
+  // ToDo: This can probably be optimized a bit?
+  return (new Date(seconds * 1000).toISOString().substr(from, length));
+}
+
+function setTimer(positionSecs, durationSecs)
+{
+  if ((positionSecs !== -1) && (controls.timer.positionSecs !== positionSecs))
+  {
+    controls.timer.positionSecs = positionSecs;
+    controls.timer.positionElement.textContent = (positionSecs > (60 * 60)) ? getTimeString(positionSecs, 11, 8) : getTimeString(positionSecs, 14, 5);
+  }
+  else if ((positionSecs === -1) && (controls.timer.positionSecs === -1))
+  {
+    controls.timer.positionElement.textContent = '00:00';
+  }
+
+  if ((durationSecs !== -1) && (controls.timer.durationSecs !== durationSecs))
+  {
+    controls.timer.durationSecs = durationSecs;
+    controls.timer.durationElement.textContent = (durationSecs > (60 * 60)) ? getTimeString(durationSecs, 11, 8) : getTimeString(durationSecs, 14, 5);
+  }
+  else if ((durationSecs === -1) && (controls.timer.durationSecs === -1))
+  {
+    controls.timer.durationElement.textContent = '00:00';
+  }
+}
+
+function clearTimer()
+{
+  controls.timer.positionElement.textContent = '00:00';
+  controls.timer.durationElement.textContent = '00:00';
+}
+
+function isPlaying()
+{
+  // ToDo: THIS NEEDS TO BE CONTROLLED IN playback.js instead of relying on UI state!?!?
+  return ((controls.playPause.state === STATE.PAUSE) ? true : false);    
+}
+
+function updatePrevState(playbackStatus)
+{
+  clearTimer();
+  setDetails(playbackStatus);
+
+  if ((isPlaying() === false) && (playbackStatus.currentTrack <= 1))
+    setState(controls.prevTrack, STATE.DISABLED);
+  
+  if (playbackStatus.currentTrack < playbackStatus.numTracks)
+    setState(controls.nextTrack, STATE.ENABLED);
+}
+
+function updatePlayState(playbackStatus)
+{
+  setState(controls.playPause, STATE.PAUSE);
+  setState(controls.prevTrack, STATE.ENABLED);
+  setDetails(playbackStatus);
+}
+
+function updatePauseState()
+{
+  setState(controls.playPause, STATE.PLAY);
+}
+
+function updateNextState(playbackStatus)
+{
+  clearTimer();
+  setDetails(playbackStatus);
+  setState(controls.prevTrack, STATE.ENABLED);
+  
+  if (playbackStatus.currentTrack >= playbackStatus.numTracks)
+    setState(controls.nextTrack, STATE.DISABLED);
+}
+
+function blinkPlayPause()
+{
+  controls.playPause.element.classList.toggle('time-remaining-warning');
+}
+
+function stopBlinkPlayPause()
+{
+  controls.playPause.element.classList.remove('time-remaining-warning');
+}
+
