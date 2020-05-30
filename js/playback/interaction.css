@@ -50,18 +50,18 @@
   border-radius: 5px;
 }
 
-#snackbar .action-verb {
+#snackbar .action-text {
   font-weight: 700;
   cursor: pointer;
   color: var(--snackbar-action-color);
   text-decoration: none;
-  border: 2px solid;
+  border: 3px solid;
   margin: 0 5px;
   padding: 0 5px;
   text-transform: uppercase;
 }
 
-#snackbar .action-verb:hover {
+#snackbar .action-text:hover {
   color: var(--snackbar-action-hover-color);
   text-decoration: none;
 }
@@ -136,6 +136,10 @@
     padding: 4px 0px;
   }
 
+  #snackbar .action-text {
+    border: 2px solid;
+  }
+  
   #snackbar .snackbar-button {
     padding: 0px 0px 0px 10px;
     width: 32px;

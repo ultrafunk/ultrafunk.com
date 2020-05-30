@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger      from '../common/debuglogger.js?ver=1.6.4';
-import * as mediaPlayer      from './mediaplayer.js?ver=1.6.4';
-import * as controls         from './playback-controls.js?ver=1.6.4';
-import * as eventLogger      from './eventlogger.js?ver=1.6.4';
+import * as debugLogger      from '../common/debuglogger.js?ver=1.6.5';
+import * as mediaPlayer      from './mediaplayer.js?ver=1.6.5';
+import * as controls         from './playback-controls.js?ver=1.6.5';
+import * as eventLogger      from './eventlogger.js?ver=1.6.5';
 
 
 export {
@@ -17,6 +17,7 @@ export {
 // Functions
   init,
   setConfig,
+  setEventHandlers,
   togglePlayPause,
   prevClick,
   nextClick,
@@ -29,11 +30,12 @@ export {
 const debug           = debugLogger.getInstance('playback');
 const mediaPlayers    = [];
 const eventLog        = new eventLogger.Playback(10);
+const eventHandlers   = {};
 let eventCallback     = null;
 let playersReadyCount = 0;
 let currentPlayer     = 0;
 
-const config = {
+const moduleConfig = {
   youTubeIframeIdRegEx:    null,
   soundCloudIframeIdRegEx: null,
   entriesSelector:         'article',
@@ -46,7 +48,7 @@ const config = {
   timeRemainingSeconds:    30,   // Seconds left when warning is shown
 };
 
-// Callback events for interaction.js
+// Events for event handlers and / or callback
 const EVENT = {
   LOADING:              10,
   READY:                20,
@@ -65,34 +67,58 @@ const EVENT = {
 
 
 // ************************************************************************************************
-// Find, register and init all embedder media players
+// 
 // ************************************************************************************************
 
-function init(callback)
+function init(callback = null)
 {
   eventCallback = callback;
-  controls.init(config.playbackControlsId);
+  controls.init(moduleConfig.playbackControlsId);
   initYouTubeAPI();
   initSoundCloudAPI();
 }
 
-function setConfig(changeConfig = null)
+function setConfig(setConfig = null)
 {
-  if (changeConfig !== null)
+  if (setConfig !== null)
   {
-    Object.entries(changeConfig).forEach(([key, value]) => config[key] = value);
-    debug.log(config);
+    Object.entries(setConfig).forEach(([key, value]) => moduleConfig[key] = value);
+  //debug.log(config);
   }
 }
 
+function setEventHandlers(setEventHandlers = null)
+{
+  if (setEventHandlers !== null)
+  {
+    Object.entries(setEventHandlers).forEach(([key, value]) => eventHandlers[key] = value);
+  //debug.log(eventHandlers);
+  }
+}
+
+function callEventHandler(playbackEvent, eventData = null)
+{
+  if (playbackEvent in eventHandlers)
+    eventHandlers[playbackEvent](playbackEvent, eventData);
+  else if (eventCallback !== null)
+    eventCallback(playbackEvent, eventData);
+  else
+    debug.warn(`callEventHandler(): No event handler or event callback found for: EVENT.${debug.getObjectKeyForValue(EVENT, playbackEvent)} (${playbackEvent})`);
+}
+
+
+// ************************************************************************************************
+// Find, register and init all embedder media players
+// ************************************************************************************************
+
 function getAllEmbeddedPlayers()
 {
-  const entries = document.querySelectorAll(config.entriesSelector);
+  const entries = document.querySelectorAll(moduleConfig.entriesSelector);
 
   entries.forEach(entry => 
   {
     const postId     = entry.id;
-    const entryTitle = entry.getAttribute(config.entryTitleData);
+    const entryTitle = entry.getAttribute(moduleConfig.entryTitleData);
     const iframes    = entry.querySelectorAll('iframe');
 
     iframes.forEach(iframe =>
@@ -100,7 +126,7 @@ function getAllEmbeddedPlayers()
       const iframeId = iframe.id;
       let   player   = {};
 
-      if (config.youTubeIframeIdRegEx.test(iframeId)) 
+      if (moduleConfig.youTubeIframeIdRegEx.test(iframeId)) 
       {
         const embeddedPlayer = new YT.Player(iframeId, // eslint-disable-line no-undef
         {
@@ -114,7 +140,7 @@ function getAllEmbeddedPlayers()
           
         player = new mediaPlayer.YouTube(postId, iframeId, embeddedPlayer);
       }
-      else if (config.soundCloudIframeIdRegEx.test(iframeId))
+      else if (moduleConfig.soundCloudIframeIdRegEx.test(iframeId))
       {
         /* eslint-disable */
         const embeddedPlayer = SC.Widget(iframeId);
@@ -165,12 +191,12 @@ function updateMediaPlayersReadyProgress()
   if (playersReadyCount >= getNumPlayers())
   {
     controls.ready(prevClick, togglePlayPause, nextClick, getNumTracks());
-    eventCallback(EVENT.READY);
-    eventCallback(EVENT.RESUME_AUTOPLAY);
+    callEventHandler(EVENT.READY);
+    callEventHandler(EVENT.RESUME_AUTOPLAY);
   }
   else
   {
-    eventCallback(EVENT.LOADING);
+    callEventHandler(EVENT.LOADING);
   }
 }
 
@@ -208,7 +234,7 @@ function prevClickCallback(positionMilliseconds)
   if (positionMilliseconds > 3000)
   {
     getMediaPlayer().seekTo(0);
-    updatePlaybackTimerCallback(0);
+    playbackTimer.updateCallback(0);
   }
   else
   {
@@ -229,9 +255,9 @@ function nextClick(event)
     getMediaPlayer().stop();
     
     //Called from UI event handler for button or keyboard if (event !== null)
-    if ((event !== null) || (config.autoPlay))
+    if ((event !== null) || (moduleConfig.autoPlay))
     {
-      if(mediaNext(controls.isPlaying()))
+      if (mediaNext(controls.isPlaying()))
         controls.updateNextState(getPlaybackStatus());
     }
     else
@@ -243,8 +269,8 @@ function nextClick(event)
   {
     controls.updatePauseState();
     
-    if (config.autoPlay)
-      eventCallback(EVENT.CONTINUE_AUTOPLAY);
+    if (moduleConfig.autoPlay)
+      callEventHandler(EVENT.CONTINUE_AUTOPLAY);
     else
       getMediaPlayer().stop();
   }
@@ -292,12 +318,12 @@ let syncPlayersState = function syncPlayersStateRecursive(nextPlayer, syncState)
     if (syncState === SYNCSTATE.PLAY)
     {
       controls.updatePlayState(getPlaybackStatus());
-      eventCallback(EVENT.MEDIA_PLAYING, { postId: getMediaPlayer().getPostId() });
+      callEventHandler(EVENT.MEDIA_PLAYING, { postId: getMediaPlayer().getPostId() });
     }
     else if (syncState === SYNCSTATE.PAUSE)
     {
       controls.updatePauseState();
-      eventCallback(EVENT.MEDIA_PAUSED, { postId: getMediaPlayer().getPostId() });      
+      callEventHandler(EVENT.MEDIA_PAUSED, { postId: getMediaPlayer().getPostId() });      
     }
   }
   else
@@ -364,9 +390,9 @@ function isValidTrack(track)
 }
 
 
-//
-// Media navigation
-//
+// ************************************************************************************************
+// Media track navigation
+// ************************************************************************************************
 
 function mediaPrev(playMedia)
 {
@@ -408,7 +434,7 @@ function mediaTrack(track, playMedia)
 
 function mediaGotoTrack(playMedia)
 {
-  eventCallback(EVENT.GOTO_MEDIA, { postId: getMediaPlayer().getPostId(), iframeId: getMediaPlayer().getIframeId() });
+  callEventHandler(EVENT.GOTO_MEDIA, { postId: getMediaPlayer().getPostId(), iframeId: getMediaPlayer().getIframeId() });
   
   if (playMedia)
     getMediaPlayer().play(onEmbeddedPlayerErrorCallback);
@@ -432,7 +458,7 @@ function onEmbeddedPlayerErrorCallback(player, mediaUrl)
   
   eventLog.add(eventSource, Date.now(), eventLogger.EVENT.PLAYER_ERROR, player.getUid());
   controls.updatePauseState();
-  eventCallback(EVENT.MEDIA_UNAVAILABLE, getPlayerErrorVars(player, mediaUrl));
+  callEventHandler(EVENT.MEDIA_UNAVAILABLE, getPlayerErrorVars(player, mediaUrl));
 }
 
 function getPlayerErrorVars(player, mediaUrl)
@@ -454,78 +480,87 @@ function getPlayerErrorVars(player, mediaUrl)
 // Playback timer and event handling
 // ************************************************************************************************
 
-let playbackTimerId     = -1;
-let lastPosMilliseconds = 0;
-
-function startPlaybackTimer()
+const playbackTimer = (() =>
 {
-  stopPlaybackTimer(false);
-  playbackTimerId = setInterval(updatePlaybackTimer, config.updateTimerInterval);
-}
+  let timerId             = -1;
+  let lastPosMilliseconds = 0;
 
-function stopPlaybackTimer(playbackEnded = false)
-{
-  if (playbackTimerId !== -1)
+  return {
+    start,
+    stop,
+    updateCallback,
+  };
+  
+  function start()
   {
-    clearInterval(playbackTimerId);
-    playbackTimerId = -1;
+    stop(false);
+    timerId = setInterval(update, moduleConfig.updateTimerInterval);
   }
   
-  if (playbackEnded)
+  function stop(playbackEnded = false)
   {
-    updatePlaybackTimerCallback(0);
-    eventCallback(EVENT.MEDIA_ENDED);
-  }
-
-  resetTimeRemainingWarning();
-}
-
-function updatePlaybackTimer()
-{
-  getMediaPlayer().getPositionCallback(updatePlaybackTimerCallback);
-}
-
-function updatePlaybackTimerCallback(posMilliseconds)
-{
-  const duration = getMediaPlayer().getDuration();
-  
-  controls.setTimer(Math.round(posMilliseconds / 1000), duration);
-  updateTimeRemainingWarning(posMilliseconds, duration);
-  eventCallback(EVENT.MEDIA_TIMER, { currentTrack: getCurrentTrack(), position: posMilliseconds, duration: duration });
-}
-
-function resetTimeRemainingWarning()
-{
-  lastPosMilliseconds = 0;
-  controls.stopBlinkPlayPause();
-}
-
-function updateTimeRemainingWarning(posMilliseconds, duration)
-{
-  if ((config.autoPlay === false) && config.timeRemainingWarning)
-  {
-    if ((posMilliseconds > 0) && (duration > 0))
+    if (timerId !== -1)
     {
-      const deltaTime = posMilliseconds - lastPosMilliseconds;
-      
-      if ((deltaTime > 900) || (deltaTime < 0))
+      clearInterval(timerId);
+      timerId = -1;
+    }
+    
+    if (playbackEnded)
+    {
+      updateCallback(0);
+      callEventHandler(EVENT.MEDIA_ENDED);
+    }
+  
+    resetTimeRemainingWarning();
+  }
+  
+  function update()
+  {
+    getMediaPlayer().getPositionCallback(updateCallback);
+  }
+  
+  function updateCallback(posMilliseconds)
+  {
+    const duration = getMediaPlayer().getDuration();
+    
+    controls.setTimer(Math.round(posMilliseconds / 1000), duration);
+    updateTimeRemainingWarning(posMilliseconds, duration);
+    callEventHandler(EVENT.MEDIA_TIMER, { currentTrack: getCurrentTrack(), position: posMilliseconds, duration: duration });
+  }
+  
+  function resetTimeRemainingWarning()
+  {
+    lastPosMilliseconds = 0;
+    controls.stopBlinkPlayPause();
+  }
+  
+  function updateTimeRemainingWarning(posMilliseconds, duration)
+  {
+    if ((moduleConfig.autoPlay === false) && moduleConfig.timeRemainingWarning)
+    {
+      if ((posMilliseconds > 0) && (duration > 0))
       {
-        const timeRemainingSeconds = Math.round(duration - (posMilliseconds / 1000));
-        lastPosMilliseconds        = posMilliseconds;
+        const deltaTime = posMilliseconds - lastPosMilliseconds;
         
-        if (timeRemainingSeconds <= config.timeRemainingSeconds)
+        if ((deltaTime > 900) || (deltaTime < 0))
         {
-          controls.blinkPlayPause();
-          eventCallback(EVENT.MEDIA_TIME_REMAINING, { timeRemainingSeconds: timeRemainingSeconds });
-        }
-        else
-        {
-          controls.stopBlinkPlayPause();
+          const timeRemainingSeconds = Math.round(duration - (posMilliseconds / 1000));
+          lastPosMilliseconds        = posMilliseconds;
+          
+          if (timeRemainingSeconds <= moduleConfig.timeRemainingSeconds)
+          {
+            controls.blinkPlayPause();
+            callEventHandler(EVENT.MEDIA_TIME_REMAINING, { timeRemainingSeconds: timeRemainingSeconds });
+          }
+          else
+          {
+            controls.stopBlinkPlayPause();
+          }
         }
       }
     }
   }
-}
+})();
 
 
 // ************************************************************************************************
@@ -536,7 +571,7 @@ function updateTimeRemainingWarning(posMilliseconds, duration)
 function initYouTubeAPI()
 {
   debug.log('initYouTubeAPI()');
-  eventCallback(EVENT.LOADING);
+  callEventHandler(EVENT.LOADING);
 
   let tag = document.createElement('script');
   tag.id = 'youtube-iframe-api';
@@ -548,7 +583,7 @@ function initYouTubeAPI()
 window.onYouTubeIframeAPIReady = function()
 {
   debug.log('onYouTubeIframeAPIReady()');
-  eventCallback(EVENT.LOADING);
+  callEventHandler(EVENT.LOADING);
 
   //ToDo: THIS SHOULD NOT BE TRIGGERED HERE ONLY?
   getAllEmbeddedPlayers();
@@ -583,9 +618,9 @@ function onYouTubePlayerStateChange(event)
         // Call order is important on play events for state handling: Always sync first!
         syncPlayersState(playerIndex, SYNCSTATE.PLAY);
         getMediaPlayer(playerIndex).setDuration(Math.round(event.target.getDuration()));
-        startPlaybackTimer();
+        playbackTimer.start();
 
-        if(getMediaPlayer(playerIndex).setArtistTitleFromServer(event.target.getVideoData().title))
+        if (getMediaPlayer(playerIndex).setArtistTitleFromServer(event.target.getVideoData().title))
           controls.setDetails(getPlaybackStatus());
       }
       break;
@@ -593,12 +628,12 @@ function onYouTubePlayerStateChange(event)
     case YT.PlayerState.PAUSED: // eslint-disable-line no-undef
       debug.log('onYouTubePlayerStateChange: PAUSED');
       syncPlayersState(getPlayerIndexFromUid(event.target.f.id), SYNCSTATE.PAUSE);
-      stopPlaybackTimer(false);
+      playbackTimer.stop(false);
       break;
 
     case YT.PlayerState.ENDED: // eslint-disable-line no-undef
       debug.log('onYouTubePlayerStateChange: ENDED');
-      stopPlaybackTimer(true);
+      playbackTimer.stop(true);
       nextClick(null);
       break;
 
@@ -609,7 +644,7 @@ function onYouTubePlayerStateChange(event)
         if (eventLog.ytAutoPlayBlocked(event.target.f.id, 3000))
         {
           controls.updatePauseState();
-          eventCallback(EVENT.AUTOPLAY_BLOCKED);
+          callEventHandler(EVENT.AUTOPLAY_BLOCKED);
         }
       }
   }
@@ -633,7 +668,7 @@ function onYouTubePlayerError(event)
 function initSoundCloudAPI()
 {
   debug.log('initSoundCloudAPI()');
-  eventCallback(EVENT.LOADING);
+  callEventHandler(EVENT.LOADING);
 }
 
 function onSoundCloudPlayerEventReady()
@@ -676,7 +711,7 @@ function onSoundCloudPlayerEventPlay(event)
   getMediaPlayer().getEmbeddedPlayer().getDuration(durationMilliseconds =>
   {
     getMediaPlayer(getPlayerIndexFromUid(event.soundId)).setDuration(Math.round(durationMilliseconds / 1000));
-    startPlaybackTimer();
+    playbackTimer.start();
   });  
 }
 
@@ -684,8 +719,8 @@ function soundCloudPlaybackBlocked(callbackEvent, callbackData = null)
 {
   debug.log(`soundCloudPlaybackBlocked(): ${debug.getObjectKeyForValue(EVENT, callbackEvent)}`);
   controls.updatePauseState();
-  stopPlaybackTimer(false);
-  eventCallback(callbackEvent, callbackData);
+  playbackTimer.stop(false);
+  callEventHandler(callbackEvent, callbackData);
 }
 
 function onSoundCloudPlayerEventPause(event)
@@ -711,7 +746,7 @@ function onSoundCloudPlayerEventPause(event)
         if (positionMilliseconds > 0)
         {
           syncPlayersState(getPlayerIndexFromUid(event.soundId), SYNCSTATE.PAUSE);
-          stopPlaybackTimer(false);
+          playbackTimer.stop(false);
         }
       });    
     }
@@ -722,7 +757,7 @@ function onSoundCloudPlayerEventFinish(event)
 {
   debug.log('onSoundCloudPlayerEvent: FINISH / ENDED');
   eventLog.add(eventLogger.SOURCE.SOUNDCLOUD, Date.now(), eventLogger.EVENT.STATE_ENDED, event.soundId);
-  stopPlaybackTimer(true);
+  playbackTimer.stop(true);
   nextClick(null);
 }
 

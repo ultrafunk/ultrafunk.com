@@ -22,8 +22,9 @@ class DebugLog
     this.caller = padString(caller.toUpperCase(), 11, '.');
   }
   
-  isDebug()   { return DEBUG;                           }
-  error(data) { console.error(`${this.caller}:`, data); }
+  isDebug()     { return DEBUG;                           }
+  warn(data)    { console.warn(`${this.caller}:`,  data); }
+  error(data)   { console.error(`${this.caller}:`, data); }
 }
 
 class DevBuild extends DebugLog

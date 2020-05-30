@@ -4,7 +4,7 @@ Theme URI: https://github.com/ultrafunk/ultrafunk.com
 Author: Ultrafunk
 Author URI: https://ultrafunk.com
 Description: ultrafunk.com WordPress theme
-Version: 1.6.4
+Version: 1.6.5
 License: Apache License 2.0
 License URI: https://www.apache.org/licenses/LICENSE-2.0
 Text Domain: ultrafunk
@@ -35,12 +35,12 @@ Tags: one-column
   --site-header-up: 145px;
   --site-header-up-mobile: 111px;
 
-  --content-top-margin: 75px;
-  --content-top-margin-mobile: 50px;
-  --content-top-margin-no-playback: 70px;
-  --content-top-margin-no-playback-mobile: 45px;
+  --site-content-top-margin: 75px;
+  --site-content-top-margin-mobile: 50px;
+  --site-content-top-margin-no-playback: 70px;
+  --site-content-top-margin-no-playback-mobile: 45px;
 
-  --content-track-layout-min-width: 1100px;
+  --site-content-track-layout-min-width: 1100px;
 }
 
 .site-theme-light {
@@ -120,15 +120,11 @@ body.blurred {
   background: var(--body-background-blurred);
 }
 
-#page {
-  overflow: hidden;
-}
-
 .skip-link.screen-reader-text {
   display: none;
 }
 
-header#masthead {
+#site-header {
   width: 100%;
   box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.3);
   overflow: hidden;
@@ -142,7 +138,7 @@ header#masthead {
 
 @supports (backdrop-filter: blur(20px)) {
   
-  header#masthead {
+  #site-header {
     background: var(--header-gradient-bg-blur);
     backdrop-filter: blur(20px);
   }
@@ -151,7 +147,7 @@ header#masthead {
 
 @supports not (backdrop-filter: blur(20px)) {
   
-  header#masthead {
+  #site-header {
     background: var(--header-gradient-no-blur);
   }
   
@@ -403,16 +399,16 @@ i.material-icons.sub-pagination-next.disbled {
   cursor: pointer;
 }
 
-#content {
+#site-content {
   max-width: var(--site-max-width);
-  margin: calc(var(--content-top-margin) + var(--site-header-full)) auto 125px auto;
+  margin: calc(var(--site-content-top-margin) + var(--site-header-full)) auto 125px auto;
   width: 100%;
   box-sizing: border-box;
   clear: both;
 }
 
-body.no-playback-controls #content {
-  margin-top: calc(var(--content-top-margin-no-playback) + var(--site-header-full));
+body.no-playback-controls #site-content {
+  margin-top: calc(var(--site-content-top-margin-no-playback) + var(--site-header-full));
 }
 
 nav.navigation.pagination,
@@ -480,7 +476,7 @@ nav .nav-links ul {
   text-decoration: underline;
 }
 
-#colophon {
+#site-footer {
   background-color: var(--site-theme-color);
   color: var(--site-theme-font-color);
   clear: both;
@@ -530,7 +526,7 @@ nav .nav-links ul {
   text-decoration: underline;
 }
 
-#colophon .footer-toggles {
+#site-footer .footer-toggles {
   margin-top: 25px;
   white-space: nowrap;
 }
@@ -586,11 +582,11 @@ h1.content-header {
   padding-bottom: 45px;
 }
 
-.entry {
+article {
   margin-top: 175px;
 }
 
-.entry:first-of-type {
+article:first-of-type {
   margin-top: 0;
 }
 
@@ -619,7 +615,7 @@ h2.entry-title a {
   text-overflow: ellipsis;
 }
 
-.currently-playing.material-icons {
+.now-playing.material-icons {
   font-size: 38px;
   line-height: 0;
   position: relative;
@@ -847,7 +843,7 @@ aside.widget-area ul {
 * Sticky navigation menu
 ***************************************************************************************************/
 
-.sticky-nav-down #masthead .site-header-container {
+#site-header.sticky-nav-down .site-header-container {
   padding-bottom: 8px;
 }
 
@@ -857,14 +853,14 @@ aside.widget-area ul {
 
 @media screen and (max-width: 500px) {
 
-  .sticky-nav-down #masthead .site-header-container,
-  .sticky-nav-up #masthead .site-header-container {
+  #site-header.sticky-nav-down .site-header-container,
+  #site-header.sticky-nav-up .site-header-container {
     padding-top: 0;
     padding-bottom: 0;
   }
  
-  .sticky-nav-down #masthead #playback-controls,
-  .sticky-nav-up #masthead #playback-controls {
+  #site-header.sticky-nav-down #playback-controls,
+  #site-header.sticky-nav-up #playback-controls {
     margin-top: 6px;
     margin-bottom: 6px;
   }
@@ -889,11 +885,11 @@ aside.widget-area ul {
   display: flex;
 }
 
-#page.hide-main-nav-menu .main-navigation-menu-outer {
+#site-header.hide-main-nav-menu .main-navigation-menu-outer {
   display: none;
 }
 
-#page.hide-main-nav-menu .sub-navigation-menu-outer {
+#site-header.hide-main-nav-menu .sub-navigation-menu-outer {
   display: flex;
 }
 
@@ -903,11 +899,11 @@ aside.widget-area ul {
     display: none;
   }
 
-  #page.hide-main-nav-menu .main-navigation-menu-outer {
+  #site-header.hide-main-nav-menu .main-navigation-menu-outer {
     display: flex;
   }
   
-  #page.hide-main-nav-menu .sub-navigation-menu-outer {
+  #site-header.hide-main-nav-menu .sub-navigation-menu-outer {
     display: none;
   }
 
@@ -938,12 +934,12 @@ aside.widget-area ul {
 
 @media screen and (min-width: 1351px) {
 
-  #content {
-    margin-top: calc(var(--content-top-margin) + var(--site-header-up));
+  #site-content {
+    margin-top: calc(var(--site-content-top-margin) + var(--site-header-up));
   }
 
-  body.no-playback-controls #content {
-    margin-top: calc(var(--content-top-margin-no-playback) + var(--site-header-up));
+  body.no-playback-controls #site-content {
+    margin-top: calc(var(--site-content-top-margin-no-playback) + var(--site-header-up));
   }
 
   h1.content-header {
@@ -957,7 +953,7 @@ aside.widget-area ul {
   .site-header-container,
   nav.navigation,
   #intro-banner,
-  #colophon,
+  #site-footer,
   h1.content-header,
   .entry-header,
   .entry-content h2,
@@ -970,13 +966,13 @@ aside.widget-area ul {
     padding-right: 75px;
   }
   
-  #content {
+  #site-content {
     max-width: 100%;
-    margin-top: calc(var(--content-top-margin) + var(--site-header-1350px));
+    margin-top: calc(var(--site-content-top-margin) + var(--site-header-1350px));
   }
 
-  body.no-playback-controls #content {
-    margin-top: calc(var(--content-top-margin-no-playback) + var(--site-header-1350px));
+  body.no-playback-controls #site-content {
+    margin-top: calc(var(--site-content-top-margin-no-playback) + var(--site-header-1350px));
   }
   
 }
@@ -987,12 +983,12 @@ aside.widget-area ul {
     width: 19.4%;
   }
 
-  #content {
-    margin-top: calc(var(--content-top-margin) + var(--site-header-1200px));
+  #site-content {
+    margin-top: calc(var(--site-content-top-margin) + var(--site-header-1200px));
   }
 
-  body.no-playback-controls #content {
-    margin-top: calc(var(--content-top-margin-no-playback) + var(--site-header-1200px));
+  body.no-playback-controls #site-content {
+    margin-top: calc(var(--site-content-top-margin-no-playback) + var(--site-header-1200px));
   }
   
 }
@@ -1016,12 +1012,12 @@ aside.widget-area ul {
     margin-bottom: 4px;
   }
 
-  #content {
-    margin-top: calc(var(--content-top-margin) + var(--site-header-1100px));
+  #site-content {
+    margin-top: calc(var(--site-content-top-margin) + var(--site-header-1100px));
   }
 
-  body.no-playback-controls #content {
-    margin-top: calc(var(--content-top-margin-no-playback) + var(--site-header-1100px));
+  body.no-playback-controls #site-content {
+    margin-top: calc(var(--site-content-top-margin-no-playback) + var(--site-header-1100px));
   }
 
   #intro-banner,
@@ -1053,7 +1049,7 @@ aside.widget-area ul {
   .site-header-container,
   nav.navigation,
   #intro-banner,
-  #colophon,
+  #site-footer,
   h1.content-header,
   .entry-header,
   .entry-content h2,
@@ -1070,12 +1066,12 @@ aside.widget-area ul {
     width: 24%;
   }
   
-  #content {
-    margin-top: calc(var(--content-top-margin) + var(--site-header-900px));
+  #site-content {
+    margin-top: calc(var(--site-content-top-margin) + var(--site-header-900px));
   }
 
-  body.no-playback-controls #content {
-    margin-top: calc(var(--content-top-margin-no-playback) + var(--site-header-900px));
+  body.no-playback-controls #site-content {
+    margin-top: calc(var(--site-content-top-margin-no-playback) + var(--site-header-900px));
   }
 
   h1 {
@@ -1089,7 +1085,7 @@ aside.widget-area ul {
     line-height: 40px;
   }
 
-  .currently-playing.material-icons {
+  .now-playing.material-icons {
     font-size: 33px;
     top: 5px;
     margin-right: 8px;
@@ -1116,7 +1112,7 @@ aside.widget-area ul {
   .site-header-container,
   nav.navigation,
   #intro-banner,
-  #colophon,
+  #site-footer,
   h1.content-header,
   .entry-header,
   .entry-content h2,
@@ -1145,12 +1141,12 @@ aside.widget-area ul {
     margin-bottom: 7px;
   }
 
-  #content {
-    margin-top: calc(var(--content-top-margin) + var(--site-header-768px));
+  #site-content {
+    margin-top: calc(var(--site-content-top-margin) + var(--site-header-768px));
   }
   
-  body.no-playback-controls #content {
-    margin-top: calc(var(--content-top-margin-no-playback) + var(--site-header-768px));
+  body.no-playback-controls #site-content {
+    margin-top: calc(var(--site-content-top-margin-no-playback) + var(--site-header-768px));
   }
 
   .site-footer-container {
@@ -1185,7 +1181,7 @@ aside.widget-area ul {
     line-height: 35px;
   }
 
-  .currently-playing.material-icons {
+  .now-playing.material-icons {
     font-size: 27px;
     top: 4px;
     margin-right: 8px;
@@ -1224,7 +1220,7 @@ aside.widget-area ul {
   .site-header-container,
   nav.navigation,
   #intro-banner,
-  #colophon,
+  #site-footer,
   .entry-header,
   .entry-content h2,
   .entry-content h3,
@@ -1338,12 +1334,12 @@ aside.widget-area ul {
     margin-top: 1px;
   }
 
-  #content {
-    margin: calc(var(--content-top-margin-mobile) + var(--site-header-500px)) auto 70px auto;
+  #site-content {
+    margin: calc(var(--site-content-top-margin-mobile) + var(--site-header-500px)) auto 70px auto;
   }
   
-  body.no-playback-controls #content {
-    margin-top: calc(var(--content-top-margin-mobile) + var(--site-header-no-playback-500px));
+  body.no-playback-controls #site-content {
+    margin-top: calc(var(--site-content-top-margin-mobile) + var(--site-header-no-playback-500px));
   }
 
   /*
@@ -1362,7 +1358,7 @@ aside.widget-area ul {
   }
   */
 
-  .entry {
+  article {
     margin-top: 50px;
   }
   
@@ -1394,7 +1390,7 @@ aside.widget-area ul {
     line-height: 26px;
   }
 
-  .currently-playing.material-icons {
+  .now-playing.material-icons {
     font-size: 20px;
     top: 3px;
     margin-right: 6px;

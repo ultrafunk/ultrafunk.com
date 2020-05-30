@@ -5,22 +5,20 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.6.4';
-import * as storage     from '../common/storage.js?ver=1.6.4';
-import * as utils       from '../common/utils.js?ver=1.6.4';
-import * as eventLogger from './eventlogger.js?ver=1.6.4';
-import * as playback    from './playback.js?ver=1.6.4';
+import * as debugLogger from '../common/debuglogger.js?ver=1.6.5';
+import * as storage     from '../common/storage.js?ver=1.6.5';
+import * as utils       from '../common/utils.js?ver=1.6.5';
+import * as eventLogger from './eventlogger.js?ver=1.6.5';
+import * as playback    from './playback.js?ver=1.6.5';
 
 
 const debug              = debugLogger.getInstance('interaction');
 const eventLog           = new eventLogger.Interaction(10);
 let settings             = {};
-let playersCount         = 3;
-let playersReadyCount    = 1;
-let playbackReady        = false;
 let useKeyboardShortcuts = false;
 
-const config = {
+// Shared config for all, submodules can have local const config = {...}
+const moduleConfig = {
   youTubeIframeIdRegEx:    /youtube-uid/i,
   soundCloudIframeIdRegEx: /soundcloud-uid/i,
   autoPlayToggleId:        'footer-autoplay-toggle',
@@ -32,18 +30,18 @@ const config = {
 
 const defaultSettings = {
   // Incremental version to check for new properties
-  version: 5,
+  version: 6,
   // User (public) settings
   user: {
-    autoPlay:                    true,
-    autoScroll:                  true,
-    smoothScrolling:             true,
-    autoExitFullscreen:          true,  // Automatically exit fullscreen when a track ends
-    animateCurrentlyPlayingIcon: true,  // Current track indicator icon CSS pulse animation ON / OFF
-    blurFocusBgChange:           false, // Set different background color when focus is lost (blurred)
-    timeRemainingWarning:        true,  // Flash Play / Pause button...
-    timeRemainingSeconds:        45,    // ...seconds left when warning is shown
-    autoExitFsOnWarning:         true,  // Automatically exit fullscreen early when timeRemainingWarning is enabled 
+    autoPlay:              true,
+    autoScroll:            true,
+    smoothScrolling:       true,
+    autoExitFullscreen:    true,  // Automatically exit fullscreen when a track ends
+    animateNowPlayingIcon: true,  // Current track indicator icon CSS pulse animation ON / OFF
+    blurFocusBgChange:     false, // Set different background color when focus is lost (blurred)
+    timeRemainingWarning:  true,  // Flash Play / Pause button...
+    timeRemainingSeconds:  45,    // ...seconds left when warning is shown
+    autoExitFsOnWarning:   true,  // Automatically exit fullscreen early when timeRemainingWarning is enabled 
   },
   // Priv (private / internal) settings
   priv: {
@@ -54,11 +52,12 @@ const defaultSettings = {
   },
 };
 
-const elements = {
+// Shared DOM elements for all, submodules can have local const elements = {...}
+const moduleElements = {
   playbackProgressBar:    null,
   playbackControls:       { playPause: null, details: null },
   fullscreenChangeTarget: null,
-  currentlyPlayingIcons:  null,
+  nowPlayingIcons:        null,
   footerAutoPlayToggle:   null,
 };
 
@@ -72,24 +71,25 @@ document.addEventListener('DOMContentLoaded', () =>
   if (hasEmbeddedPlayers())
   {
     readSettings();
+    initInteraction();
     
     playback.setConfig({
-      youTubeIframeIdRegEx:    config.youTubeIframeIdRegEx,
-      soundCloudIframeIdRegEx: config.soundCloudIframeIdRegEx,
+      youTubeIframeIdRegEx:    moduleConfig.youTubeIframeIdRegEx,
+      soundCloudIframeIdRegEx: moduleConfig.soundCloudIframeIdRegEx,
       autoPlay:                settings.user.autoPlay,
       timeRemainingWarning:    settings.user.timeRemainingWarning,
       timeRemainingSeconds:    settings.user.timeRemainingSeconds,
     });
-    
-    initInteraction();
-    playback.init(playbackEventCallback);
+
+    playbackEvents.setHandlers();
+    playback.init();
     updateAutoPlayDOM(settings.user.autoPlay);
   }
 });
 
 // Listen for triggered events to toggle keyboard capture = allow other input elements to use shortcut keys
-document.addEventListener(config.allowKeyboardShortcuts, () => { if (config.keyboardShortcuts) useKeyboardShortcuts = true;  });
-document.addEventListener(config.denyKeyboardShortcuts,  () => { if (config.keyboardShortcuts) useKeyboardShortcuts = false; });
+document.addEventListener(moduleConfig.allowKeyboardShortcuts, () => { if (moduleConfig.keyboardShortcuts) useKeyboardShortcuts = true;  });
+document.addEventListener(moduleConfig.denyKeyboardShortcuts,  () => { if (moduleConfig.keyboardShortcuts) useKeyboardShortcuts = false; });
 
 
 // ************************************************************************************************
@@ -99,12 +99,12 @@ document.addEventListener(config.denyKeyboardShortcuts,  () => { if (config.keyb
 // Search page for <iframes> and check if any of them contains an embedded player
 function hasEmbeddedPlayers()
 {
-  const players  = document.querySelectorAll('iframe');
-  playersCount  += players.length;
+  const players = document.querySelectorAll('iframe');
+  playbackEvents.playersCount = players.length;
 
   for (let i = 0; i < players.length; i++)
   {
-    if (config.youTubeIframeIdRegEx.test(players[i].id) || config.soundCloudIframeIdRegEx.test(players[i].id))
+    if (moduleConfig.youTubeIframeIdRegEx.test(players[i].id) || moduleConfig.soundCloudIframeIdRegEx.test(players[i].id))
       return true;    
   }
 
@@ -122,19 +122,19 @@ function initInteraction()
 {
   debug.log('initInteraction()');
 
-  useKeyboardShortcuts                = config.keyboardShortcuts;
-  elements.playbackProgressBar        = document.getElementById('playback-progress').querySelector('.playback-progress-bar');
-  elements.playbackControls.playPause = document.getElementById('playback-controls').querySelector('.play-pause-control');
-  elements.playbackControls.details   = document.getElementById('playback-controls').querySelector('.details-control');
-  elements.currentlyPlayingIcons      = document.querySelectorAll('.currently-playing.material-icons');
-  elements.footerAutoPlayToggle       = document.getElementById(config.autoPlayToggleId);
+  useKeyboardShortcuts                      = moduleConfig.keyboardShortcuts;
+  moduleElements.playbackProgressBar        = document.getElementById('playback-progress').querySelector('.playback-progress-bar');
+  moduleElements.playbackControls.playPause = document.getElementById('playback-controls').querySelector('.play-pause-control');
+  moduleElements.playbackControls.details   = document.getElementById('playback-controls').querySelector('.details-control');
+  moduleElements.nowPlayingIcons            = document.querySelectorAll('.now-playing.material-icons');
+  moduleElements.footerAutoPlayToggle       = document.getElementById(moduleConfig.autoPlayToggleId);
 
   window.addEventListener('blur',    windowEventBlur);
   window.addEventListener('focus',   windowEventFocus);
   window.addEventListener('storage', windowEventStorage);
   
-  document.addEventListener('fullscreenchange',       onFullscreenChange);
-  document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+  document.addEventListener('fullscreenchange',       documentEventFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', documentEventFullscreenChange);
   
   utils.addEventListeners('i.sub-pagination-prev', 'click', subPaginationClick, navigationVars.prevUrl); // eslint-disable-line no-undef
   utils.addEventListeners('i.sub-pagination-next', 'click', subPaginationClick, navigationVars.nextUrl); // eslint-disable-line no-undef
@@ -142,135 +142,242 @@ function initInteraction()
 
 
 // ************************************************************************************************
-// Playback events callback handler and functions
+// Playback event handler module
 // ************************************************************************************************
 
-function playbackEventCallback(playbackEvent, eventData = null)
+const playbackEvents = (() =>
 {
-  if (debug.isDebug() &&
-     (playbackEvent !== playback.EVENT.LOADING) &&
-     (playbackEvent !== playback.EVENT.MEDIA_TIMER) &&
-     (playbackEvent !== playback.EVENT.MEDIA_TIME_REMAINING))
+  let playersCount      = 3;
+  let playersReadyCount = 1;
+  let playbackReady     = false;
+
+  return {
+    get playbackReady()          { return playbackReady;       },
+    set playersCount(numPlayers) { playersCount += numPlayers; },
+    setHandlers,
+  };
+
+  function setHandlers()
   {
-    debug.log(`playbackEventCallback(): ${debug.getObjectKeyForValue(playback.EVENT, playbackEvent)} (${playbackEvent})`);
-    
-    if (eventData !== null)
-      debug.log(eventData);
+    playback.setEventHandlers({
+      [playback.EVENT.LOADING]:              loading,
+      [playback.EVENT.READY]:                ready,
+      [playback.EVENT.MEDIA_PLAYING]:        mediaPlaying,
+      [playback.EVENT.MEDIA_PAUSED]:         mediaPaused,
+      [playback.EVENT.MEDIA_ENDED]:          mediaEnded,
+      [playback.EVENT.MEDIA_TIMER]:          mediaTimer,
+      [playback.EVENT.MEDIA_TIME_REMAINING]: mediaTimeRemaining,
+      [playback.EVENT.GOTO_MEDIA]:           gotoMedia,
+      [playback.EVENT.CONTINUE_AUTOPLAY]:    continueAutoplay,
+      [playback.EVENT.RESUME_AUTOPLAY]:      resumeAutoplay,
+      [playback.EVENT.AUTOPLAY_BLOCKED]:     autoplayBlocked,
+      [playback.EVENT.PLAYBACK_BLOCKED]:     playbackBlocked,
+      [playback.EVENT.MEDIA_UNAVAILABLE]:    mediaUnavailable,
+    });
+  }
+
+  function loading()
+  {
+  //debugEvent(playbackEvent);
+
+    updateProgressBar(playersReadyCount++ / playersCount);
   }
   
-  switch(playbackEvent)
+  function ready(playbackEvent)
   {
-    case playback.EVENT.LOADING:
-      updateProgressBar(playersReadyCount++ / playersCount);
-      break;
-
-    case playback.EVENT.READY:
-      playbackReady = true;
-      updateProgressBar(0);
-      elements.playbackControls.details.addEventListener('click', playbackDetailsClick);
-      elements.footerAutoPlayToggle.addEventListener('click', autoPlayToggle);
-      break;
-
-    case playback.EVENT.MEDIA_PLAYING:
-      {
-        const currentlyPlayingIcon = document.querySelector(`#${eventData.postId} .currently-playing.material-icons`);
-
-        resetCurrentlyPlayingIcons(currentlyPlayingIcon);
-        currentlyPlayingIcon.style.display = 'inline-block';
-        currentlyPlayingIcon.classList.remove('animation-paused');
-
-        if (settings.user.animateCurrentlyPlayingIcon)
-          currentlyPlayingIcon.classList.add('playing-animate');
-      }
-      break;
-      
-    case playback.EVENT.MEDIA_PAUSED:
-      document.querySelector(`#${eventData.postId} .currently-playing.material-icons`).classList.add('animation-paused');
-      break;
-      
-    case playback.EVENT.MEDIA_ENDED:
-      playbackEventMediaEnded();
-      break;
+    debugEvent(playbackEvent);
   
-    case playback.EVENT.MEDIA_TIMER:
-      updateProgressBar(eventData.position / (eventData.duration * 1000));
-      break;
-
-    case playback.EVENT.MEDIA_TIME_REMAINING:
-      if (eventData !== null)
-      {
-        if (settings.user.autoExitFsOnWarning && (eventData.timeRemainingSeconds <= settings.user.timeRemainingSeconds))
-          exitFullscreenTrack();
-      }
-      break;
-
-    case playback.EVENT.GOTO_MEDIA:
-      if ((eventData !== null) && (eventData.postId !== null) && (eventData.iframeId !== null))
-      {
-        playbackEventMediaEnded();
-        scrollToId(eventData.postId, eventData.iframeId);
-      }
-      break;
-
-    case playback.EVENT.CONTINUE_AUTOPLAY:
-      navigateTo(navigationVars.nextUrl, true); // eslint-disable-line no-undef
-      break;
-
-    case playback.EVENT.RESUME_AUTOPLAY:
-      resumeAutoPlay();
-      break;
-      
-    case playback.EVENT.AUTOPLAY_BLOCKED:
-      utils.showSnackbar('Autoplay was blocked, click or tap <span class="action-verb">play</span> to continue...', 30, () =>
-      {
-        if (playback.getStatus().isPlaying === false)
-          playback.togglePlayPause();
-      });
-      break;
-      
-    case playback.EVENT.PLAYBACK_BLOCKED:
-      utils.showSnackbar('Unable to play track, skipping to next...', 5);
-      playbackEventErrorTryNext(eventData, 5);
-      break;
-      
-    case playback.EVENT.MEDIA_UNAVAILABLE:
-      playbackEventMediaUnavailable(eventData);
-      break;
+    playbackReady = true;
+    updateProgressBar(0);
+    moduleElements.playbackControls.details.addEventListener('click', playbackDetailsClick);
+    moduleElements.footerAutoPlayToggle.addEventListener('click', autoPlayToggle);
   }
-}
-
-function playbackEventMediaUnavailable(eventData)
-{
-  if (eventData !== null)
+  
+  function mediaPlaying(playbackEvent, eventData)
   {
+    debugEvent(playbackEvent, eventData);
+  
+    const nowPlayingIcon = document.querySelector(`#${eventData.postId} .now-playing.material-icons`);
+  
+    resetNowPlayingIcons(nowPlayingIcon);
+    nowPlayingIcon.style.display = 'inline-block';
+    nowPlayingIcon.classList.remove('animation-paused');
+  
+    if (settings.user.animateNowPlayingIcon)
+      nowPlayingIcon.classList.add('playing-animate');
+  }
+  
+  function mediaPaused(playbackEvent, eventData)
+  {
+    debugEvent(playbackEvent, eventData);
+  
+    document.querySelector(`#${eventData.postId} .now-playing.material-icons`).classList.add('animation-paused');
+  }
+  
+  function mediaEnded(playbackEvent)
+  {
+    debugEvent(playbackEvent);
+  
+    if (settings.user.autoExitFullscreen)
+      exitFullscreenTrack();
+  
+    updateProgressBar(0);
+    resetNowPlayingIcons();
+  }
+  
+  function mediaTimer(playbackEvent, eventData)
+  {
+  //debugEvent(playbackEvent, eventData);
+  
+    updateProgressBar(eventData.position / (eventData.duration * 1000));
+  }
+  
+  function mediaTimeRemaining(playbackEvent, eventData)
+  {
+  //debugEvent(playbackEvent, eventData);
+  
+    if (settings.user.autoExitFsOnWarning && (eventData.timeRemainingSeconds <= settings.user.timeRemainingSeconds))
+      exitFullscreenTrack();
+  }
+  
+  function gotoMedia(playbackEvent, eventData)
+  {
+    debugEvent(playbackEvent, eventData);
+  
+    mediaEnded(playbackEvent);
+    scrollTo.id(eventData.postId, eventData.iframeId);
+  }
+  
+  function continueAutoplay(playbackEvent)
+  {
+    debugEvent(playbackEvent);
+  
+    navigateTo(navigationVars.nextUrl, true); // eslint-disable-line no-undef
+  }
+  
+  function resumeAutoplay(playbackEvent)
+  {
+    debugEvent(playbackEvent);
+    debug.log(`playbackEvents.RESUME_AUTOPLAY: ${settings.priv.continueAutoPlay}`);
+  
+    if (settings.priv.continueAutoPlay)
+    {
+      settings.priv.continueAutoPlay = false;
+      playback.resumeAutoPlay();
+    }
+  }
+  
+  function autoplayBlocked(playbackEvent)
+  {
+    debugEvent(playbackEvent);
+  
+    utils.snackbar.show('Autoplay was blocked, click or tap <span class="action-text">play</span> to continue...', 30, () =>
+    {
+      if (playback.getStatus().isPlaying === false)
+        playback.togglePlayPause();
+    });
+  }
+  
+  function playbackBlocked(playbackEvent, eventData)
+  {
+    debugEvent(playbackEvent, eventData);
+  
+    utils.snackbar.show('Unable to play track, skipping to next...', 5);
+    playbackEventErrorTryNext(eventData, 5);
+  }
+  
+  function mediaUnavailable(playbackEvent, eventData)
+  {
+    debugEvent(playbackEvent, eventData);
+  
     if (isPremiumTrack(eventData.postId))
     {
       // ToDo: Update to follow playback.EVENT.AUTOPLAY_BLOCKED if ever needed again...
-      utils.showSnackbar('YouTube Premium track, skipping to next... <a href="/channel/premium/"><b>HELP</b></a>', 10);
+      utils.snackbar.show('YouTube Premium track, skipping to next... <a href="/channel/premium/"><b>HELP</b></a>', 10);
       playbackEventErrorTryNext(eventData, 5);
     }
     else
     {
-      utils.showSnackbar('Unable to play track, skipping to next...', 5);
+      utils.snackbar.show('Unable to play track, skipping to next...', 5);
       logClientErrorOnServer('EVENT_MEDIA_UNAVAILABLE', eventData);
       playbackEventErrorTryNext(eventData, 5);
     }
   }
-}
 
-function updateProgressBar(scaleX)
-{
-  elements.playbackProgressBar.style.transform = `scaleX(${scaleX})`;
-}
 
-function playbackEventMediaEnded()
-{
-  if (settings.user.autoExitFullscreen)
-    exitFullscreenTrack();
+  // ************************************************************************************************
+  // Misc. playback event handler functions
+  // ************************************************************************************************
+  
+  function debugEvent(playbackEvent, eventData = null)
+  {
+    debug.log(`playbackEvents.${debug.getObjectKeyForValue(playback.EVENT, playbackEvent)} (${playbackEvent})`);
+    
+    if (eventData !== null)
+      debug.log(eventData);
+  }
 
-  updateProgressBar(0);
-  resetCurrentlyPlayingIcons();
-}
+  function updateProgressBar(scaleX)
+  {
+    moduleElements.playbackProgressBar.style.transform = `scaleX(${scaleX})`;
+  }
+  
+  function resetNowPlayingIcons(nowPlayingElement)
+  {
+    moduleElements.nowPlayingIcons.forEach(element =>
+    {
+      if (element !== nowPlayingElement)
+      {
+        element.classList.remove('playing-animate', 'animation-paused');
+        element.style.display = 'none';
+      }
+    });
+  }
+  
+  function playbackEventErrorTryNext(eventData, timeout = 5)
+  {
+    setTimeout(() =>
+    {
+      if (eventData.currentTrack < eventData.numTracks)
+      {
+        playback.playTrack(eventData.currentTrack + 1, true);
+      }
+      else
+      {
+        if (navigationVars.nextUrl !== null)        // eslint-disable-line no-undef
+          navigateTo(navigationVars.nextUrl, true); // eslint-disable-line no-undef
+      }
+    }, ((timeout * 1000) + 250));
+  }
+  
+  function logClientErrorOnServer(eventCategory, eventData)
+  {
+    const eventAction = eventData.mediaUrl + ' | ' + eventData.mediaTitle;
+    
+    debug.log(`logClientErrorOnServer(): ${eventCategory} - ${eventAction}`);
+    
+    gtag('event', eventAction, // eslint-disable-line no-undef
+    {
+      event_category: eventCategory,
+      event_label:    'Ultrafunk Client Error',
+    });
+  }
+  
+  function isPremiumTrack(postId)
+  {
+    const postWithId = document.getElementById(postId);
+  
+    if (postWithId !== null)
+      return postWithId.classList.contains('category-premium');
+    
+    return false;
+  }
+})();
+
+
+// ************************************************************************************************
+//  Window and document event handlers
+// ************************************************************************************************
 
 function windowEventBlur()
 {
@@ -315,29 +422,29 @@ function windowEventStorage(event)
     readSettings();
 
     // Check what has changed (old settings vs. new settings) and update data / UI where needed
-    if(settings.user.autoPlay !== oldSettings.user.autoPlay)
+    if (settings.user.autoPlay !== oldSettings.user.autoPlay)
       updateAutoPlayData(settings.user.autoPlay);
   }
 }
 
-function onFullscreenChange()
+function documentEventFullscreenChange()
 {
-  elements.fullscreenChangeTarget = (document.fullscreenElement !== null) ? document.fullscreenElement.id : null;
+  moduleElements.fullscreenChangeTarget = (document.fullscreenElement !== null) ? document.fullscreenElement.id : null;
 }
 
-function enterFullscreenTrack()
-{
-  const element = document.getElementById(playback.getStatus().iframeId);
-  element.requestFullscreen();
-}
 
-function exitFullscreenTrack()
+// ************************************************************************************************
+// Click event handlers
+// ************************************************************************************************
+
+function playbackDetailsClick(event)
 {
-  if (elements.fullscreenChangeTarget !== null)
-  {
-    document.exitFullscreen();
-    elements.fullscreenChangeTarget = null;
-  }
+  showCurrentTrack(event);
+  eventLog.add(eventLogger.SOURCE.MOUSE, Date.now(), eventLogger.EVENT.MOUSE_CLICK, null);
+  showInteractionHint('showDetailsHint', '<b>Tip:</b> Double click or double tap on Artist &amp; Title for full screen track');
+
+  if (eventLog.doubleClicked(eventLogger.SOURCE.MOUSE, eventLogger.EVENT.MOUSE_CLICK, moduleConfig.doubleClickDelay))
+    enterFullscreenTrack();
 }
 
 function subPaginationClick(event, destUrl)
@@ -349,72 +456,26 @@ function subPaginationClick(event, destUrl)
   }
 }
 
-function resetCurrentlyPlayingIcons(currentlyPlayingElement)
-{
-  elements.currentlyPlayingIcons.forEach(element =>
-  {
-    if (element !== currentlyPlayingElement)
-    {
-      element.classList.remove('playing-animate', 'animation-paused');
-      element.style.display = 'none';
-    }
-  });
-}
-
-function isPremiumTrack(postId)
-{
-  const postWithId = document.getElementById(postId);
-
-  if (postWithId !== null)
-    return postWithId.classList.contains('category-premium');
-  
-  return false;
-}
-
-function logClientErrorOnServer(eventCategory, eventData)
-{
-  const eventAction = eventData.mediaUrl + ' | ' + eventData.mediaTitle;
-  
-  debug.log(`logClientErrorOnServer(): ${eventCategory} - ${eventAction}`);
-  
-  gtag('event', eventAction, // eslint-disable-line no-undef
-  {
-    event_category: eventCategory,
-    event_label:    'Ultrafunk Client Error',
-  });
-}
-
-function playbackEventErrorTryNext(eventData, timeout = 5)
-{
-  setTimeout(() =>
-  {
-    if (eventData.currentTrack < eventData.numTracks)
-    {
-      playback.playTrack(eventData.currentTrack + 1, true);
-    }
-    else
-    {
-      if (navigationVars.nextUrl !== null)        // eslint-disable-line no-undef
-        navigateTo(navigationVars.nextUrl, true); // eslint-disable-line no-undef
-    }
-  }, ((timeout * 1000) + 250));
-}
-
-function playbackDetailsClick(event)
-{
-  showCurrentTrack(event);
-  eventLog.add(eventLogger.SOURCE.MOUSE, Date.now(), eventLogger.EVENT.MOUSE_CLICK, null);
-  showInteractionHint('showDetailsHint', '<b>Tip:</b> Double click or double tap on Artist &amp; Title for full screen track');
-
-  if (eventLog.doubleClicked(eventLogger.SOURCE.MOUSE, eventLogger.EVENT.MOUSE_CLICK, config.doubleClickDelay))
-    enterFullscreenTrack();
-}
-
 function showCurrentTrack(event)
 {
   event.preventDefault();
   const playbackStatus = playback.getStatus();
-  scrollToId(playbackStatus.postId, playbackStatus.iframeId);
+  scrollTo.id(playbackStatus.postId, playbackStatus.iframeId);
+}
+
+function enterFullscreenTrack()
+{
+  const element = document.getElementById(playback.getStatus().iframeId);
+  element.requestFullscreen();
+}
+
+function exitFullscreenTrack()
+{
+  if (moduleElements.fullscreenChangeTarget !== null)
+  {
+    document.exitFullscreen();
+    moduleElements.fullscreenChangeTarget = null;
+  }
 }
 
 
@@ -424,7 +485,7 @@ function showCurrentTrack(event)
 
 document.addEventListener('keydown', (event) =>
 {
-  if (playbackReady && useKeyboardShortcuts && (event.ctrlKey === false) && (event.altKey === false))
+  if (playbackEvents.playbackReady && useKeyboardShortcuts && (event.ctrlKey === false) && (event.altKey === false))
   {
     switch (event.key)
     {
@@ -438,7 +499,7 @@ document.addEventListener('keydown', (event) =>
         {
           event.preventDefault();
 
-          if (elements.fullscreenChangeTarget === null)
+          if (moduleElements.fullscreenChangeTarget === null)
             enterFullscreenTrack();
           else
             exitFullscreenTrack();
@@ -510,7 +571,7 @@ function doubleTapNavPrev(prevUrl, playbackStatus)
     {
       showInteractionHint('showLeftArrowHint', '<b>Tip:</b> Double click the Left Arrow key to go to the previous page');
 
-      if (eventLog.doubleClicked(eventLogger.SOURCE.KEYBOARD, eventLogger.EVENT.KEY_ARROW_LEFT, config.doubleClickDelay))
+      if (eventLog.doubleClicked(eventLogger.SOURCE.KEYBOARD, eventLogger.EVENT.KEY_ARROW_LEFT, moduleConfig.doubleClickDelay))
       {
         navigateTo(prevUrl, false);
         return true;
@@ -529,7 +590,7 @@ function doubleTapNavNext(nextUrl, playbackStatus)
     {
       showInteractionHint('showRightArrowHint', '<b>Tip:</b> Double click the Right Arrow key to go to the next page');
 
-      if (eventLog.doubleClicked(eventLogger.SOURCE.KEYBOARD, eventLogger.EVENT.KEY_ARROW_RIGHT, config.doubleClickDelay))
+      if (eventLog.doubleClicked(eventLogger.SOURCE.KEYBOARD, eventLogger.EVENT.KEY_ARROW_RIGHT, moduleConfig.doubleClickDelay))
       {
         navigateTo(nextUrl, playbackStatus.isPlaying);
         return true;
@@ -544,14 +605,14 @@ function showInteractionHint(hintProperty, hintText, snackbarTimeout = 0)
 {
   if (settings.priv[hintProperty])
   {
-    utils.showSnackbar(hintText, snackbarTimeout);
+    utils.snackbar.show(hintText, snackbarTimeout);
     settings.priv[hintProperty] = false;
   }
 }
 
 
 // ************************************************************************************************
-// AutoPlay
+// AutoPlay UI toggle and data + DOM update
 // ************************************************************************************************
 
 function autoPlayToggle(event)
@@ -563,7 +624,7 @@ function autoPlayToggle(event)
 
 function updateAutoPlayData(newAutoPlay)
 {
-  utils.showSnackbar(newAutoPlay ? 'Autoplay enabled (Shift + F12 to disable)' : 'Autoplay disabled (Shift + F12 to enable)', 5);
+  utils.snackbar.show(newAutoPlay ? 'Autoplay enabled (Shift + F12 to disable)' : 'Autoplay disabled (Shift + F12 to enable)', 5);
   playback.setConfig({ autoPlay: newAutoPlay });
   updateAutoPlayDOM(newAutoPlay);
 }
@@ -575,82 +636,89 @@ function updateAutoPlayDOM(newAutoPlay)
   if (newAutoPlay)
   {
     document.body.classList.remove('blurred');
-    elements.playbackProgressBar.classList.remove('no-autoplay');
-    elements.playbackControls.playPause.classList.remove('no-autoplay');
-    elements.currentlyPlayingIcons.forEach(element => element.classList.remove('no-autoplay'));
-    elements.footerAutoPlayToggle.querySelector('.autoplay-on-off').textContent = 'ON';
+    moduleElements.playbackProgressBar.classList.remove('no-autoplay');
+    moduleElements.playbackControls.playPause.classList.remove('no-autoplay');
+    moduleElements.nowPlayingIcons.forEach(element => element.classList.remove('no-autoplay'));
+    moduleElements.footerAutoPlayToggle.querySelector('.autoplay-on-off').textContent = 'ON';
   }
   else
   {
     if ((document.hasFocus() === false) && settings.user.blurFocusBgChange)
       document.body.classList.add('blurred');
     
-    elements.playbackProgressBar.classList.add('no-autoplay');
-    elements.playbackControls.playPause.classList.add('no-autoplay');
-    elements.currentlyPlayingIcons.forEach(element => element.classList.add('no-autoplay'));
-    elements.footerAutoPlayToggle.querySelector('.autoplay-on-off').textContent = 'OFF';
+    moduleElements.playbackProgressBar.classList.add('no-autoplay');
+    moduleElements.playbackControls.playPause.classList.add('no-autoplay');
+    moduleElements.nowPlayingIcons.forEach(element => element.classList.add('no-autoplay'));
+    moduleElements.footerAutoPlayToggle.querySelector('.autoplay-on-off').textContent = 'OFF';
   }
 }
 
 
 // ************************************************************************************************
-// Scrolling and (auto)play navigation
+// Scrolling and URL navigation
 // ************************************************************************************************
 
-// Get CSS variables (px heigth) for multistate sticky top nav menu
-const siteHeaderDownPx       = utils.getCssPropValue('--site-header-down');
-const siteHeaderDownMobilePx = utils.getCssPropValue('--site-header-down-mobile');
-const siteHeaderUpPx         = utils.getCssPropValue('--site-header-up');
-const siteHeaderUpMobilePx   = utils.getCssPropValue('--site-header-up-mobile');
-
-function getScrollHeaderHeight(directionDown)
+const scrollTo = (() =>
 {
-  const matchesMaxWidthMobile = utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE);
-  
-  if (directionDown)
-    return ((matchesMaxWidthMobile === true) ? siteHeaderDownMobilePx : siteHeaderDownPx);
-  else
-    return ((matchesMaxWidthMobile === true) ? siteHeaderUpMobilePx : siteHeaderUpPx);
-}
+  // Get CSS variables (px heigth) for multistate sticky top nav menu
+  const siteHeaderDownPx       = utils.getCssPropValue('--site-header-down');
+  const siteHeaderDownMobilePx = utils.getCssPropValue('--site-header-down-mobile');
+  const siteHeaderUpPx         = utils.getCssPropValue('--site-header-up');
+  const siteHeaderUpMobilePx   = utils.getCssPropValue('--site-header-up-mobile');
 
-function getTopMargin()
-{
-  if (document.documentElement.classList.contains('track-layout-2-column'))
-    return 35;
-  
-  if (document.documentElement.classList.contains('track-layout-3-column'))
-    return 30;
+  return {
+    id,
+  };
 
-  return 40;
-}
-
-function scrollToId(postId, iframeId)
-{
-  if (settings.user.autoScroll)
+  function id(postId, iframeId)
   {
-    const singlePlayer    = (document.querySelectorAll(`#${postId} iframe`).length === 1) ? true : false;
-    const scrollToElement = singlePlayer ? postId : iframeId;
-    const topMargin       = singlePlayer ? getTopMargin() : 10;
-
-    // Actual functional 'offsetTop' calculation: https://stackoverflow.com/a/52477551
-    const offsetTop       = Math.round(window.scrollY + document.getElementById(scrollToElement).getBoundingClientRect().top);
-
-    const scrollTop       = Math.round(window.pageYOffset); // Don't want float results that can cause jitter
-    let   headerHeight    = getScrollHeaderHeight(offsetTop > scrollTop);
-
-    // If we get obscured by the sticky header menu, recalculate headerHeight to account for that
-    if ((scrollTop + headerHeight + topMargin) > offsetTop)
-      headerHeight = getScrollHeaderHeight(false);
-
-    // ToDo: This will not be smooth on iOS... Needs polyfill
-    window.scroll(
+    if (settings.user.autoScroll)
     {
-      top:      (offsetTop - (headerHeight + topMargin)),
-      left:     0,
-      behavior: (settings.user.smoothScrolling ? 'smooth' : 'auto'),
-    });
+      const singlePlayer    = (document.querySelectorAll(`#${postId} iframe`).length === 1) ? true : false;
+      const scrollToElement = singlePlayer ? postId : iframeId;
+      const topMargin       = singlePlayer ? getTopMargin() : 10;
+
+      // Actual functional 'offsetTop' calculation: https://stackoverflow.com/a/52477551
+      const offsetTop       = Math.round(window.scrollY + document.getElementById(scrollToElement).getBoundingClientRect().top);
+
+      const scrollTop       = Math.round(window.pageYOffset); // Don't want float results that can cause jitter
+      let   headerHeight    = getScrollHeaderHeight(offsetTop > scrollTop);
+
+      // If we get obscured by the sticky header menu, recalculate headerHeight to account for that
+      if ((scrollTop + headerHeight + topMargin) > offsetTop)
+        headerHeight = getScrollHeaderHeight(false);
+
+      // ToDo: This will not be smooth on iOS... Needs polyfill
+      window.scroll(
+      {
+        top:      (offsetTop - (headerHeight + topMargin)),
+        left:     0,
+        behavior: (settings.user.smoothScrolling ? 'smooth' : 'auto'),
+      });
+    }
   }
-}
+
+  function getScrollHeaderHeight(directionDown)
+  {
+    const matchesMaxWidthMobile = utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE);
+    
+    if (directionDown)
+      return ((matchesMaxWidthMobile === true) ? siteHeaderDownMobilePx : siteHeaderDownPx);
+    else
+      return ((matchesMaxWidthMobile === true) ? siteHeaderUpMobilePx : siteHeaderUpPx);
+  }
+
+  function getTopMargin()
+  {
+    if (document.documentElement.classList.contains('track-layout-2-column'))
+      return 35;
+    
+    if (document.documentElement.classList.contains('track-layout-3-column'))
+      return 30;
+
+    return 40;
+  }
+})();
 
 function navigateTo(destUrl, continueAutoPlay = false)
 {
@@ -664,15 +732,3 @@ function navigateTo(destUrl, continueAutoPlay = false)
     window.location.href = destUrl;
   }
 }
-
-function resumeAutoPlay()
-{
-  debug.log(`resumeAutoPlay(): ${settings.priv.continueAutoPlay}`);
-
-  if (settings.priv.continueAutoPlay)
-  {
-    settings.priv.continueAutoPlay = false;
-    playback.resumeAutoPlay();
-  }
-}
-

@@ -6,7 +6,7 @@
 .track-layout-2-column,
 .track-layout-3-column {
   --site-max-width: 1800px;
-  --content-top-margin: 30px;
+  --site-content-top-margin: 30px;
   --intro-banner-max-width: 1200px;
   --footer-max-width: 1200px;
 }
@@ -49,8 +49,8 @@
   grid-column-gap: 60px;
 }
 
-.track-layout-2-column .entry,
-.track-layout-3-column .entry {
+.track-layout-2-column article,
+.track-layout-3-column article {
   margin-top: 0;
 }
 
@@ -76,14 +76,14 @@
   margin-bottom: 5px;
 }
 
-.track-layout-2-column .currently-playing.material-icons {
+.track-layout-2-column .now-playing.material-icons {
   font-size: 27px;
   top: 4px;
   margin-right: 5px;
   margin-left: -4px;
 }
 
-.track-layout-3-column .currently-playing.material-icons {
+.track-layout-3-column .now-playing.material-icons {
   font-size: 23px;
   top: 4px;
   margin-right: 5px;
@@ -120,8 +120,8 @@
 
 @media screen and (max-width: 1945px) {
 
-  .track-layout-2-column #content,
-  .track-layout-3-column #content {
+  .track-layout-2-column #site-content,
+  .track-layout-3-column #site-content {
     max-width: 100%;
   }
 
@@ -131,8 +131,8 @@
   .track-layout-3-column h1.content-header,  
   .track-layout-2-column nav.navigation,
   .track-layout-3-column nav.navigation,
-  .track-layout-2-column #colophon,
-  .track-layout-3-column #colophon {
+  .track-layout-2-column #site-footer,
+  .track-layout-3-column #site-footer {
     padding-left: 65px;
     padding-right: 65px;
   }

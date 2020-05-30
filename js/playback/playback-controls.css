@@ -226,11 +226,11 @@
 
 }
 
-.currently-playing.material-icons {
+.now-playing.material-icons {
   color: #ff0000;
 }
 
-.currently-playing.material-icons.no-autoplay {
+.now-playing.material-icons.no-autoplay {
   color: #0080ff;
 }
 

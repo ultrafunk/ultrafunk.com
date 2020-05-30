@@ -242,7 +242,7 @@ function nav_title()
     $title      = '';
     $pagination = '';
   }
-  else if(is_404())
+  else if (is_404())
   {
     $prefix     = '<b>Error / 404: </b>';
     $pagination = '';
@@ -334,9 +334,9 @@ function footer_title()
 function entry_title()
 {
   if (is_singular())
-    the_title('<h2 class="entry-title"><span class="currently-playing material-icons">equalizer</span>', '</h2>');
+    the_title('<h2 class="entry-title"><span class="now-playing material-icons">equalizer</span>', '</h2>');
   else
-    the_title(sprintf('<h2 class="entry-title"><span class="currently-playing material-icons">equalizer</span><a href="%s" rel="bookmark">', esc_url(get_permalink())), '</a></h2>');
+    the_title(sprintf('<h2 class="entry-title"><span class="now-playing material-icons">equalizer</span><a href="%s" rel="bookmark">', esc_url(get_permalink())), '</a></h2>');
 }
 
 function meta_date_author()

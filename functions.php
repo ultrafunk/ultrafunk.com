@@ -100,7 +100,7 @@ add_action('wp_enqueue_scripts', 'ultrafunk_scripts');
 // Customize enqueued script tags when needeed
 function ultrafunk_modify_script_tag($tag, $handle, $source)
 {
-  if('soundcloud-api-script' === $handle)
+  if ('soundcloud-api-script' === $handle)
     $tag = str_ireplace('<script ', '<script defer ', $tag);
   else if (('interaction-script' === $handle) || ('ultrafunk-script' === $handle))
     $tag = str_ireplace('<script ', '<script type="module" ', $tag);

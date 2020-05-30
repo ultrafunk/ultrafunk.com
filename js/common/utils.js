@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.6.4';
+import * as debugLogger from '../common/debuglogger.js?ver=1.6.5';
 
 
 export {
@@ -17,16 +17,11 @@ export {
   getCssPropValue,
   matchesMedia,
   getObjectFromKeyValue,
-  showSnackbar,
+  snackbar,
 };
 
 
 const debug = debugLogger.getInstance('utils');
-
-const config = {
-  snackbarAfterId: 'colophon',
-  snackbarId:      'snackbar',
-};
 
 const MATCH = {
   SITE_MIN_WIDTH_WIDE:   1,
@@ -38,13 +33,9 @@ const siteMinWidthWide   = window.matchMedia(`(min-width: ${getCssPropString('--
 const siteMaxWidth       = window.matchMedia(`(max-width: ${getCssPropString('--site-max-width')})`);
 const siteMaxWidthMobile = window.matchMedia(`(max-width: ${getCssPropString('--site-max-width-mobile')})`);
 
-const elements = {
-  snackbar: null,
-};
-
 
 // ************************************************************************************************
-// 
+// Misc. utility functions
 // ************************************************************************************************
 
 // Plain JS function equivalent to jQuery(selectors).eventX();
@@ -116,94 +107,107 @@ function getObjectFromKeyValue(object, key, value, defaultObject)
 
 
 // ************************************************************************************************
-// Snackbar UI
+// Snackbar UI module
 // ************************************************************************************************
 
-let snackbarVisibleTimeoutId = -1;
-let snackbarFadeTimeoutId    = -1;
+const snackbar = (() =>
+{
+  const config = {
+    afterId: 'site-footer',
+    id:      'snackbar',
+  };
 
-const snackbarHtml = `
-  <div id="${config.snackbarId}">
-    <div class="${config.snackbarId}-wrapper">
-      <div class="${config.snackbarId}-message">
-      </div>
-      <div class="${config.snackbarId}-button">
-        <span class="material-icons" title="Dismiss">close</span>
+  const html = `
+    <div id="${config.id}">
+      <div class="${config.id}-wrapper">
+        <div class="${config.id}-message">
+        </div>
+        <div class="${config.id}-button">
+          <span class="material-icons" title="Dismiss">close</span>
+        </div>
       </div>
     </div>
-  </div>
-`;
+  `;
 
-function initSnackbar()
-{
-  if (elements.snackbar === null)
-  {
-    const afterElement = document.getElementById(config.snackbarAfterId);
+  let elements         = { snackbar: null };
+  let visibleTimeoutId = -1;
+  let fadeTimeoutId    = -1;
   
-    if (afterElement !== null)
+  return {
+    show,
+  };
+  
+  function show(message, timeout = 5, actionClickFunction = null)
+  {
+    debug.log(`snackbar.show(): ${message} (${timeout} sec)`);
+  
+    init();
+  
+    if (elements.snackbar === null)
     {
-      afterElement.insertAdjacentHTML('afterend', snackbarHtml);
-      elements.snackbar = document.getElementById(config.snackbarId);
-      elements.snackbar.querySelector(`.${config.snackbarId}-button`).addEventListener('click', () => resetSnackbar(true));
+      debug.error(`snackbar.show(): Unable to show snackbar with id: ${config.id}`);
     }
     else
     {
-      debug.error(`initSnackbar(): Unable to insert snackbar HTML after: ${config.snackbarAfterId}`);
-    }
-  }
-}
-
-function resetSnackbar(hideSnackbar = false)
-{
-  if (snackbarVisibleTimeoutId !== -1)
-  {
-    clearTimeout(snackbarVisibleTimeoutId);
-    snackbarVisibleTimeoutId = -1;
-  }
-
-  if (snackbarFadeTimeoutId !== -1)
-  {
-    clearTimeout(snackbarFadeTimeoutId);
-    snackbarFadeTimeoutId = -1;
-  }
-
-  if (hideSnackbar)
-    elements.snackbar.classList.remove('fadein');
-}
-
-function showSnackbar(message, timeout = 5, actionClickFunction = null)
-{
-  debug.log(`showSnackbar(): ${message} (${timeout} sec)`);
-
-  initSnackbar();
-
-  if (elements.snackbar === null)
-  {
-    debug.error(`showSnackbar(): Unable to show snackbar with id: ${config.snackbarId}`);
-  }
-  else
-  {
-    resetSnackbar();
-    elements.snackbar.querySelector(`.${config.snackbarId}-message`).innerHTML = message;
-    elements.snackbar.classList.add('fadein');
-
-    if (actionClickFunction !== null)
-    {
-      elements.snackbar.querySelector(`.action-verb`).addEventListener('click', () =>
+      reset();
+      elements.snackbar.querySelector(`.${config.id}-message`).innerHTML = message;
+      elements.snackbar.classList.add('fadein');
+  
+      if (actionClickFunction !== null)
       {
-        actionClickFunction();
-        resetSnackbar(true);
-      });
+        elements.snackbar.querySelector(`.action-text`).addEventListener('click', () =>
+        {
+          actionClickFunction();
+          reset(true);
+        });
+      }
+      
+      if (timeout !== 0)
+      {
+        visibleTimeoutId = setTimeout(() =>
+        {
+          elements.snackbar.classList.add('fadeout');
+          fadeTimeoutId = setTimeout(() => { elements.snackbar.classList.value = ''; }, 450);
+        },
+        (timeout * 1000));
+      }
     }
+  }
+
+  function init()
+  {
+    if (elements.snackbar === null)
+    {
+      const afterElement = document.getElementById(config.afterId);
     
-    if (timeout !== 0)
-    {
-      snackbarVisibleTimeoutId = setTimeout(() =>
+      if (afterElement !== null)
       {
-        elements.snackbar.classList.add('fadeout');
-        snackbarFadeTimeoutId = setTimeout(() => { elements.snackbar.classList.value = ''; }, 450);
-      },
-      (timeout * 1000));
+        afterElement.insertAdjacentHTML('afterend', html);
+        elements.snackbar = document.getElementById(config.id);
+        elements.snackbar.querySelector(`.${config.id}-button`).addEventListener('click', () => reset(true));
+      }
+      else
+      {
+        debug.error(`snackbar.init(): Unable to insert snackbar HTML after: ${config.afterId}`);
+      }
     }
   }
-}
+  
+  function reset(hideSnackbar = false)
+  {
+    if (visibleTimeoutId !== -1)
+    {
+      clearTimeout(visibleTimeoutId);
+      visibleTimeoutId = -1;
+    }
+  
+    if (fadeTimeoutId !== -1)
+    {
+      clearTimeout(fadeTimeoutId);
+      fadeTimeoutId = -1;
+    }
+  
+    if (hideSnackbar)
+      elements.snackbar.classList.remove('fadein');
+  }
+})();

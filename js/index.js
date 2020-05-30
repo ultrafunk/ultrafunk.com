@@ -5,22 +5,19 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.6.4';
-import * as storage     from './common/storage.js?ver=1.6.4';
-import * as utils       from './common/utils.js?ver=1.6.4';
+import * as debugLogger from './common/debuglogger.js?ver=1.6.5';
+import * as storage     from './common/storage.js?ver=1.6.5';
+import * as utils       from './common/utils.js?ver=1.6.5';
 
 
 const debug  = debugLogger.getInstance('index');
 let settings = {};
 
-const config = {
-  smoothScrolling:         false,
-  siteThemeToggleId:       '#footer-site-theme-toggle',
-  siteThemePrefDarkScheme: '(prefers-color-scheme: dark)',
-  siteThemeDefaultId:      'auto',
-  trackLayoutToggleId:     '#footer-track-layout-toggle',
-  trackLayoutMinWidth:     `(max-width: ${utils.getCssPropString('--content-track-layout-min-width')})`,
-  trackLayoutDefaultId:    '3-column',
+// Shared config for all, submodules can have local const config = {...}
+const moduleConfig = {
+  smoothScrolling:      false,
+  siteThemeDefaultId:   'auto',
+  trackLayoutDefaultId: '3-column',
 };
 
 const defaultSettings = {
@@ -28,8 +25,8 @@ const defaultSettings = {
   version: 2,
   // User (public) settings
   user: {
-    siteTheme:   config.siteThemeDefaultId,
-    trackLayout: config.trackLayoutDefaultId,
+    siteTheme:   moduleConfig.siteThemeDefaultId,
+    trackLayout: moduleConfig.trackLayoutDefaultId,
   },
   // Priv (private / internal) settings
   priv: {
@@ -40,18 +37,12 @@ const defaultSettings = {
   },
 };
 
-// Cached elements from document.querySelector(selectors)
-const elements = {
-  page:              null,
-  navSearch:         null,
-  navMainMenu:       null,
-  navSubMenu:        null,
+// Shared DOM elements for all, submodules can have local const elements = {...}
+const moduleElements = {
+  siteHeader:        null,
   introBanner:       null,
-  content:           null,
-  contentSearch:     null,
-  colophon:          null,
-  siteThemeToggle:   null,
-  trackLayoutToggle: null,
+  siteContent:       null,
+  siteContentSearch: null,
 };
 
 
@@ -66,13 +57,13 @@ document.addEventListener('DOMContentLoaded', () =>
   readSettings();
   initIndex();
   
-  if (elements.introBanner !== null)
+  if (moduleElements.introBanner !== null)
     showIntroBanner();
   
-  if (document.querySelector('#content form.search-form') !== null)
+  if (document.querySelector('#site-content form.search-form') !== null)
   {
-    elements.contentSearch.focus();
-    elements.contentSearch.setSelectionRange(9999, 9999);
+    moduleElements.siteContentSearch.focus();
+    moduleElements.siteContentSearch.setSelectionRange(9999, 9999);
   }
 
   resize.setTopMargin();
@@ -87,7 +78,7 @@ document.addEventListener('keydown', (event) =>
     {
       case 's':
       case 'S':
-        if ((navSearch.isVisible === false) && (elements.contentSearch !== document.activeElement))
+        if ((navSearch.isVisible === false) && (moduleElements.siteContentSearch !== document.activeElement))
         {
           event.preventDefault();
           navSearch.toggle();
@@ -96,10 +87,10 @@ document.addEventListener('keydown', (event) =>
 
       case 'm':
       case 'M':
-        if ((navSearch.isVisible === false) && (elements.contentSearch !== document.activeElement))
+        if ((navSearch.isVisible === false) && (moduleElements.siteContentSearch !== document.activeElement))
         {
           event.preventDefault();
-          navMainMenu.toggle();
+          navMenu.toggle();
         }
         break;
     }
@@ -125,22 +116,16 @@ function initIndex()
 {
   debug.log('initIndex()');
 
-  elements.page              = document.getElementById('page');
-  elements.navSearch         = document.getElementById('search-container');
-  elements.navMainMenu       = document.querySelector('#site-navigation .main-navigation-menu-outer');
-  elements.navSubMenu        = document.querySelector('#site-navigation .sub-navigation-menu-outer');
-  elements.introBanner       = document.getElementById('intro-banner');
-  elements.content           = document.getElementById('content');
-  elements.contentSearch     = document.querySelector('#content form input.search-field');
-  elements.colophon          = document.getElementById('colophon');
-  elements.siteThemeToggle   = document.querySelector(config.siteThemeToggleId);
-  elements.trackLayoutToggle = document.querySelector(config.trackLayoutToggleId);
+  moduleElements.siteHeader        = document.getElementById('site-header');
+  moduleElements.introBanner       = document.getElementById('intro-banner');
+  moduleElements.siteContent       = document.getElementById('site-content');
+  moduleElements.siteContentSearch = document.querySelector('#site-content form input.search-field');
 
   resize.addEventListener();
   scroll.addEventListener();
 
   navSearch.init();
-  navMainMenu.init();
+  navMenu.init();
   siteTheme.init();
   trackLayout.init();
 }
@@ -162,7 +147,7 @@ function windowEventStorage(event)
     readSettings();
 
     // Check what has changed (old settings vs. new settings) and update data / UI where needed
-    if(settings.user.siteTheme !== oldSettings.user.siteTheme)
+    if (settings.user.siteTheme !== oldSettings.user.siteTheme)
     {
       siteTheme.setCurrent();
     }
@@ -184,11 +169,11 @@ function showIntroBanner()
     {
       if (settings.priv.banners[bannerProperty]) // eslint-disable-line no-undef
       {
-        elements.introBanner.style.display = 'block';
+        moduleElements.introBanner.style.display = 'block';
   
         utils.addEventListeners('#intro-banner .intro-banner-close-button-container', 'click', () =>
         {
-          elements.introBanner.style.display = '';
+          moduleElements.introBanner.style.display = '';
           resize.setTopMargin();
           settings.priv.banners[bannerProperty] = false; // eslint-disable-line no-undef
         });
@@ -205,11 +190,17 @@ function showIntroBanner()
 const siteTheme = (() =>
 {
   let currentTheme = {};
+  let elements     = { toggle: null };
 
+  const config = {
+    toggleId:       '#footer-site-theme-toggle',
+    prefDarkScheme: '(prefers-color-scheme: dark)',
+  };
+  
   const themes = {
-    light: { id: 'light',                   text: 'light', class: 'site-theme-light' },
-    dark:  { id: 'dark',                    text: 'dark',  class: 'site-theme-dark'  },
-    auto:  { id: config.siteThemeDefaultId, text: 'auto'                             }, // This has no CSS class since auto is always light or dark
+    light: { id: 'light',                         text: 'light', class: 'site-theme-light' },
+    dark:  { id: 'dark',                          text: 'dark',  class: 'site-theme-dark'  },
+    auto:  { id: moduleConfig.siteThemeDefaultId, text: 'auto'                             }, // This has no CSS class since auto is always light or dark
   };
 
   return {
@@ -219,9 +210,10 @@ const siteTheme = (() =>
 
   function init()
   {
-    const mediaQueryList = window.matchMedia(config.siteThemePrefDarkScheme);
+    elements.toggle = document.querySelector(config.toggleId);
+    const mediaQueryList = window.matchMedia(config.prefDarkScheme);
     mediaQueryList.addListener(matchMediaPrefColorScheme);
-    utils.addEventListeners(config.siteThemeToggleId, 'click', toggle);
+    utils.addEventListeners(config.toggleId, 'click', toggle);
     setCurrent();
   }
   
@@ -265,7 +257,7 @@ const siteTheme = (() =>
     let newTheme = currentTheme;
   
     if (currentTheme.id === themes.auto.id)
-      newTheme = window.matchMedia(config.siteThemePrefDarkScheme).matches ? themes.dark : themes.light;
+      newTheme = window.matchMedia(config.prefDarkScheme).matches ? themes.dark : themes.light;
   
     storage.setValue(storage.KEY.UF_SITE_THEME, newTheme.id);
     updateDOM(newTheme);
@@ -277,7 +269,7 @@ const siteTheme = (() =>
   
     document.documentElement.classList.remove(themes.light.class, themes.dark.class);
     document.documentElement.classList.add(newTheme.class);
-    elements.siteThemeToggle.querySelector('span').textContent = currentTheme.text;
+    elements.toggle.querySelector('span').textContent = currentTheme.text;
   }
 })();
 
@@ -289,11 +281,17 @@ const siteTheme = (() =>
 const trackLayout = (() =>
 {
   let currentLayout = {};
+  let elements      = { toggle: null };
+
+  const config = {
+    toggleId: '#footer-track-layout-toggle',
+    minWidth: `(max-width: ${utils.getCssPropString('--site-content-track-layout-min-width')})`,
+  };
 
   const layouts = {
-    list:        { id: 'list',                      text: 'list',     class: 'track-layout-list'     },
-    twoColumn:   { id: '2-column',                  text: '2 column', class: 'track-layout-2-column' },
-    threeColumn: { id: config.trackLayoutDefaultId, text: '3 column', class: 'track-layout-3-column' },
+    list:        { id: 'list',                            text: 'list',     class: 'track-layout-list'     },
+    twoColumn:   { id: '2-column',                        text: '2 column', class: 'track-layout-2-column' },
+    threeColumn: { id: moduleConfig.trackLayoutDefaultId, text: '3 column', class: 'track-layout-3-column' },
   };
 
   return {
@@ -304,16 +302,17 @@ const trackLayout = (() =>
 
   function init()
   {
-    const mediaQueryList = window.matchMedia(config.trackLayoutMinWidth);
+    elements.toggle = document.querySelector(config.toggleId);
+    const mediaQueryList = window.matchMedia(config.minWidth);
     mediaQueryList.addListener(matchMediaMinWidth);
-    utils.addEventListeners(config.trackLayoutToggleId, 'click', toggle);
+    utils.addEventListeners(config.toggleId, 'click', toggle);
     setCurrent();
   }
 
   function setCurrent()
   {
     currentLayout = utils.getObjectFromKeyValue(layouts, 'id', settings.user.trackLayout, layouts.threeColumn);
-    elements.trackLayoutToggle.querySelector('span').textContent = currentLayout.text;
+    elements.toggle.querySelector('span').textContent = currentLayout.text;
   }
   
   function matchMediaMinWidth(event)
@@ -345,6 +344,7 @@ const trackLayout = (() =>
   
     settings.user.trackLayout = currentLayout.id;
     updateData();
+    elements.toggle.scrollIntoView();
   }
   
   function updateData()
@@ -359,10 +359,10 @@ const trackLayout = (() =>
   
     document.documentElement.classList.remove(layouts.list.class, layouts.twoColumn.class, layouts.threeColumn.class);
   
-    if (window.matchMedia(config.trackLayoutMinWidth).matches === false)
+    if (window.matchMedia(config.minWidth).matches === false)
       document.documentElement.classList.add(currentLayout.class);
   
-    elements.trackLayoutToggle.querySelector('span').textContent = currentLayout.text;
+    elements.toggle.querySelector('span').textContent = currentLayout.text;
   }
 })();
 
@@ -371,34 +371,42 @@ const trackLayout = (() =>
 // Main navigation menu handling
 // ************************************************************************************************
 
-const navMainMenu = (() =>
+const navMenu = (() =>
 {
-  const intersectionObserver = new IntersectionObserver(observerCallback);
+  const observer = new IntersectionObserver(observerCallback);
+  let elements   = { mainMenu: null, subMenu: null, footer: null };
+  let isRevealed = false;
 
   return {
+    get isRevealed() { return isRevealed; },
     init,
     toggle,
+    reveal,
   };
 
   function init()
   {
+    elements.mainMenu = document.querySelector('#site-navigation .main-navigation-menu-outer');
+    elements.subMenu  = document.querySelector('#site-navigation .sub-navigation-menu-outer');
+    elements.footer   = document.getElementById('site-footer');
+
     utils.addEventListeners('.nav-menu-toggle', 'click', toggle);
     // Close nav main menu if user clicked outside its rectangle
     document.addEventListener('click', documentEventClick);
     // Used to toggle CSS pointer-events on element resize
-    intersectionObserver.observe(elements.navMainMenu);
+    observer.observe(elements.mainMenu);
   }
 
   function isMobileMenuVisible()
   {
-    return ((elements.navMainMenu.offsetHeight !== 0) && utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE));
+    return ((elements.mainMenu.offsetHeight !== 0) && utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE));
   }
   
   function documentEventClick(event)
   {
     if (isMobileMenuVisible())
     {
-      if (event.target.closest('div.site-header-container') === null)
+      if (event.target.closest('#site-header') === null)
         toggle();
     }
   }
@@ -407,30 +415,37 @@ const navMainMenu = (() =>
   {
     let pointerEvents = isMobileMenuVisible() ? 'none' : '';
   
-    if (elements.introBanner !== null)
-      elements.introBanner.style.pointerEvents  = pointerEvents;
+    if (moduleElements.introBanner !== null)
+      moduleElements.introBanner.style.pointerEvents = pointerEvents;
 
-    elements.content.style.pointerEvents  = pointerEvents;
-    elements.colophon.style.pointerEvents = pointerEvents;
+    moduleElements.siteContent.style.pointerEvents = pointerEvents;
+    elements.footer.style.pointerEvents            = pointerEvents;
   }
-  
+
   function toggle()
   {
-    if (elements.page.classList.contains('sticky-nav-up'))
+    if (moduleElements.siteHeader.classList.contains('sticky-nav-up'))
     {
-      if (scroll.isMenuRevealed)
-        scroll.setMenuReveal('none', 'flex', false);
+      if (isRevealed)
+        reveal('none', 'flex', false);
       else
-        scroll.setMenuReveal('flex', 'none', true);
+        reveal('flex', 'none', true);
     }
     else
     {
-      if (elements.page.classList.contains('sticky-nav-down') === false)
+      if (moduleElements.siteHeader.classList.contains('sticky-nav-down') === false)
       {
-        elements.page.classList.toggle('hide-main-nav-menu');
+        moduleElements.siteHeader.classList.toggle('hide-main-nav-menu');
         resize.setTopMargin();
       }
     }
+  }
+
+  function reveal(mainDisplay, subDisplay, reveal)
+  {
+    elements.mainMenu.style.display = mainDisplay;
+    elements.subMenu.style.display  = subDisplay;
+    isRevealed                      = reveal;
   }
 })();
 
@@ -443,6 +458,7 @@ const navSearch = (() =>
 {
   const allowKeyboardShortcuts = new Event('allowKeyboardShortcuts');
   const denyKeyboardShortcuts  = new Event('denyKeyboardShortcuts');
+  let elements  = { search: null };
   let isVisible = false;
 
   return {
@@ -454,6 +470,8 @@ const navSearch = (() =>
 
   function init()
   {
+    elements.search = document.getElementById('search-container');
+
     utils.addEventListeners('.nav-search-toggle', 'click', toggle);
     // To prevent extra 'blur' event before 'click' event
     utils.addEventListeners('.nav-search-toggle', 'mousedown', (event) => event.preventDefault());
@@ -465,7 +483,7 @@ const navSearch = (() =>
 
   function toggle()
   {
-    if (elements.navSearch.style.display.length === 0)
+    if (elements.search.style.display.length === 0)
     {
       if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE) && (scroll.lastScrollTop > 0))
       {
@@ -474,7 +492,7 @@ const navSearch = (() =>
         {
           top:      0,
           left:     0,
-          behavior: (config.smoothScrolling ? 'smooth' : 'auto'),
+          behavior: (moduleConfig.smoothScrolling ? 'smooth' : 'auto'),
         });
       }
   
@@ -512,7 +530,7 @@ const navSearch = (() =>
   {
     isVisible = visible;
     document.dispatchEvent(keyboardShortcuts);
-    elements.navSearch.style.display = display;
+    elements.search.style.display = display;
     document.querySelectorAll('.nav-search-toggle i').forEach(element => element.textContent = icon);
   }
   
@@ -525,10 +543,10 @@ const navSearch = (() =>
     else
       position = document.querySelector('.site-branding-flex-container').getBoundingClientRect();
   
-    elements.navSearch.style.top    = `${position.top}px`;
-    elements.navSearch.style.left   = `${position.left}px`;
-    elements.navSearch.style.width  = `${position.right - position.left}px`;
-    elements.navSearch.style.height = `${position.height}px`;
+    elements.search.style.top    = `${position.top}px`;
+    elements.search.style.left   = `${position.left}px`;
+    elements.search.style.width  = `${position.right - position.left}px`;
+    elements.search.style.height = `${position.height}px`;
   }
 })();
 
@@ -566,8 +584,8 @@ const resize = (() =>
   
   function setTopMargin()
   {
-    const contentTopMarginPx       = utils.getCssPropValue('--content-top-margin');
-    const contentTopMarginMobilePx = utils.getCssPropValue('--content-top-margin-mobile');
+    const contentTopMarginPx       = utils.getCssPropValue('--site-content-top-margin');
+    const contentTopMarginMobilePx = utils.getCssPropValue('--site-content-top-margin-mobile');
   
     let topMargin = contentTopMarginPx;
     
@@ -575,22 +593,22 @@ const resize = (() =>
     {
       topMargin = contentTopMarginMobilePx;
   
-      if (document.querySelector('#page.hide-main-nav-menu') === null)
-        headerHeight = document.getElementById('masthead').offsetHeight;
+      if (document.querySelector('#site-header.hide-main-nav-menu') === null)
+        headerHeight = moduleElements.siteHeader.offsetHeight;
     }
     else
     {
-      headerHeight = document.getElementById('masthead').offsetHeight;
+      headerHeight = moduleElements.siteHeader.offsetHeight;
     }
   
-    if ((elements.introBanner !== null) && (elements.introBanner.style.display.length !== 0))
+    if ((moduleElements.introBanner !== null) && (moduleElements.introBanner.style.display.length !== 0))
     {
-      elements.introBanner.style.marginTop = `${headerHeight}px`;
-      elements.content.style.marginTop     = `${topMargin}px`;
+      moduleElements.introBanner.style.marginTop = `${headerHeight}px`;
+      moduleElements.siteContent.style.marginTop = `${topMargin}px`;
     }
     else
     {
-      elements.content.style.marginTop = `${headerHeight + topMargin}px`;
+      moduleElements.siteContent.style.marginTop = `${headerHeight + topMargin}px`;
     }
   }
 })();
@@ -602,15 +620,12 @@ const resize = (() =>
 
 const scroll = (() =>
 {
-  let lastScrollTop    = 0;
-  let isMenuRevealed   = false;
-  let isWindowScrolled = false;
+  let lastScrollTop  = 0;
+  let isScrolledDown = false;
 
   return {
-    get lastScrollTop()  { return lastScrollTop;  },
-    get isMenuRevealed() { return isMenuRevealed; },
+    get lastScrollTop() { return lastScrollTop; },
     addEventListener,
-    setMenuReveal,
   };
 
   function addEventListener()
@@ -627,51 +642,44 @@ const scroll = (() =>
       else
         scrolledUp();
       
-      // Hide navigation search bar on any scroll event
+      // Hide navigation search form on any scroll event
       navSearch.hide();
     
       lastScrollTop = scrollTop;
     });
   }
 
-  function setMenuReveal(navMainDisplay, navSubDisplay, revealMenu)
-  {
-    elements.navMainMenu.style.display = navMainDisplay;
-    elements.navSubMenu.style.display  = navSubDisplay;
-    isMenuRevealed                     = revealMenu;
-  }
-        
   function scrolledTop()
   {
     if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
-      elements.page.classList.remove('sticky-nav-down', 'sticky-nav-up', 'hide-main-nav-menu');
+      moduleElements.siteHeader.classList.remove('sticky-nav-down', 'sticky-nav-up', 'hide-main-nav-menu');
     else
-      elements.page.classList.remove('sticky-nav-down', 'sticky-nav-up');
+      moduleElements.siteHeader.classList.remove('sticky-nav-down', 'sticky-nav-up');
 
-    setMenuReveal('', '', false);
+    navMenu.reveal('', '', false);
     resize.setTopMargin();
   }
 
   function scrolledDown()
   {
-    if (isWindowScrolled === false)
+    if (isScrolledDown === false)
     {
-      isWindowScrolled = true;
-      elements.page.classList.remove('sticky-nav-up');
-      elements.page.classList.add('sticky-nav-down');
+      isScrolledDown = true;
+      moduleElements.siteHeader.classList.remove('sticky-nav-up');
+      moduleElements.siteHeader.classList.add('sticky-nav-down');
     }
   }
 
   function scrolledUp()
   {
-    if (isWindowScrolled === true)
+    if (isScrolledDown === true)
     {
-      isWindowScrolled = false;
-      elements.page.classList.remove('sticky-nav-down');
-      elements.page.classList.add('sticky-nav-up');
+      isScrolledDown = false;
+      moduleElements.siteHeader.classList.remove('sticky-nav-down');
+      moduleElements.siteHeader.classList.add('sticky-nav-up');
     }
 
-    if (isMenuRevealed === true)
-      setMenuReveal('none', 'flex', false);
+    if (navMenu.isRevealed === true)
+      navMenu.reveal('none', 'flex', false);
   }
 })();

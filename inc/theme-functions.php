@@ -82,7 +82,7 @@ function get_prev_next_urls()
 //
 function modify_search_query($query)
 {
-  if(!is_admin() && $query->is_main_query() && $query->is_search())
+  if (!is_admin() && $query->is_main_query() && $query->is_search())
   {
     // https://www.w3.org/wiki/Common_HTML_entities_used_for_typography
     $search  = array('&ndash;', '&mdash;', '&lsquo;', '&rsquo;', '&prime;', '&Prime;', '&ldquo;', '&rdquo;', '&quot;');
@@ -191,16 +191,6 @@ function webfonts_script()
   <?php
 }
 add_action('wp_body_open', '\Ultrafunk\ThemeFunctions\webfonts_script');
-
-//
-// Adds custom class to the array of posts classes.
-//
-function post_classes($classes, $class, $post_id)
-{
-  $classes[] = 'entry';
-  return $classes;
-}
-add_filter('post_class', '\Ultrafunk\ThemeFunctions\post_classes', 10, 3);
 
 //
 // Add uniqid and other custom options for SoundCloud and YouTube iframe embeds

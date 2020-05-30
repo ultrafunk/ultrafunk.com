@@ -242,7 +242,7 @@ function create_shuffle_transient($request)
 
   //console_log($posts_array);
   
-    if(true === shuffle($posts_array['postIds']))
+    if (true === shuffle($posts_array['postIds']))
     {
     //console_log($posts_array);
   
