@@ -5,11 +5,11 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.6.5';
-import * as storage     from '../common/storage.js?ver=1.6.5';
-import * as utils       from '../common/utils.js?ver=1.6.5';
-import * as eventLogger from './eventlogger.js?ver=1.6.5';
-import * as playback    from './playback.js?ver=1.6.5';
+import * as debugLogger from '../common/debuglogger.js?ver=1.6.6';
+import * as storage     from '../common/storage.js?ver=1.6.6';
+import * as utils       from '../common/utils.js?ver=1.6.6';
+import * as eventLogger from './eventlogger.js?ver=1.6.6';
+import * as playback    from './playback.js?ver=1.6.6';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -126,7 +126,7 @@ function initInteraction()
   moduleElements.playbackProgressBar        = document.getElementById('playback-progress').querySelector('.playback-progress-bar');
   moduleElements.playbackControls.playPause = document.getElementById('playback-controls').querySelector('.play-pause-control');
   moduleElements.playbackControls.details   = document.getElementById('playback-controls').querySelector('.details-control');
-  moduleElements.nowPlayingIcons            = document.querySelectorAll('.now-playing.material-icons');
+  moduleElements.nowPlayingIcons            = document.querySelectorAll('h2.entry-title');
   moduleElements.footerAutoPlayToggle       = document.getElementById(moduleConfig.autoPlayToggleId);
 
   window.addEventListener('blur',    windowEventBlur);
@@ -197,12 +197,12 @@ const playbackEvents = (() =>
   {
     debugEvent(playbackEvent, eventData);
   
-    const nowPlayingIcon = document.querySelector(`#${eventData.postId} .now-playing.material-icons`);
+    const nowPlayingIcon = document.querySelector(`#${eventData.postId} h2.entry-title`);
   
     resetNowPlayingIcons(nowPlayingIcon);
-    nowPlayingIcon.style.display = 'inline-block';
-    nowPlayingIcon.classList.remove('animation-paused');
-  
+    nowPlayingIcon.classList.remove('playing-paused');
+    nowPlayingIcon.classList.add('now-playing-icon');
+
     if (settings.user.animateNowPlayingIcon)
       nowPlayingIcon.classList.add('playing-animate');
   }
@@ -211,7 +211,7 @@ const playbackEvents = (() =>
   {
     debugEvent(playbackEvent, eventData);
   
-    document.querySelector(`#${eventData.postId} .now-playing.material-icons`).classList.add('animation-paused');
+    document.querySelector(`#${eventData.postId} h2.entry-title`).classList.add('playing-paused');
   }
   
   function mediaEnded(playbackEvent)
@@ -327,10 +327,7 @@ const playbackEvents = (() =>
     moduleElements.nowPlayingIcons.forEach(element =>
     {
       if (element !== nowPlayingElement)
-      {
-        element.classList.remove('playing-animate', 'animation-paused');
-        element.style.display = 'none';
-      }
+        element.classList.remove('now-playing-icon', 'playing-animate', 'playing-paused');
     });
   }
   

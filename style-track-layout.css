@@ -60,6 +60,20 @@
   padding-right: 0;
 }
 
+.track-layout-2-column h2.entry-title.now-playing-icon::before {
+  font-size: 27px;
+  top: 4px;
+  margin-right: 5px;
+  margin-left: -4px;
+}
+
+.track-layout-3-column h2.entry-title.now-playing-icon::before {
+  font-size: 23px;
+  top: 4px;
+  margin-right: 5px;
+  margin-left: -3px;
+}
+
 .track-layout-2-column h2.entry-title,
 .track-layout-2-column h2.entry-title a {
   font-size: 25px;
@@ -74,20 +88,6 @@
   line-height: 30px;
   margin-top: 20px;
   margin-bottom: 5px;
-}
-
-.track-layout-2-column .now-playing.material-icons {
-  font-size: 27px;
-  top: 4px;
-  margin-right: 5px;
-  margin-left: -4px;
-}
-
-.track-layout-3-column .now-playing.material-icons {
-  font-size: 23px;
-  top: 4px;
-  margin-right: 5px;
-  margin-left: -3px;
 }
 
 .track-layout-2-column .entry-meta {

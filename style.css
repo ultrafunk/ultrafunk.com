@@ -4,7 +4,7 @@ Theme URI: https://github.com/ultrafunk/ultrafunk.com
 Author: Ultrafunk
 Author URI: https://ultrafunk.com
 Description: ultrafunk.com WordPress theme
-Version: 1.6.5
+Version: 1.6.6
 License: Apache License 2.0
 License URI: https://www.apache.org/licenses/LICENSE-2.0
 Text Domain: ultrafunk
@@ -608,22 +608,24 @@ h2.widget-title {
   margin: 30px 0 10px 0;
 }
 
-h2.entry-title,
-h2.entry-title a {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.now-playing.material-icons {
+h2.entry-title.now-playing-icon::before {
+  font-family: "Material Icons";
+  font-weight: 400;
+  content: "\E01D";
   font-size: 38px;
   line-height: 0;
   position: relative;
   top: 6px;
   margin-right: 10px;
   margin-left: -6px;
-  display: none;
   pointer-events: none;
+}
+
+h2.entry-title,
+h2.entry-title a {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 h2,
@@ -1079,17 +1081,17 @@ aside.widget-area ul {
     line-height: 45px;
   }
 
-  h2,
-  h2.entry-title a {
-    font-size: 30px;
-    line-height: 40px;
-  }
-
-  .now-playing.material-icons {
+  h2.entry-title.now-playing-icon::before {
     font-size: 33px;
     top: 5px;
     margin-right: 8px;
     margin-left: -5px;
+  }
+
+  h2,
+  h2.entry-title a {
+    font-size: 30px;
+    line-height: 40px;
   }
 
   h3 {
@@ -1174,18 +1176,18 @@ aside.widget-area ul {
     line-height: 40px;
   }
   
+  h2.entry-title.now-playing-icon::before {
+    font-size: 27px;
+    top: 4px;
+    margin-right: 8px;
+    margin-left: -4px;
+  }
+
   h2,
   h2.entry-title a,
   h2.widget-title {
     font-size: 25px;
     line-height: 35px;
-  }
-
-  .now-playing.material-icons {
-    font-size: 27px;
-    top: 4px;
-    margin-right: 8px;
-    margin-left: -4px;
   }
 
   h3 {
@@ -1384,17 +1386,17 @@ aside.widget-area ul {
     display:none;
   }
   
-  h2.entry-title,
-  h2.entry-title a {
-    font-size: 18px;
-    line-height: 26px;
-  }
-
-  .now-playing.material-icons {
+  h2.entry-title.now-playing-icon::before {
     font-size: 20px;
     top: 3px;
     margin-right: 6px;
     margin-left: -3px;
+  }
+
+  h2.entry-title,
+  h2.entry-title a {
+    font-size: 18px;
+    line-height: 26px;
   }
 
   h2,

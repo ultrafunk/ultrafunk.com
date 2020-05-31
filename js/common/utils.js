@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.6.5';
+import * as debugLogger from '../common/debuglogger.js?ver=1.6.6';
 
 
 export {
@@ -155,11 +155,16 @@ const snackbar = (() =>
   
       if (actionClickFunction !== null)
       {
-        elements.snackbar.querySelector(`.action-text`).addEventListener('click', () =>
+        const actionElement = elements.snackbar.querySelector('.action-text');
+
+        if (actionElement !== null)
         {
-          actionClickFunction();
-          reset(true);
-        });
+          actionElement.addEventListener('click', () =>
+          {
+            actionClickFunction();
+            reset(true);
+          });
+        }
       }
       
       if (timeout !== 0)
@@ -211,3 +216,4 @@ const snackbar = (() =>
       elements.snackbar.classList.remove('fadein');
   }
 })();
+

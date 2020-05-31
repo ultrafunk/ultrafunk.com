@@ -226,16 +226,16 @@
 
 }
 
-.now-playing.material-icons {
+.now-playing-icon::before {
   color: #ff0000;
 }
 
-.now-playing.material-icons.no-autoplay {
+.now-playing-icon.no-autoplay::before {
   color: #0080ff;
 }
 
-.playing-animate,
-.playing-animate.no-autoplay {
+.playing-animate::before,
+.playing-animate.no-autoplay::before {
   animation: track-icon-pulse 1.5s ease-in-out infinite;
 }
 
@@ -243,7 +243,7 @@
   50% { opacity: 0.20; }
 }
 
-.animation-paused {
+.playing-paused::before {
   animation-play-state: paused !important;
 }
 
