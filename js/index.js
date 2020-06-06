@@ -5,9 +5,9 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.6.6';
-import * as storage     from './common/storage.js?ver=1.6.6';
-import * as utils       from './common/utils.js?ver=1.6.6';
+import * as debugLogger from './common/debuglogger.js?ver=1.7.0';
+import * as storage     from './common/storage.js?ver=1.7.0';
+import * as utils       from './common/utils.js?ver=1.7.0';
 
 
 const debug  = debugLogger.getInstance('index');
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () =>
   }
 
   resize.setTopMargin();
-  resize.lastInnerWidth = window.innerWidth;
+  resize.setLastInnerWidth(window.innerWidth);
 });
 
 document.addEventListener('keydown', (event) =>
@@ -78,16 +78,16 @@ document.addEventListener('keydown', (event) =>
     {
       case 's':
       case 'S':
-        if ((navSearch.isVisible === false) && (moduleElements.siteContentSearch !== document.activeElement))
+        if ((navSearch.isVisible() === false) && (moduleElements.siteContentSearch !== document.activeElement))
         {
           event.preventDefault();
           navSearch.toggle();
         }
         break;
 
-      case 'm':
-      case 'M':
-        if ((navSearch.isVisible === false) && (moduleElements.siteContentSearch !== document.activeElement))
+      case 'c':
+      case 'C':
+        if ((navSearch.isVisible() === false) && (moduleElements.siteContentSearch !== document.activeElement))
         {
           event.preventDefault();
           navMenu.toggle();
@@ -378,7 +378,7 @@ const navMenu = (() =>
   let isRevealed = false;
 
   return {
-    get isRevealed() { return isRevealed; },
+    isRevealed() { return isRevealed; },
     init,
     toggle,
     reveal,
@@ -458,11 +458,11 @@ const navSearch = (() =>
 {
   const allowKeyboardShortcuts = new Event('allowKeyboardShortcuts');
   const denyKeyboardShortcuts  = new Event('denyKeyboardShortcuts');
-  let elements  = { search: null };
+  let elements  = { searchContainer: null, searchField: null };
   let isVisible = false;
 
   return {
-    get isVisible() { return isVisible; },
+    isVisible() { return isVisible; },
     init,
     toggle,
     hide,
@@ -470,22 +470,23 @@ const navSearch = (() =>
 
   function init()
   {
-    elements.search = document.getElementById('search-container');
+    elements.searchContainer = document.getElementById('search-container');
+    elements.searchField     = document.querySelector('#search-container .search-field');
 
     utils.addEventListeners('.nav-search-toggle', 'click', toggle);
     // To prevent extra 'blur' event before 'click' event
     utils.addEventListeners('.nav-search-toggle', 'mousedown', (event) => event.preventDefault());
     // Hide nav search bar on focus loss
-    utils.addEventListeners('#search-container .search-field', 'blur', hide);
+    elements.searchField.addEventListener('blur', hide);
     // Hide nav search bar on ESC
-    utils.addEventListeners('#search-container .search-field', 'keydown', (event) => { if (event.key === 'Escape') hide(); });
+    elements.searchField.addEventListener('keydown', (event) => { if (event.key === 'Escape') hide(); });
   }
 
   function toggle()
   {
-    if (elements.search.style.display.length === 0)
+    if (elements.searchContainer.style.display.length === 0)
     {
-      if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE) && (scroll.lastScrollTop > 0))
+      if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE) && (scroll.getLastScrollTop() > 0))
       {
         // ToDo: This will not be smooth on iOS... Needs polyfill
         window.scroll(
@@ -512,7 +513,7 @@ const navSearch = (() =>
   
   function show()
   {
-    if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE) && (scroll.lastScrollTop !== 0))
+    if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE) && (scroll.getLastScrollTop() !== 0))
     {
       // Wait until we are at the top before showing search bar, quick & dirty...
       window.requestAnimationFrame(show);
@@ -521,8 +522,8 @@ const navSearch = (() =>
     {
       setPosSize();
       setProps(true, denyKeyboardShortcuts, 'flex', 'clear');
-      document.querySelector('#search-container .search-field').focus();
-      document.querySelector('#search-container .search-field').setSelectionRange(9999, 9999);    
+      elements.searchField.focus();
+      elements.searchField.setSelectionRange(9999, 9999);    
     }
   }
   
@@ -530,8 +531,8 @@ const navSearch = (() =>
   {
     isVisible = visible;
     document.dispatchEvent(keyboardShortcuts);
-    elements.search.style.display = display;
-    document.querySelectorAll('.nav-search-toggle i').forEach(element => element.textContent = icon);
+    elements.searchContainer.style.display = display;
+    document.querySelectorAll('div.nav-search-toggle i').forEach(element => element.textContent = icon);
   }
   
   function setPosSize()
@@ -539,14 +540,14 @@ const navSearch = (() =>
     let position = 0;
   
     if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
-      position = document.querySelector('.site-branding').getBoundingClientRect();
+      position = document.querySelector('div.site-branding').getBoundingClientRect();
     else
-      position = document.querySelector('.site-branding-flex-container').getBoundingClientRect();
+      position = document.querySelector('div.site-branding-flex-container').getBoundingClientRect();
   
-    elements.search.style.top    = `${position.top}px`;
-    elements.search.style.left   = `${position.left}px`;
-    elements.search.style.width  = `${position.right - position.left}px`;
-    elements.search.style.height = `${position.height}px`;
+    elements.searchContainer.style.top    = `${position.top}px`;
+    elements.searchContainer.style.left   = `${position.left}px`;
+    elements.searchContainer.style.width  = `${position.right - position.left}px`;
+    elements.searchContainer.style.height = `${position.height}px`;
   }
 })();
 
@@ -561,8 +562,8 @@ const resize = (() =>
   let lastInnerWidth = 0;
 
   return {
-    get headerHeight()             { return headerHeight;         },
-    set lastInnerWidth(innerWidth) { lastInnerWidth = innerWidth; },
+    getHeaderHeight()             { return headerHeight;         },
+    setLastInnerWidth(innerWidth) { lastInnerWidth = innerWidth; },
     addEventListener,
     setTopMargin,
   };
@@ -624,7 +625,7 @@ const scroll = (() =>
   let isScrolledDown = false;
 
   return {
-    get lastScrollTop() { return lastScrollTop; },
+    getLastScrollTop() { return lastScrollTop; },
     addEventListener,
   };
 
@@ -633,7 +634,7 @@ const scroll = (() =>
     window.addEventListener('scroll', () =>
     {
       const scrollTop          = window.pageYOffset;
-      const scrollDownMenuHide = Math.round((resize.headerHeight > 150) ? (resize.headerHeight / 2) : (resize.headerHeight / 3));
+      const scrollDownMenuHide = Math.round((resize.getHeaderHeight() > 150) ? (resize.getHeaderHeight() / 2) : (resize.getHeaderHeight() / 3));
     
       if (scrollTop === 0)
         scrolledTop();
@@ -679,7 +680,7 @@ const scroll = (() =>
       moduleElements.siteHeader.classList.add('sticky-nav-up');
     }
 
-    if (navMenu.isRevealed === true)
+    if (navMenu.isRevealed() === true)
       navMenu.reveal('none', 'flex', false);
   }
 })();

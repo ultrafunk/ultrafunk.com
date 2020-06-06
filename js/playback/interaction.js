@@ -5,11 +5,11 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.6.6';
-import * as storage     from '../common/storage.js?ver=1.6.6';
-import * as utils       from '../common/utils.js?ver=1.6.6';
-import * as eventLogger from './eventlogger.js?ver=1.6.6';
-import * as playback    from './playback.js?ver=1.6.6';
+import * as debugLogger from '../common/debuglogger.js?ver=1.7.0';
+import * as storage     from '../common/storage.js?ver=1.7.0';
+import * as utils       from '../common/utils.js?ver=1.7.0';
+import * as eventLogger from './eventlogger.js?ver=1.7.0';
+import * as playback    from './playback.js?ver=1.7.0';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -21,6 +21,7 @@ let useKeyboardShortcuts = false;
 const moduleConfig = {
   youTubeIframeIdRegEx:    /youtube-uid/i,
   soundCloudIframeIdRegEx: /soundcloud-uid/i,
+  nowPlayingIconSelector:  'h2.entry-title',
   autoPlayToggleId:        'footer-autoplay-toggle',
   keyboardShortcuts:       true,
   allowKeyboardShortcuts:  'allowKeyboardShortcuts',
@@ -30,11 +31,13 @@ const moduleConfig = {
 
 const defaultSettings = {
   // Incremental version to check for new properties
-  version: 6,
+  version: 7,
   // User (public) settings
   user: {
     autoPlay:              true,
     autoScroll:            true,
+    masterVolume:          100,
+    masterMute:            false,
     smoothScrolling:       true,
     autoExitFullscreen:    true,  // Automatically exit fullscreen when a track ends
     animateNowPlayingIcon: true,  // Current track indicator icon CSS pulse animation ON / OFF
@@ -68,6 +71,8 @@ const moduleElements = {
 
 document.addEventListener('DOMContentLoaded', () =>
 { 
+  debug.log('DOMContentLoaded');
+
   if (hasEmbeddedPlayers())
   {
     readSettings();
@@ -77,6 +82,8 @@ document.addEventListener('DOMContentLoaded', () =>
       youTubeIframeIdRegEx:    moduleConfig.youTubeIframeIdRegEx,
       soundCloudIframeIdRegEx: moduleConfig.soundCloudIframeIdRegEx,
       autoPlay:                settings.user.autoPlay,
+      masterVolume:            settings.user.masterVolume,
+      masterMute:              settings.user.masterMute,
       timeRemainingWarning:    settings.user.timeRemainingWarning,
       timeRemainingSeconds:    settings.user.timeRemainingSeconds,
     });
@@ -99,16 +106,17 @@ document.addEventListener(moduleConfig.denyKeyboardShortcuts,  () => { if (modul
 // Search page for <iframes> and check if any of them contains an embedded player
 function hasEmbeddedPlayers()
 {
-  const players = document.querySelectorAll('iframe');
-  playbackEvents.playersCount = players.length;
+  let playersFound = 0;
 
-  for (let i = 0; i < players.length; i++)
+  document.querySelectorAll('iframe').forEach(element =>
   {
-    if (moduleConfig.youTubeIframeIdRegEx.test(players[i].id) || moduleConfig.soundCloudIframeIdRegEx.test(players[i].id))
-      return true;    
-  }
+    if (moduleConfig.youTubeIframeIdRegEx.test(element.id) || moduleConfig.soundCloudIframeIdRegEx.test(element.id))
+      playersFound++;
+  });
 
-  return false;
+  playbackEvents.setPlayersCount(playersFound);
+
+  return (playersFound > 0);
 }
 
 function readSettings()
@@ -126,7 +134,7 @@ function initInteraction()
   moduleElements.playbackProgressBar        = document.getElementById('playback-progress').querySelector('.playback-progress-bar');
   moduleElements.playbackControls.playPause = document.getElementById('playback-controls').querySelector('.play-pause-control');
   moduleElements.playbackControls.details   = document.getElementById('playback-controls').querySelector('.details-control');
-  moduleElements.nowPlayingIcons            = document.querySelectorAll('h2.entry-title');
+  moduleElements.nowPlayingIcons            = document.querySelectorAll(moduleConfig.nowPlayingIconSelector);
   moduleElements.footerAutoPlayToggle       = document.getElementById(moduleConfig.autoPlayToggleId);
 
   window.addEventListener('blur',    windowEventBlur);
@@ -149,11 +157,11 @@ const playbackEvents = (() =>
 {
   let playersCount      = 3;
   let playersReadyCount = 1;
-  let playbackReady     = false;
+  let isPlaybackReady   = false;
 
   return {
-    get playbackReady()          { return playbackReady;       },
-    set playersCount(numPlayers) { playersCount += numPlayers; },
+    setPlayersCount(numPlayers) { playersCount += numPlayers; },
+    isPlaybackReady()           { return isPlaybackReady;     },
     setHandlers,
   };
 
@@ -164,10 +172,11 @@ const playbackEvents = (() =>
       [playback.EVENT.READY]:                ready,
       [playback.EVENT.MEDIA_PLAYING]:        mediaPlaying,
       [playback.EVENT.MEDIA_PAUSED]:         mediaPaused,
+      [playback.EVENT.MEDIA_MUTED]:          mediaMuted,
       [playback.EVENT.MEDIA_ENDED]:          mediaEnded,
       [playback.EVENT.MEDIA_TIMER]:          mediaTimer,
       [playback.EVENT.MEDIA_TIME_REMAINING]: mediaTimeRemaining,
-      [playback.EVENT.GOTO_MEDIA]:           gotoMedia,
+      [playback.EVENT.MEDIA_SHOW]:           mediaShow,
       [playback.EVENT.CONTINUE_AUTOPLAY]:    continueAutoplay,
       [playback.EVENT.RESUME_AUTOPLAY]:      resumeAutoplay,
       [playback.EVENT.AUTOPLAY_BLOCKED]:     autoplayBlocked,
@@ -176,7 +185,7 @@ const playbackEvents = (() =>
     });
   }
 
-  function loading()
+  function loading(/* playbackEvent */)
   {
   //debugEvent(playbackEvent);
 
@@ -186,8 +195,8 @@ const playbackEvents = (() =>
   function ready(playbackEvent)
   {
     debugEvent(playbackEvent);
-  
-    playbackReady = true;
+
+    isPlaybackReady = true;
     updateProgressBar(0);
     moduleElements.playbackControls.details.addEventListener('click', playbackDetailsClick);
     moduleElements.footerAutoPlayToggle.addEventListener('click', autoPlayToggle);
@@ -197,7 +206,7 @@ const playbackEvents = (() =>
   {
     debugEvent(playbackEvent, eventData);
   
-    const nowPlayingIcon = document.querySelector(`#${eventData.postId} h2.entry-title`);
+    const nowPlayingIcon = document.querySelector(`#${eventData.postId} ${moduleConfig.nowPlayingIconSelector}`);
   
     resetNowPlayingIcons(nowPlayingIcon);
     nowPlayingIcon.classList.remove('playing-paused');
@@ -211,7 +220,14 @@ const playbackEvents = (() =>
   {
     debugEvent(playbackEvent, eventData);
   
-    document.querySelector(`#${eventData.postId} h2.entry-title`).classList.add('playing-paused');
+    document.querySelector(`#${eventData.postId} ${moduleConfig.nowPlayingIconSelector}`).classList.add('playing-paused');
+  }
+
+  function mediaMuted(playbackEvent, eventData)
+  {
+    debugEvent(playbackEvent, eventData);
+
+    settings.user.masterMute = eventData.masterMute;
   }
   
   function mediaEnded(playbackEvent)
@@ -240,11 +256,11 @@ const playbackEvents = (() =>
       exitFullscreenTrack();
   }
   
-  function gotoMedia(playbackEvent, eventData)
+  function mediaShow(playbackEvent, eventData)
   {
     debugEvent(playbackEvent, eventData);
   
-    mediaEnded(playbackEvent);
+    mediaEnded();
     scrollTo.id(eventData.postId, eventData.iframeId);
   }
   
@@ -309,12 +325,15 @@ const playbackEvents = (() =>
   // Misc. playback event handler functions
   // ************************************************************************************************
   
-  function debugEvent(playbackEvent, eventData = null)
+  function debugEvent(playbackEvent = null, eventData = null)
   {
-    debug.log(`playbackEvents.${debug.getObjectKeyForValue(playback.EVENT, playbackEvent)} (${playbackEvent})`);
+    if (debug.isDebug && (playbackEvent !== null))
+    {
+      debug.log(`playbackEvents.${debug.getObjectKeyForValue(playback.EVENT, playbackEvent)} (${playbackEvent})`);
     
-    if (eventData !== null)
-      debug.log(eventData);
+      if (eventData !== null)
+        debug.log(eventData);
+    }
   }
 
   function updateProgressBar(scaleX)
@@ -337,7 +356,7 @@ const playbackEvents = (() =>
     {
       if (eventData.currentTrack < eventData.numTracks)
       {
-        playback.playTrack(eventData.currentTrack + 1, true);
+        playback.jumpToTrack(eventData.currentTrack + 1, true);
       }
       else
       {
@@ -482,7 +501,7 @@ function exitFullscreenTrack()
 
 document.addEventListener('keydown', (event) =>
 {
-  if (playbackEvents.playbackReady && useKeyboardShortcuts && (event.ctrlKey === false) && (event.altKey === false))
+  if (playbackEvents.isPlaybackReady() && useKeyboardShortcuts && (event.ctrlKey === false) && (event.altKey === false))
   {
     switch (event.key)
     {
@@ -503,6 +522,12 @@ document.addEventListener('keydown', (event) =>
         }
         break;
 
+      case 'm':
+      case 'M':
+        playback.toggleMute();
+        utils.snackbar.show(settings.user.masterMute ? 'Volume is muted (m to unmute)' : 'Volume is unmuted (m to mute)', 3);
+        break;
+
       case 'ArrowLeft':
         {
           event.preventDefault();
@@ -521,7 +546,7 @@ document.addEventListener('keydown', (event) =>
           }
         }
         break;
-        
+
       case 'ArrowRight':
         {
           event.preventDefault();
@@ -607,6 +632,19 @@ function showInteractionHint(hintProperty, hintText, snackbarTimeout = 0)
   }
 }
 
+function navigateTo(destUrl, continueAutoPlay = false)
+{
+  debug.log(`navigateTo(): ${destUrl} - continueAutoPlay: ${continueAutoPlay}`);
+  
+  if ((destUrl !== null) && (destUrl.length > 0))
+  {
+    if (continueAutoPlay)
+      settings.priv.continueAutoPlay = true;
+    
+    window.location.href = destUrl;
+  }
+}
+
 
 // ************************************************************************************************
 // AutoPlay UI toggle and data + DOM update
@@ -652,7 +690,7 @@ function updateAutoPlayDOM(newAutoPlay)
 
 
 // ************************************************************************************************
-// Scrolling and URL navigation
+// Scrolling to specified # (track)
 // ************************************************************************************************
 
 const scrollTo = (() =>
@@ -716,16 +754,3 @@ const scrollTo = (() =>
     return 40;
   }
 })();
-
-function navigateTo(destUrl, continueAutoPlay = false)
-{
-  debug.log(`navigateTo(): ${destUrl} - continueAutoPlay: ${continueAutoPlay}`);
-  
-  if ((destUrl !== null) && (destUrl.length > 0))
-  {
-    if (continueAutoPlay)
-      settings.priv.continueAutoPlay = true;
-    
-    window.location.href = destUrl;
-  }
-}

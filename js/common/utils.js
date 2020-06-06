@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.6.6';
+import * as debugLogger from '../common/debuglogger.js?ver=1.7.0';
 
 
 export {
@@ -150,21 +150,18 @@ const snackbar = (() =>
     else
     {
       reset();
+
       elements.snackbar.querySelector(`.${config.id}-message`).innerHTML = message;
       elements.snackbar.classList.add('fadein');
+      const actionElement = elements.snackbar.querySelector('.action-text');
   
-      if (actionClickFunction !== null)
+      if ((actionClickFunction !== null) && (actionElement !== null))
       {
-        const actionElement = elements.snackbar.querySelector('.action-text');
-
-        if (actionElement !== null)
+        actionElement.addEventListener('click', () =>
         {
-          actionElement.addEventListener('click', () =>
-          {
-            actionClickFunction();
-            reset(true);
-          });
-        }
+          actionClickFunction();
+          reset(true);
+        });
       }
       
       if (timeout !== 0)

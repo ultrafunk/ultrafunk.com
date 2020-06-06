@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger      from '../common/debuglogger.js?ver=1.6.6';
-import * as mediaPlayer      from './mediaplayer.js?ver=1.6.6';
-import * as controls         from './playback-controls.js?ver=1.6.6';
-import * as eventLogger      from './eventlogger.js?ver=1.6.6';
+import * as debugLogger      from '../common/debuglogger.js?ver=1.7.0';
+import * as mediaPlayer      from './mediaplayer.js?ver=1.7.0';
+import * as controls         from './playback-controls.js?ver=1.7.0';
+import * as eventLogger      from './eventlogger.js?ver=1.7.0';
 
 
 export {
@@ -21,19 +21,18 @@ export {
   togglePlayPause,
   prevClick,
   nextClick,
-  playTrack,
+  toggleMute,
+  jumpToTrack,
   getStatus,
   resumeAutoPlay,
 };
 
 
 const debug           = debugLogger.getInstance('playback');
-const mediaPlayers    = [];
 const eventLog        = new eventLogger.Playback(10);
 const eventHandlers   = {};
 let eventCallback     = null;
 let playersReadyCount = 0;
-let currentPlayer     = 0;
 
 const moduleConfig = {
   youTubeIframeIdRegEx:    null,
@@ -43,6 +42,8 @@ const moduleConfig = {
   playbackControlsId:      'playback-controls',
   autoPlay:                true,
   autoScroll:              true,
+  masterVolume:            mediaPlayer.DEFAULT_VOLUME,
+  masterMute:              false,
   updateTimerInterval:     200,  // Milliseconds between each callback call
   timeRemainingWarning:    true, // Flash Play / Pause button
   timeRemainingSeconds:    30,   // Seconds left when warning is shown
@@ -54,20 +55,21 @@ const EVENT = {
   READY:                20,
   MEDIA_PLAYING:        30,
   MEDIA_PAUSED:         40,
-  MEDIA_ENDED:          50,
-  MEDIA_TIMER:          60,
-  MEDIA_TIME_REMAINING: 70,
-  GOTO_MEDIA:           80,
-  CONTINUE_AUTOPLAY:    90,
-  RESUME_AUTOPLAY:      100,
-  AUTOPLAY_BLOCKED:     110,
-  PLAYBACK_BLOCKED:     120,
-  MEDIA_UNAVAILABLE:    130,
+  MEDIA_MUTED:          50,
+  MEDIA_ENDED:          60,
+  MEDIA_TIMER:          70,
+  MEDIA_TIME_REMAINING: 80,
+  MEDIA_SHOW:           90,
+  CONTINUE_AUTOPLAY:    100,
+  RESUME_AUTOPLAY:      110,
+  AUTOPLAY_BLOCKED:     120,
+  PLAYBACK_BLOCKED:     130,
+  MEDIA_UNAVAILABLE:    140,
 };
 
 
 // ************************************************************************************************
-// 
+// Init, config and event handlers
 // ************************************************************************************************
 
 function init(callback = null)
@@ -83,7 +85,7 @@ function setConfig(setConfig = null)
   if (setConfig !== null)
   {
     Object.entries(setConfig).forEach(([key, value]) => moduleConfig[key] = value);
-  //debug.log(config);
+    debug.log(moduleConfig);
   }
 }
 
@@ -156,7 +158,7 @@ function getAllEmbeddedPlayers()
       }
 
       player.setArtistTitle(entryTitle);
-      mediaPlayers.push(player);
+      players.getMediaPlayers().push(player);
       
       debug.log(player);
     });
@@ -167,7 +169,8 @@ function getAllEmbeddedPlayers()
 
 function setPropsForSamePostId()
 {
-  const samePostIds = {};
+  const mediaPlayers = players.getMediaPlayers();
+  const samePostIds  = {};
   
   // Create list of duplicate postIds
   mediaPlayers.forEach((player, index) =>
@@ -184,13 +187,13 @@ function setPropsForSamePostId()
   });
 }
 
-function updateMediaPlayersReadyProgress()
+function updateMediaPlayersReady()
 {
   playersReadyCount++;
 
-  if (playersReadyCount >= getNumPlayers())
+  if (playersReadyCount >= players.getNumTracks())
   {
-    controls.ready(prevClick, togglePlayPause, nextClick, getNumTracks());
+    controls.ready(prevClick, togglePlayPause, nextClick, toggleMute, players.getNumTracks(), moduleConfig.masterMute);
     callEventHandler(EVENT.READY);
     callEventHandler(EVENT.RESUME_AUTOPLAY);
   }
@@ -210,21 +213,21 @@ function togglePlayPause()
   if (controls.isPlaying())
   {
     controls.updatePauseState();
-    getMediaPlayer().pause();
+    players.currentPlayer.pause();
   }
   else
   {
-    controls.updatePlayState(getPlaybackStatus());
-    getMediaPlayer().play(onEmbeddedPlayerErrorCallback);
+    controls.updatePlayState(players.getStatus());
+    players.currentPlayer.play(onEmbeddedPlayerErrorCallback, getVolume());
   }
 }
 
 function prevClick(event)
 {
-  debug.log(`prevClick() - prevTrack: ${getCurrentTrack() - 1} - numTracks: ${getNumTracks()} - event: ${((event !== null) ? event.type : 'null')}`);
+  debug.log(`prevClick() - prevTrack: ${players.getCurrentTrack() - 1} - numTracks: ${players.getNumTracks()} - event: ${((event !== null) ? event.type : 'null')}`);
 
-  if (getCurrentTrack() > 0)
-    getMediaPlayer().getPositionCallback(prevClickCallback);
+  if (players.getCurrentTrack() > 0)
+    players.currentPlayer.getPositionCallback(prevClickCallback);
 }
 
 function prevClickCallback(positionMilliseconds)
@@ -233,32 +236,32 @@ function prevClickCallback(positionMilliseconds)
 
   if (positionMilliseconds > 3000)
   {
-    getMediaPlayer().seekTo(0);
+    players.currentPlayer.seekTo(0);
     playbackTimer.updateCallback(0);
   }
   else
   {
-    if (getCurrentTrack() > 1)
-      getMediaPlayer().stop();
+    if (players.getCurrentTrack() > 1)
+      players.currentPlayer.stop();
     
-    if (mediaPrev(controls.isPlaying()))
-      controls.updatePrevState(getPlaybackStatus());
+    if (players.prevTrack(controls.isPlaying()))
+      controls.updatePrevState(players.getStatus());
   }
 }
 
 function nextClick(event)
 {
-  debug.log(`nextClick() - nextTrack: ${getCurrentTrack() + 1} - numTracks: ${getNumTracks()} - event: ${((event !== null) ? event.type : 'null')}`);
+  debug.log(`nextClick() - nextTrack: ${players.getCurrentTrack() + 1} - numTracks: ${players.getNumTracks()} - event: ${((event !== null) ? event.type : 'null')}`);
 
-  if ((getCurrentTrack() + 1) <= getNumTracks())
+  if ((players.getCurrentTrack() + 1) <= players.getNumTracks())
   {
-    getMediaPlayer().stop();
+    players.currentPlayer.stop();
     
     //Called from UI event handler for button or keyboard if (event !== null)
     if ((event !== null) || (moduleConfig.autoPlay))
     {
-      if (mediaNext(controls.isPlaying()))
-        controls.updateNextState(getPlaybackStatus());
+      if (players.nextTrack(controls.isPlaying()))
+        controls.updateNextState(players.getStatus());
     }
     else
     {
@@ -272,13 +275,28 @@ function nextClick(event)
     if (moduleConfig.autoPlay)
       callEventHandler(EVENT.CONTINUE_AUTOPLAY);
     else
-      getMediaPlayer().stop();
+      players.currentPlayer.stop();
   }
 }
 
-function playTrack(track, playMedia = true)
+function toggleMute()
 {
-  debug.log(`playTrack(): ${track} - ${playMedia}`);
+  debug.log(`toggleMute() - masterMute: ${moduleConfig.masterMute} - masterVolume: ${moduleConfig.masterVolume}`);
+
+  moduleConfig.masterMute = (moduleConfig.masterMute === true) ? false : true;
+  players.currentPlayer.setVolume(getVolume());
+  controls.updateMuteState(moduleConfig.masterMute);
+  callEventHandler(EVENT.MEDIA_MUTED, { masterMute: moduleConfig.masterMute });
+}
+
+function getVolume()
+{
+  return ((moduleConfig.masterMute === true) ? 0 : moduleConfig.masterVolume);
+}
+
+function jumpToTrack(track, playMedia = true)
+{
+  debug.log(`jumpToTrack(): ${track} - ${playMedia}`);
 
   if ((playMedia === true) && (controls.isPlaying() === false))
   {
@@ -287,8 +305,8 @@ function playTrack(track, playMedia = true)
     eventLog.add(eventLogger.SOURCE.ULTRAFUNK, Date.now(), eventLogger.EVENT.RESUME_AUTOPLAY, null);
     
     // Only supports jumping FORWARD for now...
-    if (mediaTrack(track, playMedia))
-      controls.updateNextState(getPlaybackStatus());
+    if (players.jumpToTrack(track, playMedia))
+      controls.updateNextState(players.getStatus());
   }
 }
 
@@ -297,6 +315,17 @@ function resumeAutoPlay()
   debug.log('resumeAutoPlay()');
   eventLog.add(eventLogger.SOURCE.ULTRAFUNK, Date.now(), eventLogger.EVENT.RESUME_AUTOPLAY, null);
   togglePlayPause();
+}
+
+function getStatus()
+{
+  return {
+    isPlaying:    controls.isPlaying(),
+    currentTrack: players.getCurrentTrack(),
+    numTracks:    players.getNumTracks(),
+    postId:       players.currentPlayer.getPostId(),
+    iframeId:     players.currentPlayer.getIframeId(),
+  };
 }
 
 
@@ -309,136 +338,134 @@ const SYNCSTATE = {
   PAUSE: 2,
 };
 
-let syncPlayersState = function syncPlayersStateRecursive(nextPlayer, syncState)
+let syncPlayersState = function syncPlayersStateRecursive(nextPlayerIndex, syncState)
 {
-  debug.log(`syncPlayersState() - prevPlayer: ${getCurrentPlayer()} - nextPlayer: ${nextPlayer} - syncState: ${debug.getObjectKeyForValue(SYNCSTATE, syncState)}`);
+  debug.log(`syncPlayersState() - prevPlayerIndex: ${players.getPlayerIndex()} - nextPlayerIndex: ${nextPlayerIndex} - syncState: ${debug.getObjectKeyForValue(SYNCSTATE, syncState)}`);
   
-  if (getCurrentPlayer() === nextPlayer)
+  if (players.getPlayerIndex() === nextPlayerIndex)
   {
     if (syncState === SYNCSTATE.PLAY)
     {
-      controls.updatePlayState(getPlaybackStatus());
-      callEventHandler(EVENT.MEDIA_PLAYING, { postId: getMediaPlayer().getPostId() });
+      controls.updatePlayState(players.getStatus());
+      callEventHandler(EVENT.MEDIA_PLAYING, { postId: players.currentPlayer.getPostId() });
     }
     else if (syncState === SYNCSTATE.PAUSE)
     {
       controls.updatePauseState();
-      callEventHandler(EVENT.MEDIA_PAUSED, { postId: getMediaPlayer().getPostId() });      
+      callEventHandler(EVENT.MEDIA_PAUSED, { postId: players.currentPlayer.getPostId() });
     }
   }
   else
   {
-    if (nextPlayer !== -1)
+    if (nextPlayerIndex !== -1)
     {
-      const prevPlayer = getCurrentPlayer();
+      const prevPlayerIndex = players.getPlayerIndex();
       
-      getMediaPlayer().stop();
-      setCurrentPlayer(nextPlayer);
+      players.currentPlayer.stop();
+      players.setPlayerIndex(nextPlayerIndex);
 
-      if (nextPlayer > prevPlayer)
-        controls.updateNextState(getPlaybackStatus());
+      if (nextPlayerIndex > prevPlayerIndex)
+        controls.updateNextState(players.getStatus());
       else
-        controls.updatePrevState(getPlaybackStatus());
+        controls.updatePrevState(players.getStatus());
       
-      syncPlayersStateRecursive(nextPlayer, syncState);
+      syncPlayersStateRecursive(nextPlayerIndex, syncState);
     }
   }
 };
 
 
 // ************************************************************************************************
-// Playback and embedded player utils
+// MediaPlayers module
 // ************************************************************************************************
 
-function getCurrentPlayer()                    { return currentPlayer;          }
-function setCurrentPlayer(nextPlayer)          { currentPlayer = nextPlayer;    }
-function getMediaPlayer(index = currentPlayer) { return mediaPlayers[index];    }
-function getNumPlayers()                       { return mediaPlayers.length;    }
-function getCurrentTrack()                     { return getCurrentPlayer() + 1; }
-function getNumTracks()                        { return mediaPlayers.length;    }
-
-function getPlayerIndexFromUid(uId)
+const players = (() =>
 {
-  const index = mediaPlayers.findIndex(player => player.getUid() === uId);
-  return (((index !== -1) && (index <= mediaPlayers.length)) ? index : -1);
-}
+  const mediaPlayers = [];
+  let playerIndex    = 0;
 
-function getPlaybackStatus()
-{
   return {
-    currentTrack: getCurrentTrack(),
-    numTracks:    getNumTracks(),
-    artist:       getMediaPlayer().getArtist(),
-    title:        getMediaPlayer().getTitle(),
+    getMediaPlayers()               { return mediaPlayers;                        },
+    getPlayerIndex()                { return playerIndex;                         },
+    setPlayerIndex(nextPlayerIndex) { playerIndex = nextPlayerIndex;              },
+    get currentPlayer()             { return mediaPlayers[playerIndex];           },
+    getNumTracks()                  { return mediaPlayers.length;                 },
+    getCurrentTrack()               { return playerIndex + 1;                     },
+    getPlayerFromUid(uId)           { return mediaPlayers[getIndexFromUid(uId)];  },
+    getTrackFromUid(uId)            { return (getIndexFromUid(uId) + 1);          },
+    getIndexFromUid,
+    getStatus,
+    prevTrack,
+    nextTrack,
+    jumpToTrack,
   };
-}
-
-function getStatus()
-{
-  return {
-    isPlaying:    controls.isPlaying(),
-    currentTrack: getCurrentTrack(),
-    numTracks:    getNumTracks(),
-    postId:       getMediaPlayer().getPostId(),
-    iframeId:     getMediaPlayer().getIframeId(),
-  };
-}
-
-function isValidTrack(track)
-{
-  return (((track > 0) && (track <= getNumTracks())) ? true : false);
-}
-
-
-// ************************************************************************************************
-// Media track navigation
-// ************************************************************************************************
-
-function mediaPrev(playMedia)
-{
-  if (currentPlayer > 0)
-  {
-    currentPlayer--;
-    mediaGotoTrack(playMedia);
-    return true;
-  }
   
-  return false;
-}
-
-function mediaNext(playMedia)
-{
-  currentPlayer++;
-  
-  if (currentPlayer < getNumPlayers())
+  function getIndexFromUid(uId)
   {
-    mediaGotoTrack(playMedia);
-    return true;
-  }
-  
-  return false;
-}
-
-// Only supports jumping FORWARD for now...
-function mediaTrack(track, playMedia)
-{
-  if (isValidTrack(track))
-  {
-    currentPlayer = track - 1;
-    mediaGotoTrack(playMedia);
-    return true;
+    return mediaPlayers.findIndex(player => player.getUid() === uId);
   }
 
-  return false;
-}
+  function getStatus()
+  {
+    return {
+      currentTrack: players.getCurrentTrack(),
+      numTracks:    players.getNumTracks(),
+      artist:       players.currentPlayer.getArtist(),
+      title:        players.currentPlayer.getTitle(),
+    };
+  }
 
-function mediaGotoTrack(playMedia)
-{
-  callEventHandler(EVENT.GOTO_MEDIA, { postId: getMediaPlayer().getPostId(), iframeId: getMediaPlayer().getIframeId() });
+  function isValidTrack(track)
+  {
+    return ((track > 0) && (track <= players.getNumTracks()));
+  }
+
+  function prevTrack(playMedia)
+  {
+    if (playerIndex > 0)
+    {
+      playerIndex--;
+      playTrack(playMedia);
+      return true;
+    }
+    
+    return false;
+  }
   
-  if (playMedia)
-    getMediaPlayer().play(onEmbeddedPlayerErrorCallback);
-}
+  function nextTrack(playMedia)
+  {
+    playerIndex++;
+    
+    if (playerIndex < players.getNumTracks())
+    {
+      playTrack(playMedia);
+      return true;
+    }
+    
+    return false;
+  }
+  
+  // Only supports jumping FORWARD for now...
+  function jumpToTrack(track, playMedia)
+  {
+    if (isValidTrack(track))
+    {
+      playerIndex = track - 1;
+      playTrack(playMedia);
+      return true;
+    }
+  
+    return false;
+  }
+  
+  function playTrack(playMedia)
+  {
+    callEventHandler(EVENT.MEDIA_SHOW, { postId: players.currentPlayer.getPostId(), iframeId: players.currentPlayer.getIframeId() });
+    
+    if (playMedia)
+      players.currentPlayer.play(onEmbeddedPlayerErrorCallback, getVolume());
+  }
+})();
 
 
 // ************************************************************************************************
@@ -453,8 +480,8 @@ function onEmbeddedPlayerErrorCallback(player, mediaUrl)
   const eventSource  = (player instanceof mediaPlayer.SoundCloud) ? eventLogger.SOURCE.SOUNDCLOUD : eventLogger.SOURCE.YOUTUBE;
 
   // Stop the current track if it is not the one we are going to next
-  if (getMediaPlayer().getUid() !== player.getUid())
-    getMediaPlayer().stop();
+  if (players.currentPlayer.getUid() !== player.getUid())
+    players.currentPlayer.stop();
   
   eventLog.add(eventSource, Date.now(), eventLogger.EVENT.PLAYER_ERROR, player.getUid());
   controls.updatePauseState();
@@ -467,8 +494,8 @@ function getPlayerErrorVars(player, mediaUrl)
   const title  = player.getTitle()  || 'N/A';
 
   return {
-    currentTrack: (getPlayerIndexFromUid(player.getUid()) + 1),
-    numTracks:    getNumTracks(),
+    currentTrack: players.getTrackFromUid(player.getUid()),
+    numTracks:    players.getNumTracks(),
     postId:       player.getPostId(),
     mediaTitle:   `${artist} - ${title}`,
     mediaUrl:     mediaUrl,
@@ -477,7 +504,7 @@ function getPlayerErrorVars(player, mediaUrl)
 
 
 // ************************************************************************************************
-// Playback timer and event handling
+// Playback timer and event handling module
 // ************************************************************************************************
 
 const playbackTimer = (() =>
@@ -516,16 +543,14 @@ const playbackTimer = (() =>
   
   function update()
   {
-    getMediaPlayer().getPositionCallback(updateCallback);
+    players.currentPlayer.getPositionCallback(updateCallback);
   }
   
-  function updateCallback(posMilliseconds)
+  function updateCallback(posMilliseconds, duration)
   {
-    const duration = getMediaPlayer().getDuration();
-    
     controls.setTimer(Math.round(posMilliseconds / 1000), duration);
     updateTimeRemainingWarning(posMilliseconds, duration);
-    callEventHandler(EVENT.MEDIA_TIMER, { currentTrack: getCurrentTrack(), position: posMilliseconds, duration: duration });
+    callEventHandler(EVENT.MEDIA_TIMER, { currentTrack: players.getCurrentTrack(), position: posMilliseconds, duration: duration });
   }
   
   function resetTimeRemainingWarning()
@@ -592,7 +617,7 @@ window.onYouTubeIframeAPIReady = function()
 function onYouTubePlayerReady()
 {
   debug.log('onYouTubePlayerReady()');
-  updateMediaPlayersReadyProgress();
+  updateMediaPlayersReady();
 }
 
 function onYouTubePlayerStateChange(event)
@@ -612,22 +637,21 @@ function onYouTubePlayerStateChange(event)
     case YT.PlayerState.PLAYING: // eslint-disable-line no-undef
       {
         debug.log('onYouTubePlayerStateChange: PLAYING');
-        
-        const playerIndex = getPlayerIndexFromUid(event.target.f.id);
 
         // Call order is important on play events for state handling: Always sync first!
-        syncPlayersState(playerIndex, SYNCSTATE.PLAY);
-        getMediaPlayer(playerIndex).setDuration(Math.round(event.target.getDuration()));
+        syncPlayersState(players.getIndexFromUid(event.target.f.id), SYNCSTATE.PLAY);
+        players.currentPlayer.setVolume(getVolume());
+        players.currentPlayer.setDuration(Math.round(event.target.getDuration()));
         playbackTimer.start();
 
-        if (getMediaPlayer(playerIndex).setArtistTitleFromServer(event.target.getVideoData().title))
-          controls.setDetails(getPlaybackStatus());
+        if (players.currentPlayer.setArtistTitleFromServer(event.target.getVideoData().title))
+          controls.setDetails(players.getStatus());
       }
       break;
 
     case YT.PlayerState.PAUSED: // eslint-disable-line no-undef
       debug.log('onYouTubePlayerStateChange: PAUSED');
-      syncPlayersState(getPlayerIndexFromUid(event.target.f.id), SYNCSTATE.PAUSE);
+      syncPlayersState(players.getIndexFromUid(event.target.f.id), SYNCSTATE.PAUSE);
       playbackTimer.stop(false);
       break;
 
@@ -653,7 +677,7 @@ function onYouTubePlayerStateChange(event)
 function onYouTubePlayerError(event)
 {
   debug.log('onYouTubePlayerError: ' + event.data);
-  const player = getMediaPlayer(getPlayerIndexFromUid(event.target.f.id));
+  const player = players.getPlayerFromUid(event.target.f.id);
 
   player.setPlayable(false);
   onEmbeddedPlayerErrorCallback(player, event.target.getVideoUrl());
@@ -674,7 +698,7 @@ function initSoundCloudAPI()
 function onSoundCloudPlayerEventReady()
 {
   debug.log('onSoundCloudPlayerEventReady()');
-  updateMediaPlayersReadyProgress();
+  updateMediaPlayersReady();
 }
 
 function getSoundCloudSoundId(iframeSrc)
@@ -706,11 +730,12 @@ function onSoundCloudPlayerEventPlay(event)
   eventLog.add(eventLogger.SOURCE.SOUNDCLOUD, Date.now(), eventLogger.EVENT.STATE_PLAYING, event.soundId);
   
   // Call order is important on play events for state handling: Always sync first!
-  syncPlayersState(getPlayerIndexFromUid(event.soundId), SYNCSTATE.PLAY);
+  syncPlayersState(players.getIndexFromUid(event.soundId), SYNCSTATE.PLAY);
+  players.currentPlayer.setVolume(getVolume());
 
-  getMediaPlayer().getEmbeddedPlayer().getDuration(durationMilliseconds =>
+  players.currentPlayer.getEmbeddedPlayer().getDuration(durationMilliseconds =>
   {
-    getMediaPlayer(getPlayerIndexFromUid(event.soundId)).setDuration(Math.round(durationMilliseconds / 1000));
+    players.currentPlayer.setDuration(Math.round(durationMilliseconds / 1000));
     playbackTimer.start();
   });  
 }
@@ -734,18 +759,18 @@ function onSoundCloudPlayerEventPause(event)
   }
   else if (eventLog.scWidgetPlayBlocked(event.soundId, 30000))
   {
-    soundCloudPlaybackBlocked(EVENT.PLAYBACK_BLOCKED, { currentTrack: (getPlayerIndexFromUid(event.soundId) + 1), numTracks: getNumTracks() });
+    soundCloudPlaybackBlocked(EVENT.PLAYBACK_BLOCKED, { currentTrack: players.getTrackFromUid(event.soundId), numTracks: players.getNumTracks() });
   }
   else
   {
     // Only sync state if we get pause events on the same (current) player
-    if (getMediaPlayer().getUid() === event.soundId)
+    if (players.currentPlayer.getUid() === event.soundId)
     {
-      getMediaPlayer().getEmbeddedPlayer().getPosition(positionMilliseconds =>
+      players.currentPlayer.getEmbeddedPlayer().getPosition(positionMilliseconds =>
       {
         if (positionMilliseconds > 0)
         {
-          syncPlayersState(getPlayerIndexFromUid(event.soundId), SYNCSTATE.PAUSE);
+          syncPlayersState(players.getIndexFromUid(event.soundId), SYNCSTATE.PAUSE);
           playbackTimer.stop(false);
         }
       });    
@@ -765,8 +790,8 @@ function onSoundCloudPlayerEventError()
 {
   this.getCurrentSound(soundObject =>
   {
-    const player = getMediaPlayer(getPlayerIndexFromUid(soundObject.id));
-    debug.log(`onSoundCloudPlayerEvent: ERROR for track: ${getPlayerIndexFromUid(soundObject.id) + 1}. ${player.getArtist()} - ${player.getTitle()} - [${player.getUid()} / ${player.getIframeId()}]`);
+    const player = players.getPlayerFromUid(soundObject.id);
+    debug.log(`onSoundCloudPlayerEvent: ERROR for track: ${players.getTrackFromUid(soundObject.id)}. ${player.getArtist()} - ${player.getTitle()} - [${player.getUid()} / ${player.getIframeId()}]`);
     player.setPlayable(false);
   });
 }

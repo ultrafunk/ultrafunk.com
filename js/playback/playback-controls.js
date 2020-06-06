@@ -15,6 +15,7 @@ export {
   updatePlayState,
   updatePauseState,
   updateNextState,
+  updateMuteState,
   blinkPlayPause,
   stopBlinkPlayPause,
 };
@@ -34,6 +35,7 @@ const controls = {
   playPause:  { element: null, state: STATE.DISABLED, iconElement: null },
   nextTrack:  { element: null, state: STATE.DISABLED },
   shuffle:    { element: null, state: STATE.DISABLED },
+  mute:       { element: null, state: STATE.DISABLED, iconElement: null },
 };
 
 
@@ -58,14 +60,16 @@ function init(controlsId)
     controls.playPause.iconElement = controls.playPause.element.querySelector('i');
     controls.nextTrack.element     = playbackControls.querySelector('.next-control');
     controls.shuffle.element       = playbackControls.querySelector('.shuffle-control');
+    controls.mute.element          = playbackControls.querySelector('.mute-control');
+    controls.mute.iconElement      = controls.mute.element.querySelector('i');
   }
   else
   {
-    console.error(`PlayerControls: Unable to getElementById() for '#${controlsId}'`);
+    console.error(`playbackControls.init(): Unable to getElementById() for '#${controlsId}'`);
   }
 }
 
-function ready(prevClick, playPauseClick, nextClick, numTracks)
+function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks, isMuted)
 {
   setState(controls.details, STATE.ENABLED);
   setState(controls.timer, STATE.ENABLED);
@@ -80,6 +84,10 @@ function ready(prevClick, playPauseClick, nextClick, numTracks)
   controls.nextTrack.element.addEventListener('click', nextClick);
 
   setState(controls.shuffle, STATE.ENABLED);
+
+  setState(controls.mute, STATE.ENABLED);
+  controls.mute.element.addEventListener('click', muteClick);
+  updateMuteState(isMuted);
 }
 
 function setState(control, state = STATE.DISABLED)
@@ -174,6 +182,11 @@ function updateNextState(playbackStatus)
   
   if (playbackStatus.currentTrack >= playbackStatus.numTracks)
     setState(controls.nextTrack, STATE.DISABLED);
+}
+
+function updateMuteState(isMuted)
+{
+  controls.mute.iconElement.textContent = isMuted ? 'volume_off' : 'volume_up';
 }
 
 function blinkPlayPause()

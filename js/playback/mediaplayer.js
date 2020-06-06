@@ -21,6 +21,8 @@ const DATA_SOURCE = {
   ISSET_FROM_SERVER:   3,
 };
 
+const DEFAULT_VOLUME = 100;
+
 // Used to split details string into Artist and Title strings
 const artistTitleRegEx = /\s{1,}[–·-]\s{1,}/i;
 
@@ -71,26 +73,26 @@ class MediaPlayer
         
       if (match !== null)
       {
-        this.setArtist(artistTitle.slice(0, match.index));
-        this.setTitle(artistTitle.slice(match.index + match[0].length));
+        this.artist = artistTitle.slice(0, match.index);
+        this.title  = artistTitle.slice(match.index + match[0].length);
       }
       else
       {
-        this.setArtist(artistTitle);
+        this.artist = artistTitle;
       }
     }
   }
 
   setArtistTitleFromServer(artistTitle)
   {
-    if (this.getDataSource() === DATA_SOURCE.GET_FROM_SERVER)
+    if (this.dataSource === DATA_SOURCE.GET_FROM_SERVER)
     {
       if (artistTitle.match(artistTitleRegEx) !== null)
         this.setArtistTitle(artistTitle);
       else
-        this.setArtistTitle(`${this.getArtist()} - ${artistTitle}`);
+        this.setArtistTitle(`${this.artist} - ${artistTitle}`);
 
-      this.setDataSource(DATA_SOURCE.ISSET_FROM_SERVER);
+      this.dataSource = DATA_SOURCE.ISSET_FROM_SERVER;
       return true;
     }
     
@@ -111,12 +113,17 @@ class YouTube extends MediaPlayer
   pause() { this.embeddedPlayer.pauseVideo(); }
   stop()  { this.embeddedPlayer.stopVideo();  }
 
-  play(playerErrorCallback)
+  play(playerErrorCallback, volume = DEFAULT_VOLUME)
   {
     if (this.playable === true)
+    {
+      this.setVolume(volume);
       this.embeddedPlayer.playVideo();
+    }
     else
+    {
       playerErrorCallback(this, this.embeddedPlayer.getVideoUrl());
+    }
   }
 
   getVolumeCallback(volumeCallback)
@@ -126,7 +133,7 @@ class YouTube extends MediaPlayer
 
   getPositionCallback(positionCallback)
   {
-    positionCallback(this.embeddedPlayer.getCurrentTime() * 1000);
+    positionCallback(this.embeddedPlayer.getCurrentTime() * 1000, this.duration);
   }
 }
 
@@ -142,7 +149,7 @@ class SoundCloud extends MediaPlayer
   getUid() { return this.soundId;         }
   pause()  { this.embeddedPlayer.pause(); }
   
-  play(playerErrorCallback)
+  play(playerErrorCallback, volume = DEFAULT_VOLUME)
   {
     // playable is set to FALSE if the widget fires SC.Widget.Events.ERROR (track does not exist)
     if (this.playable === true)
@@ -150,9 +157,14 @@ class SoundCloud extends MediaPlayer
       this.embeddedPlayer.getCurrentSound(soundObject =>
       {
         if (soundObject.playable === true)
+        {
+          this.setVolume(volume);
           this.embeddedPlayer.play();
+        }
         else
+        {
           playerErrorCallback(this, soundObject.permalink_url);
+        }
       });
     }
     else
@@ -164,7 +176,7 @@ class SoundCloud extends MediaPlayer
   stop()
   {
     this.embeddedPlayer.pause();
-    this.embeddedPlayer.seekTo(0);
+    this.seekTo(0);
   }
   
   getVolumeCallback(volumeCallback)
@@ -174,6 +186,6 @@ class SoundCloud extends MediaPlayer
 
   getPositionCallback(positionCallback)
   {
-    this.embeddedPlayer.getPosition(positionMilliseconds => positionCallback(positionMilliseconds));
+    this.embeddedPlayer.getPosition(positionMilliseconds => positionCallback(positionMilliseconds, this.duration));
   }
 }

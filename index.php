@@ -34,5 +34,3 @@ else
 }
 
 get_footer(); 
-
-?>

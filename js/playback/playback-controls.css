@@ -58,7 +58,7 @@
   display: flex;
   align-items: center;  
   height: 64px;
-  margin-right: -5px;
+  margin-right: -3px;
   min-width: 0;
 }
 
@@ -106,21 +106,24 @@
 #playback-controls .prev-control,
 #playback-controls .play-pause-control,
 #playback-controls .next-control,
-#playback-controls .shuffle-control {
+#playback-controls .shuffle-control,
+#playback-controls .mute-control {
   display: inline-block;
 }
 
 #playback-controls .prev-control.state-disabled,
 #playback-controls .play-pause-control.state-disabled,
 #playback-controls .next-control.state-disabled,
-#playback-controls .shuffle-control.state-disabled {
+#playback-controls .shuffle-control.state-disabled,
+#playback-controls .mute-control.state-disabled {
   color: var(--playback-ctrl-disabled-color);
   pointer-events: none;
 }
 
 #playback-controls .prev-control.state-disabled:hover,
 #playback-controls .play-pause-control.state-disabled:hover,
-#playback-controls .next-control.state-disabled:hover {
+#playback-controls .next-control.state-disabled:hover,
+#playback-controls .mute-control.state-disabled:hover {
   color: var(--playback-ctrl-disabled-color);
   cursor: default;
 }
@@ -155,12 +158,14 @@
 }
 
 #playback-controls .prev-control,
-#playback-controls .next-control {
+#playback-controls .next-control,
+#playback-controls .mute-control {
   color: var(--playback-prev-next-color);
 }
 
 #playback-controls .prev-control:hover,
-#playback-controls .next-control:hover {
+#playback-controls .next-control:hover,
+#playback-controls .mute-control:hover {
   color: var(--playback-prev-next-hover-color);
   cursor: pointer;
 }
@@ -185,6 +190,13 @@
 
 #playback-controls .shuffle-control.state-enabled a:hover {
   color: var(--playback-text-hover-color);
+}
+
+#playback-controls .mute-control .material-icons {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  margin-left: 12px;
 }
 
 @media not all and (pointer: fine) {
@@ -215,12 +227,14 @@
   }
 
   #playback-controls .prev-control,
-  #playback-controls .next-control {
+  #playback-controls .next-control,
+  #playback-controls .mute-control {
     color: var(--playback-prev-next-color);
   }
 
   #playback-controls .prev-control:hover,
-  #playback-controls .next-control:hover {
+  #playback-controls .next-control:hover,
+  #playback-controls .mute-control:hover {
     color: var(--playback-prev-next-color);
   }
 
@@ -247,12 +261,16 @@
   animation-play-state: paused !important;
 }
 
-@media screen and (max-width: 900px) {
+@media screen and (max-width: 1000px) {
 
   #playback-controls {
     margin-right: -15px;
   }
   
+  #playback-controls .details-control {
+    margin-right: 5px;
+  }
+
   #playback-controls .timer-control {
     display: none !important;
   }
@@ -261,10 +279,10 @@
     display: none !important;
   }
 
-  #playback-controls .details-control {
-    margin-right: 5px;
+  #playback-controls .mute-control {
+    display: none !important;
   }
-  
+ 
 }
 
 @media screen and (max-width: 650px) {

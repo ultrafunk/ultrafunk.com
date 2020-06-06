@@ -133,6 +133,7 @@ function nav_playback_controls()
     <div class="play-pause-control state-disabled" title="Play / Pause (space)"><i class="material-icons">play_circle_filled</i></div>
     <div class="next-control state-disabled" title="Next track (arrow right)"><i class="material-icons">skip_next</i></div>
     <div class="shuffle-control state-disabled" title="<?php echo esc_attr(get_shuffle_menu_item_title()); ?>"><a href="<?php echo esc_url(get_shuffle_menu_item_url()); ?>"><i class="material-icons">shuffle</i></a></div>
+    <div class="mute-control state-disabled" title="Mute / Unmute (m)"><i class="material-icons">volume_up</i></div>
   </div>
   <?php
 }
@@ -186,7 +187,7 @@ function nav_pagination()
   {
     ?>
     <div class="sub-navigation-pagination">
-      <a href="" title="Go back" onclick="javascript:history.back();return false;"><i class="material-icons sub-pagination-prev" title="Go back">arrow_backward</i></a>
+      <a href="" title="Go back" onclick="javascript:history.back();return false;"><i class="material-icons sub-pagination-prev">arrow_backward</i></a>
       <i class="material-icons sub-pagination-next disbled">arrow_forward</i>
     </div>
     <?php
@@ -334,9 +335,9 @@ function footer_title()
 function entry_title()
 {
   if (is_singular())
-    the_title('<h2 class="entry-title">', '</h2>');
+    esc_html(the_title('<h2 class="entry-title">', '</h2>'));
   else
-    the_title(sprintf('<h2 class="entry-title"><a href="%s" rel="bookmark">', esc_url(get_permalink())), '</a></h2>');
+    esc_html(the_title(sprintf('<h2 class="entry-title"><a href="%s" rel="bookmark">', esc_url(get_permalink())), '</a></h2>'));
 }
 
 function meta_date_author()
