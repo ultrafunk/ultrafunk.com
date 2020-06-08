@@ -5,11 +5,11 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.7.0';
-import * as storage     from '../common/storage.js?ver=1.7.0';
-import * as utils       from '../common/utils.js?ver=1.7.0';
-import * as eventLogger from './eventlogger.js?ver=1.7.0';
-import * as playback    from './playback.js?ver=1.7.0';
+import * as debugLogger from '../common/debuglogger.js?ver=1.7.1';
+import * as storage     from '../common/storage.js?ver=1.7.1';
+import * as utils       from '../common/utils.js?ver=1.7.1';
+import * as eventLogger from './eventlogger.js?ver=1.7.1';
+import * as playback    from './playback.js?ver=1.7.1';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -440,6 +440,14 @@ function windowEventStorage(event)
     // Check what has changed (old settings vs. new settings) and update data / UI where needed
     if (settings.user.autoPlay !== oldSettings.user.autoPlay)
       updateAutoPlayData(settings.user.autoPlay);
+
+    // ToDo: This probably needs to update UI as well...
+    if (settings.user.masterVolume !== oldSettings.user.masterVolume)
+      playback.setConfig({ masterVolume: settings.user.masterVolume });
+
+    // ToDo: This probably needs to update UI as well...
+    if (settings.user.masterMute !== oldSettings.user.masterMute)
+      playback.setConfig({ masterMute: settings.user.masterMute });
   }
 }
 
@@ -524,6 +532,7 @@ document.addEventListener('keydown', (event) =>
 
       case 'm':
       case 'M':
+        event.preventDefault();
         playback.toggleMute();
         utils.snackbar.show(settings.user.masterMute ? 'Volume is muted (m to unmute)' : 'Volume is unmuted (m to mute)', 3);
         break;

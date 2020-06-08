@@ -1,16 +1,21 @@
 {
   "name": "ultrafunk.com",
-  "version": "1.7.0",
-  "description": "",
+  "version": "1.7.1",
+  "description": "WordPress theme",
+	"homepage": "https://github.com/ultrafunk/ultrafunk.com",
+  "repository": "git@github.com:ultrafunk/ultrafunk.com.git",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "minify": "scripts\\minify.bat"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": {
+    "name": "ultrafunk.com",
+    "url": "https://ultrafunk.com"
+  },
+  "license": "Apache-2.0",
   "devDependencies": {
-    "eslint": "^7.1.0"
+    "eslint": "^7.2.0"
   }
 }

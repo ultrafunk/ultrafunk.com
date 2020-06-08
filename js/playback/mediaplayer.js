@@ -7,12 +7,18 @@
 
 export {
 //Constants
+  DEFAULT,
   DATA_SOURCE,
 //Classes
   YouTube,
   SoundCloud,
 };
 
+
+const DEFAULT = {
+  VOLUME_MAX: 100,
+  VOLUME_MIN:   0,
+};
 
 // MediaPlayer constants
 const DATA_SOURCE = {
@@ -21,14 +27,12 @@ const DATA_SOURCE = {
   ISSET_FROM_SERVER:   3,
 };
 
-const DEFAULT_VOLUME = 100;
-
 // Used to split details string into Artist and Title strings
 const artistTitleRegEx = /\s{1,}[–·-]\s{1,}/i;
 
 
 // ************************************************************************************************
-// 
+// MediaPlayer base class
 // ************************************************************************************************
 
 class MediaPlayer
@@ -103,6 +107,11 @@ class MediaPlayer
   setVolume(volume) { this.embeddedPlayer.setVolume(volume); }
 }
 
+
+// ************************************************************************************************
+// YouTube child class
+// ************************************************************************************************
+
 class YouTube extends MediaPlayer
 {
   constructor(postId, iframeId, embeddedPlayer)
@@ -113,22 +122,25 @@ class YouTube extends MediaPlayer
   pause() { this.embeddedPlayer.pauseVideo(); }
   stop()  { this.embeddedPlayer.stopVideo();  }
 
-  play(playerErrorCallback, volume = DEFAULT_VOLUME)
+  play(playerErrorCallback)
   {
     if (this.playable === true)
-    {
-      this.setVolume(volume);
       this.embeddedPlayer.playVideo();
-    }
     else
-    {
       playerErrorCallback(this, this.embeddedPlayer.getVideoUrl());
-    }
   }
 
   getVolumeCallback(volumeCallback)
   {
     volumeCallback(this.embeddedPlayer.getVolume());
+  }
+
+  mute(setMute)
+  {
+    if (setMute)
+      this.embeddedPlayer.mute();
+    else
+      this.embeddedPlayer.unMute();
   }
 
   getPositionCallback(positionCallback)
@@ -137,19 +149,25 @@ class YouTube extends MediaPlayer
   }
 }
 
+
+// ************************************************************************************************
+// SoundCloud child class
+// ************************************************************************************************
+
 class SoundCloud extends MediaPlayer
 {
   constructor(postId, iframeId, embeddedPlayer, soundId)
   {
     super(postId, iframeId, embeddedPlayer);
     this.soundId = soundId;
+    this.volume  = DEFAULT.VOLUME_MAX;
   }
 
-  // Override parent class since SoundCloud provides its own UID
+  // Override parent getUid() because SoundCloud provides its own UID
   getUid() { return this.soundId;         }
   pause()  { this.embeddedPlayer.pause(); }
   
-  play(playerErrorCallback, volume = DEFAULT_VOLUME)
+  play(playerErrorCallback)
   {
     // playable is set to FALSE if the widget fires SC.Widget.Events.ERROR (track does not exist)
     if (this.playable === true)
@@ -157,14 +175,9 @@ class SoundCloud extends MediaPlayer
       this.embeddedPlayer.getCurrentSound(soundObject =>
       {
         if (soundObject.playable === true)
-        {
-          this.setVolume(volume);
           this.embeddedPlayer.play();
-        }
         else
-        {
           playerErrorCallback(this, soundObject.permalink_url);
-        }
       });
     }
     else
@@ -182,6 +195,23 @@ class SoundCloud extends MediaPlayer
   getVolumeCallback(volumeCallback)
   {
     this.embeddedPlayer.getVolume(volume => volumeCallback(volume));
+  }
+
+  // Override parent setVolume() because we use it for mute() as well 
+  setVolume(volume)
+  {
+    if (volume !== 0)
+      this.volume = volume;
+
+    this.embeddedPlayer.setVolume(volume);
+  }
+
+  mute(setMute)
+  {
+    if (setMute)
+      this.setVolume(0);
+    else
+      this.setVolume(this.volume);
   }
 
   getPositionCallback(positionCallback)

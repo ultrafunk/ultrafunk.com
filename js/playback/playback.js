@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger      from '../common/debuglogger.js?ver=1.7.0';
-import * as mediaPlayer      from './mediaplayer.js?ver=1.7.0';
-import * as controls         from './playback-controls.js?ver=1.7.0';
-import * as eventLogger      from './eventlogger.js?ver=1.7.0';
+import * as debugLogger      from '../common/debuglogger.js?ver=1.7.1';
+import * as mediaPlayer      from './mediaplayer.js?ver=1.7.1';
+import * as controls         from './playback-controls.js?ver=1.7.1';
+import * as eventLogger      from './eventlogger.js?ver=1.7.1';
 
 
 export {
@@ -42,7 +42,7 @@ const moduleConfig = {
   playbackControlsId:      'playback-controls',
   autoPlay:                true,
   autoScroll:              true,
-  masterVolume:            mediaPlayer.DEFAULT_VOLUME,
+  masterVolume:            mediaPlayer.DEFAULT.VOLUME_MAX,
   masterMute:              false,
   updateTimerInterval:     200,  // Milliseconds between each callback call
   timeRemainingWarning:    true, // Flash Play / Pause button
@@ -85,7 +85,7 @@ function setConfig(setConfig = null)
   if (setConfig !== null)
   {
     Object.entries(setConfig).forEach(([key, value]) => moduleConfig[key] = value);
-    debug.log(moduleConfig);
+  //debug.log(moduleConfig);
   }
 }
 
@@ -218,7 +218,7 @@ function togglePlayPause()
   else
   {
     controls.updatePlayState(players.getStatus());
-    players.currentPlayer.play(onEmbeddedPlayerErrorCallback, getVolume());
+    players.currentPlayer.play(onEmbeddedPlayerErrorCallback);
   }
 }
 
@@ -281,17 +281,10 @@ function nextClick(event)
 
 function toggleMute()
 {
-  debug.log(`toggleMute() - masterMute: ${moduleConfig.masterMute} - masterVolume: ${moduleConfig.masterVolume}`);
-
   moduleConfig.masterMute = (moduleConfig.masterMute === true) ? false : true;
-  players.currentPlayer.setVolume(getVolume());
+  players.currentPlayer.mute(moduleConfig.masterMute);
   controls.updateMuteState(moduleConfig.masterMute);
   callEventHandler(EVENT.MEDIA_MUTED, { masterMute: moduleConfig.masterMute });
-}
-
-function getVolume()
-{
-  return ((moduleConfig.masterMute === true) ? 0 : moduleConfig.masterVolume);
 }
 
 function jumpToTrack(track, playMedia = true)
@@ -385,22 +378,22 @@ const players = (() =>
   let playerIndex    = 0;
 
   return {
-    getMediaPlayers()               { return mediaPlayers;                        },
-    getPlayerIndex()                { return playerIndex;                         },
-    setPlayerIndex(nextPlayerIndex) { playerIndex = nextPlayerIndex;              },
-    get currentPlayer()             { return mediaPlayers[playerIndex];           },
-    getNumTracks()                  { return mediaPlayers.length;                 },
-    getCurrentTrack()               { return playerIndex + 1;                     },
-    getPlayerFromUid(uId)           { return mediaPlayers[getIndexFromUid(uId)];  },
-    getTrackFromUid(uId)            { return (getIndexFromUid(uId) + 1);          },
-    getIndexFromUid,
+    getMediaPlayers()               { return mediaPlayers;                    },
+    getPlayerIndex()                { return playerIndex;                     },
+    setPlayerIndex(nextPlayerIndex) { playerIndex = nextPlayerIndex;          },
+    get currentPlayer()             { return mediaPlayers[playerIndex];       },
+    getNumTracks()                  { return mediaPlayers.length;             },
+    getCurrentTrack()               { return playerIndex + 1;                 },
+    playerFromUid(uId)              { return mediaPlayers[indexFromUid(uId)]; },
+    trackFromUid(uId)               { return (indexFromUid(uId) + 1);         },
+    indexFromUid,
     getStatus,
     prevTrack,
     nextTrack,
     jumpToTrack,
   };
   
-  function getIndexFromUid(uId)
+  function indexFromUid(uId)
   {
     return mediaPlayers.findIndex(player => player.getUid() === uId);
   }
@@ -463,7 +456,7 @@ const players = (() =>
     callEventHandler(EVENT.MEDIA_SHOW, { postId: players.currentPlayer.getPostId(), iframeId: players.currentPlayer.getIframeId() });
     
     if (playMedia)
-      players.currentPlayer.play(onEmbeddedPlayerErrorCallback, getVolume());
+      players.currentPlayer.play(onEmbeddedPlayerErrorCallback);
   }
 })();
 
@@ -494,7 +487,7 @@ function getPlayerErrorVars(player, mediaUrl)
   const title  = player.getTitle()  || 'N/A';
 
   return {
-    currentTrack: players.getTrackFromUid(player.getUid()),
+    currentTrack: players.trackFromUid(player.getUid()),
     numTracks:    players.getNumTracks(),
     postId:       player.getPostId(),
     mediaTitle:   `${artist} - ${title}`,
@@ -546,7 +539,7 @@ const playbackTimer = (() =>
     players.currentPlayer.getPositionCallback(updateCallback);
   }
   
-  function updateCallback(posMilliseconds, duration)
+  function updateCallback(posMilliseconds, duration = 0)
   {
     controls.setTimer(Math.round(posMilliseconds / 1000), duration);
     updateTimeRemainingWarning(posMilliseconds, duration);
@@ -627,7 +620,13 @@ function onYouTubePlayerStateChange(event)
   switch (event.data)
   {
     case YT.PlayerState.BUFFERING: // eslint-disable-line no-undef
-      debug.log('onYouTubePlayerStateChange: BUFFERING');
+      {
+        debug.log('onYouTubePlayerStateChange: BUFFERING');
+
+        const player = players.playerFromUid(event.target.f.id);
+        player.setVolume(moduleConfig.masterVolume);
+        player.mute(moduleConfig.masterMute);
+      }
       break;
 
     case YT.PlayerState.CUED: // eslint-disable-line no-undef
@@ -639,8 +638,7 @@ function onYouTubePlayerStateChange(event)
         debug.log('onYouTubePlayerStateChange: PLAYING');
 
         // Call order is important on play events for state handling: Always sync first!
-        syncPlayersState(players.getIndexFromUid(event.target.f.id), SYNCSTATE.PLAY);
-        players.currentPlayer.setVolume(getVolume());
+        syncPlayersState(players.indexFromUid(event.target.f.id), SYNCSTATE.PLAY);
         players.currentPlayer.setDuration(Math.round(event.target.getDuration()));
         playbackTimer.start();
 
@@ -651,7 +649,7 @@ function onYouTubePlayerStateChange(event)
 
     case YT.PlayerState.PAUSED: // eslint-disable-line no-undef
       debug.log('onYouTubePlayerStateChange: PAUSED');
-      syncPlayersState(players.getIndexFromUid(event.target.f.id), SYNCSTATE.PAUSE);
+      syncPlayersState(players.indexFromUid(event.target.f.id), SYNCSTATE.PAUSE);
       playbackTimer.stop(false);
       break;
 
@@ -677,7 +675,7 @@ function onYouTubePlayerStateChange(event)
 function onYouTubePlayerError(event)
 {
   debug.log('onYouTubePlayerError: ' + event.data);
-  const player = players.getPlayerFromUid(event.target.f.id);
+  const player = players.playerFromUid(event.target.f.id);
 
   player.setPlayable(false);
   onEmbeddedPlayerErrorCallback(player, event.target.getVideoUrl());
@@ -728,10 +726,15 @@ function onSoundCloudPlayerEventPlay(event)
 {
   debug.log('onSoundCloudPlayerEvent: PLAY');
   eventLog.add(eventLogger.SOURCE.SOUNDCLOUD, Date.now(), eventLogger.EVENT.STATE_PLAYING, event.soundId);
-  
+
   // Call order is important on play events for state handling: Always sync first!
-  syncPlayersState(players.getIndexFromUid(event.soundId), SYNCSTATE.PLAY);
-  players.currentPlayer.setVolume(getVolume());
+  syncPlayersState(players.indexFromUid(event.soundId), SYNCSTATE.PLAY);
+  
+  if (moduleConfig.masterMute === false)
+    players.currentPlayer.setVolume(moduleConfig.masterVolume);
+  
+  if (moduleConfig.masterMute === true)
+    players.currentPlayer.mute(moduleConfig.masterMute);
 
   players.currentPlayer.getEmbeddedPlayer().getDuration(durationMilliseconds =>
   {
@@ -759,7 +762,7 @@ function onSoundCloudPlayerEventPause(event)
   }
   else if (eventLog.scWidgetPlayBlocked(event.soundId, 30000))
   {
-    soundCloudPlaybackBlocked(EVENT.PLAYBACK_BLOCKED, { currentTrack: players.getTrackFromUid(event.soundId), numTracks: players.getNumTracks() });
+    soundCloudPlaybackBlocked(EVENT.PLAYBACK_BLOCKED, { currentTrack: players.trackFromUid(event.soundId), numTracks: players.getNumTracks() });
   }
   else
   {
@@ -770,7 +773,7 @@ function onSoundCloudPlayerEventPause(event)
       {
         if (positionMilliseconds > 0)
         {
-          syncPlayersState(players.getIndexFromUid(event.soundId), SYNCSTATE.PAUSE);
+          syncPlayersState(players.indexFromUid(event.soundId), SYNCSTATE.PAUSE);
           playbackTimer.stop(false);
         }
       });    
@@ -778,10 +781,9 @@ function onSoundCloudPlayerEventPause(event)
   }
 }
 
-function onSoundCloudPlayerEventFinish(event)
+function onSoundCloudPlayerEventFinish()
 {
   debug.log('onSoundCloudPlayerEvent: FINISH / ENDED');
-  eventLog.add(eventLogger.SOURCE.SOUNDCLOUD, Date.now(), eventLogger.EVENT.STATE_ENDED, event.soundId);
   playbackTimer.stop(true);
   nextClick(null);
 }
@@ -790,8 +792,8 @@ function onSoundCloudPlayerEventError()
 {
   this.getCurrentSound(soundObject =>
   {
-    const player = players.getPlayerFromUid(soundObject.id);
-    debug.log(`onSoundCloudPlayerEvent: ERROR for track: ${players.getTrackFromUid(soundObject.id)}. ${player.getArtist()} - ${player.getTitle()} - [${player.getUid()} / ${player.getIframeId()}]`);
+    const player = players.playerFromUid(soundObject.id);
+    debug.log(`onSoundCloudPlayerEvent: ERROR for track: ${players.trackFromUid(soundObject.id)}. ${player.getArtist()} - ${player.getTitle()} - [${player.getUid()} / ${player.getIframeId()}]`);
     player.setPlayable(false);
   });
 }
