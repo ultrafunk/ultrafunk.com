@@ -250,11 +250,11 @@
 
 .playing-animate::before,
 .playing-animate.no-autoplay::before {
-  animation: track-icon-pulse 1.5s ease-in-out infinite;
+  animation: track-icon-pulse 2s ease-in-out infinite;
 }
 
 @keyframes track-icon-pulse {
-  50% { opacity: 0.20; }
+  50% { opacity: 0.10; }
 }
 
 .playing-paused::before {

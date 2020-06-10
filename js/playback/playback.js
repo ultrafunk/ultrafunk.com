@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger      from '../common/debuglogger.js?ver=1.7.1';
-import * as mediaPlayer      from './mediaplayer.js?ver=1.7.1';
-import * as controls         from './playback-controls.js?ver=1.7.1';
-import * as eventLogger      from './eventlogger.js?ver=1.7.1';
+import * as debugLogger      from '../common/debuglogger.js?ver=1.7.2';
+import * as mediaPlayer      from './mediaplayer.js?ver=1.7.2';
+import * as controls         from './playback-controls.js?ver=1.7.2';
+import * as eventLogger      from './eventlogger.js?ver=1.7.2';
 
 
 export {
@@ -17,6 +17,7 @@ export {
 // Functions
   init,
   setConfig,
+  setSettings,
   setEventHandlers,
   togglePlayPause,
   prevClick,
@@ -40,13 +41,15 @@ const moduleConfig = {
   entriesSelector:         'article',
   entryTitleData:          'data-entry-title',
   playbackControlsId:      'playback-controls',
-  autoPlay:                true,
-  autoScroll:              true,
-  masterVolume:            mediaPlayer.DEFAULT.VOLUME_MAX,
-  masterMute:              false,
-  updateTimerInterval:     200,  // Milliseconds between each callback call
-  timeRemainingWarning:    true, // Flash Play / Pause button
-  timeRemainingSeconds:    30,   // Seconds left when warning is shown
+  updateTimerInterval:     200,  // Milliseconds between each timer event
+};
+
+const settings = {
+  autoPlay:             true,
+  masterVolume:         mediaPlayer.DEFAULT.VOLUME_MAX,
+  masterMute:           false,
+  timeRemainingWarning: true, // Flash Play / Pause button
+  timeRemainingSeconds: 30,   // Seconds left when warning is shown
 };
 
 // Events for event handlers and / or callback
@@ -69,7 +72,7 @@ const EVENT = {
 
 
 // ************************************************************************************************
-// Init, config and event handlers
+// Init, config, settings and event handlers
 // ************************************************************************************************
 
 function init(callback = null)
@@ -80,23 +83,15 @@ function init(callback = null)
   initSoundCloudAPI();
 }
 
-function setConfig(setConfig = null)
+function setObjectProps(source = null, dest = null)
 {
-  if (setConfig !== null)
-  {
-    Object.entries(setConfig).forEach(([key, value]) => moduleConfig[key] = value);
-  //debug.log(moduleConfig);
-  }
+  if ((source !== null) && (dest !== null))
+    Object.entries(source).forEach(([key, value]) => dest[key] = value);
 }
 
-function setEventHandlers(setEventHandlers = null)
-{
-  if (setEventHandlers !== null)
-  {
-    Object.entries(setEventHandlers).forEach(([key, value]) => eventHandlers[key] = value);
-  //debug.log(eventHandlers);
-  }
-}
+function setConfig(configProps = null)          { setObjectProps(configProps, moduleConfig);    }
+function setSettings(settingsProps = null)      { setObjectProps(settingsProps, settings);      }
+function setEventHandlers(handlersProps = null) { setObjectProps(handlersProps, eventHandlers); }
 
 function callEventHandler(playbackEvent, eventData = null)
 {
@@ -171,7 +166,7 @@ function setPropsForSamePostId()
 {
   const mediaPlayers = players.getMediaPlayers();
   const samePostIds  = {};
-  
+
   // Create list of duplicate postIds
   mediaPlayers.forEach((player, index) =>
   {
@@ -193,7 +188,7 @@ function updateMediaPlayersReady()
 
   if (playersReadyCount >= players.getNumTracks())
   {
-    controls.ready(prevClick, togglePlayPause, nextClick, toggleMute, players.getNumTracks(), moduleConfig.masterMute);
+    controls.ready(prevClick, togglePlayPause, nextClick, toggleMute, players.getNumTracks(), settings.masterMute);
     callEventHandler(EVENT.READY);
     callEventHandler(EVENT.RESUME_AUTOPLAY);
   }
@@ -258,7 +253,7 @@ function nextClick(event)
     players.currentPlayer.stop();
     
     //Called from UI event handler for button or keyboard if (event !== null)
-    if ((event !== null) || (moduleConfig.autoPlay))
+    if ((event !== null) || (settings.autoPlay))
     {
       if (players.nextTrack(controls.isPlaying()))
         controls.updateNextState(players.getStatus());
@@ -272,7 +267,7 @@ function nextClick(event)
   {
     controls.updatePauseState();
     
-    if (moduleConfig.autoPlay)
+    if (settings.autoPlay)
       callEventHandler(EVENT.CONTINUE_AUTOPLAY);
     else
       players.currentPlayer.stop();
@@ -281,10 +276,10 @@ function nextClick(event)
 
 function toggleMute()
 {
-  moduleConfig.masterMute = (moduleConfig.masterMute === true) ? false : true;
-  players.currentPlayer.mute(moduleConfig.masterMute);
-  controls.updateMuteState(moduleConfig.masterMute);
-  callEventHandler(EVENT.MEDIA_MUTED, { masterMute: moduleConfig.masterMute });
+  settings.masterMute = (settings.masterMute === true) ? false : true;
+  players.currentPlayer.mute(settings.masterMute);
+  controls.updateMuteState(settings.masterMute);
+  callEventHandler(EVENT.MEDIA_MUTED, { masterMute: settings.masterMute });
 }
 
 function jumpToTrack(track, playMedia = true)
@@ -554,7 +549,7 @@ const playbackTimer = (() =>
   
   function updateTimeRemainingWarning(posMilliseconds, duration)
   {
-    if ((moduleConfig.autoPlay === false) && moduleConfig.timeRemainingWarning)
+    if ((settings.autoPlay === false) && settings.timeRemainingWarning)
     {
       if ((posMilliseconds > 0) && (duration > 0))
       {
@@ -565,7 +560,7 @@ const playbackTimer = (() =>
           const timeRemainingSeconds = Math.round(duration - (posMilliseconds / 1000));
           lastPosMilliseconds        = posMilliseconds;
           
-          if (timeRemainingSeconds <= moduleConfig.timeRemainingSeconds)
+          if (timeRemainingSeconds <= settings.timeRemainingSeconds)
           {
             controls.blinkPlayPause();
             callEventHandler(EVENT.MEDIA_TIME_REMAINING, { timeRemainingSeconds: timeRemainingSeconds });
@@ -624,8 +619,8 @@ function onYouTubePlayerStateChange(event)
         debug.log('onYouTubePlayerStateChange: BUFFERING');
 
         const player = players.playerFromUid(event.target.f.id);
-        player.setVolume(moduleConfig.masterVolume);
-        player.mute(moduleConfig.masterMute);
+        player.setVolume(settings.masterVolume);
+        player.mute(settings.masterMute);
       }
       break;
 
@@ -730,11 +725,11 @@ function onSoundCloudPlayerEventPlay(event)
   // Call order is important on play events for state handling: Always sync first!
   syncPlayersState(players.indexFromUid(event.soundId), SYNCSTATE.PLAY);
   
-  if (moduleConfig.masterMute === false)
-    players.currentPlayer.setVolume(moduleConfig.masterVolume);
+  if (settings.masterMute === false)
+    players.currentPlayer.setVolume(settings.masterVolume);
   
-  if (moduleConfig.masterMute === true)
-    players.currentPlayer.mute(moduleConfig.masterMute);
+  if (settings.masterMute === true)
+    players.currentPlayer.mute(settings.masterMute);
 
   players.currentPlayer.getEmbeddedPlayer().getDuration(durationMilliseconds =>
   {

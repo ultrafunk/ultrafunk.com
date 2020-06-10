@@ -5,11 +5,11 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.7.1';
-import * as storage     from '../common/storage.js?ver=1.7.1';
-import * as utils       from '../common/utils.js?ver=1.7.1';
-import * as eventLogger from './eventlogger.js?ver=1.7.1';
-import * as playback    from './playback.js?ver=1.7.1';
+import * as debugLogger from '../common/debuglogger.js?ver=1.7.2';
+import * as storage     from '../common/storage.js?ver=1.7.2';
+import * as utils       from '../common/utils.js?ver=1.7.2';
+import * as eventLogger from './eventlogger.js?ver=1.7.2';
+import * as playback    from './playback.js?ver=1.7.2';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -81,6 +81,9 @@ document.addEventListener('DOMContentLoaded', () =>
     playback.setConfig({
       youTubeIframeIdRegEx:    moduleConfig.youTubeIframeIdRegEx,
       soundCloudIframeIdRegEx: moduleConfig.soundCloudIframeIdRegEx,
+    });
+
+    playback.setSettings({
       autoPlay:                settings.user.autoPlay,
       masterVolume:            settings.user.masterVolume,
       masterMute:              settings.user.masterMute,

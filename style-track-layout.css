@@ -5,7 +5,7 @@
 
 .track-layout-2-column,
 .track-layout-3-column {
-  --site-max-width: 1800px;
+  --site-max-width: 2420px;
   --site-content-top-margin: 30px;
   --intro-banner-max-width: 1200px;
   --footer-max-width: 1200px;
@@ -118,7 +118,7 @@
   max-width: var(--footer-max-width);
 }
 
-@media screen and (max-width: 1945px) {
+@media screen and (max-width: 2525px) {
 
   .track-layout-2-column #site-content,
   .track-layout-3-column #site-content {
@@ -135,6 +135,14 @@
   .track-layout-3-column #site-footer {
     padding-left: 65px;
     padding-right: 65px;
+  }
+
+}
+
+@media screen and (min-width: 2100px) {
+
+  .track-layout-3-column #track-layout {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
 }
