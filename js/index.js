@@ -5,9 +5,9 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.7.2';
-import * as storage     from './common/storage.js?ver=1.7.2';
-import * as utils       from './common/utils.js?ver=1.7.2';
+import * as debugLogger from './common/debuglogger.js?ver=1.7.3';
+import * as storage     from './common/storage.js?ver=1.7.3';
+import * as utils       from './common/utils.js?ver=1.7.3';
 
 
 const debug  = debugLogger.getInstance('index');
@@ -289,9 +289,9 @@ const trackLayout = (() =>
   };
 
   const layouts = {
-    list:        { id: 'list',                            text: 'list',       class: 'track-layout-list'     },
-    twoColumn:   { id: '2-column',                        text: '2 column',   class: 'track-layout-2-column' },
-    threeColumn: { id: moduleConfig.trackLayoutDefaultId, text: '3/4 column', class: 'track-layout-3-column' },
+    list:        { id: 'list',                            text: 'list',         class: 'track-layout-list'     },
+    twoColumn:   { id: '2-column',                        text: '2 column',     class: 'track-layout-2-column' },
+    threeColumn: { id: moduleConfig.trackLayoutDefaultId, text: '3 / 4 column', class: 'track-layout-3-column' },
   };
 
   return {

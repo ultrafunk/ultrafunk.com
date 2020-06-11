@@ -5,11 +5,11 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.7.2';
-import * as storage     from '../common/storage.js?ver=1.7.2';
-import * as utils       from '../common/utils.js?ver=1.7.2';
-import * as eventLogger from './eventlogger.js?ver=1.7.2';
-import * as playback    from './playback.js?ver=1.7.2';
+import * as debugLogger from '../common/debuglogger.js?ver=1.7.3';
+import * as storage     from '../common/storage.js?ver=1.7.3';
+import * as utils       from '../common/utils.js?ver=1.7.3';
+import * as eventLogger from './eventlogger.js?ver=1.7.3';
+import * as playback    from './playback.js?ver=1.7.3';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -446,11 +446,11 @@ function windowEventStorage(event)
 
     // ToDo: This probably needs to update UI as well...
     if (settings.user.masterVolume !== oldSettings.user.masterVolume)
-      playback.setConfig({ masterVolume: settings.user.masterVolume });
+      playback.setSettings({ masterVolume: settings.user.masterVolume });
 
     // ToDo: This probably needs to update UI as well...
     if (settings.user.masterMute !== oldSettings.user.masterMute)
-      playback.setConfig({ masterMute: settings.user.masterMute });
+      playback.setSettings({ masterMute: settings.user.masterMute });
   }
 }
 
@@ -672,7 +672,7 @@ function autoPlayToggle(event)
 function updateAutoPlayData(newAutoPlay)
 {
   utils.snackbar.show(newAutoPlay ? 'Autoplay enabled (Shift + F12 to disable)' : 'Autoplay disabled (Shift + F12 to enable)', 5);
-  playback.setConfig({ autoPlay: newAutoPlay });
+  playback.setSettings({ autoPlay: newAutoPlay });
   updateAutoPlayDOM(newAutoPlay);
 }
 
