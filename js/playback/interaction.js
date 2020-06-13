@@ -5,11 +5,11 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.7.3';
-import * as storage     from '../common/storage.js?ver=1.7.3';
-import * as utils       from '../common/utils.js?ver=1.7.3';
-import * as eventLogger from './eventlogger.js?ver=1.7.3';
-import * as playback    from './playback.js?ver=1.7.3';
+import * as debugLogger from '../common/debuglogger.js?ver=1.7.4';
+import * as storage     from '../common/storage.js?ver=1.7.4';
+import * as utils       from '../common/utils.js?ver=1.7.4';
+import * as eventLogger from './eventlogger.js?ver=1.7.4';
+import * as playback    from './playback.js?ver=1.7.4';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -311,8 +311,7 @@ const playbackEvents = (() =>
   
     if (isPremiumTrack(eventData.postId))
     {
-      // ToDo: Update to follow playback.EVENT.AUTOPLAY_BLOCKED if ever needed again...
-      utils.snackbar.show('YouTube Premium track, skipping to next... <a href="/channel/premium/"><b>HELP</b></a>', 10);
+      utils.snackbar.show('YouTube Premium track, skipping... <span class="action-text">Help</span>', 10, () => { window.location.href = '/channel/premium/'; });
       playbackEventErrorTryNext(eventData, 5);
     }
     else

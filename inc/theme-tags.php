@@ -364,7 +364,7 @@ function intro_banner()
   else if (is_category('premium') && have_posts() && !is_paged())
   {
     $property = 'showPremiumIntro';
-    $post     = get_post((true === WP_DEBUG) ? 959 : 1500);
+    $post     = get_post((true === WP_DEBUG) ? 1500 : 1500);
     $content  = apply_filters('the_content', wp_kses_post($post->post_content)); // phpcs:ignore WPThemeReview.CoreFunctionality.PrefixAllGlobals.NonPrefixedHooknameFound
     $display  = true;
   }
