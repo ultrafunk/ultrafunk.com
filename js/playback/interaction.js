@@ -5,11 +5,11 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.7.4';
-import * as storage     from '../common/storage.js?ver=1.7.4';
-import * as utils       from '../common/utils.js?ver=1.7.4';
-import * as eventLogger from './eventlogger.js?ver=1.7.4';
-import * as playback    from './playback.js?ver=1.7.4';
+import * as debugLogger from '../common/debuglogger.js?ver=1.7.5';
+import * as storage     from '../common/storage.js?ver=1.7.5';
+import * as utils       from '../common/utils.js?ver=1.7.5';
+import * as eventLogger from './eventlogger.js?ver=1.7.5';
+import * as playback    from './playback.js?ver=1.7.5';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -31,7 +31,8 @@ const moduleConfig = {
 
 const defaultSettings = {
   // Incremental version to check for new properties
-  version: 7,
+  version:           8,
+  storageChangeSync: false,
   // User (public) settings
   user: {
     autoPlay:              true,
@@ -430,26 +431,29 @@ function windowEventFocus()
 
 function windowEventStorage(event)
 {
-  const oldSettings = storage.parseEventData(event, storage.KEY.UF_PLAYBACK_SETTINGS);
-
-  if (oldSettings !== null)
+  if (settings.storageChangeSync)
   {
-    debug.log(`windowEventStorage(): ${event.key}`);
+    const oldSettings = storage.parseEventData(event, storage.KEY.UF_PLAYBACK_SETTINGS);
 
-    // Stored settings have changed, read updated settings from storage
-    readSettings();
-
-    // Check what has changed (old settings vs. new settings) and update data / UI where needed
-    if (settings.user.autoPlay !== oldSettings.user.autoPlay)
-      updateAutoPlayData(settings.user.autoPlay);
-
-    // ToDo: This probably needs to update UI as well...
-    if (settings.user.masterVolume !== oldSettings.user.masterVolume)
-      playback.setSettings({ masterVolume: settings.user.masterVolume });
-
-    // ToDo: This probably needs to update UI as well...
-    if (settings.user.masterMute !== oldSettings.user.masterMute)
-      playback.setSettings({ masterMute: settings.user.masterMute });
+    if (oldSettings !== null)
+    {
+      debug.log(`windowEventStorage(): ${event.key}`);
+  
+      // Stored settings have changed, read updated settings from storage
+      readSettings();
+  
+      // Check what has changed (old settings vs. new settings) and update data / UI where needed
+      if (settings.user.autoPlay !== oldSettings.user.autoPlay)
+        updateAutoPlayData(settings.user.autoPlay);
+  
+      // ToDo: This probably needs to update UI as well...
+      if (settings.user.masterVolume !== oldSettings.user.masterVolume)
+        playback.setSettings({ masterVolume: settings.user.masterVolume });
+  
+      // ToDo: This probably needs to update UI as well...
+      if (settings.user.masterMute !== oldSettings.user.masterMute)
+        playback.setSettings({ masterMute: settings.user.masterMute });
+    }
   }
 }
 

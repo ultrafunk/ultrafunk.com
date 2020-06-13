@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.7.4';
+import * as debugLogger from '../common/debuglogger.js?ver=1.7.5';
 
 
 export {
@@ -75,8 +75,6 @@ function getCssPropValue(prop)
 // Match against live CSS media queries defined in style.css
 function matchesMedia(matchMedia)
 {
-  let matches = false;
-
   switch (matchMedia)
   {
     case MATCH.SITE_MIN_WIDTH_WIDE:
@@ -89,7 +87,7 @@ function matchesMedia(matchMedia)
       return siteMaxWidthMobile.matches;
   }
 
-  return matches;
+  return false;
 }
 
 function getObjectFromKeyValue(object, key, value, defaultObject)

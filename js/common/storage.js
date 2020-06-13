@@ -6,7 +6,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.7.4';
+import * as debugLogger from '../common/debuglogger.js?ver=1.7.5';
 
 
 export {
@@ -135,8 +135,6 @@ function deleteOrphanedKeys(oldObject, newObject)
 
 function removeOrphanedObjectProps(oldObject, newObject, keyName)
 {
-  debug.log(`removeOrphanedObjectProps() for ${keyName}`);
-
   deleteOrphanedKeys(oldObject,      newObject);
   deleteOrphanedKeys(oldObject.user, newObject.user);
   deleteOrphanedKeys(oldObject.priv, newObject.priv);

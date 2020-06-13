@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger      from '../common/debuglogger.js?ver=1.7.4';
-import * as mediaPlayer      from './mediaplayer.js?ver=1.7.4';
-import * as controls         from './playback-controls.js?ver=1.7.4';
-import * as eventLogger      from './eventlogger.js?ver=1.7.4';
+import * as debugLogger      from '../common/debuglogger.js?ver=1.7.5';
+import * as mediaPlayer      from './mediaplayer.js?ver=1.7.5';
+import * as controls         from './playback-controls.js?ver=1.7.5';
+import * as eventLogger      from './eventlogger.js?ver=1.7.5';
 
 
 export {
@@ -497,8 +497,8 @@ function getPlayerErrorVars(player, mediaUrl)
 
 const playbackTimer = (() =>
 {
-  let timerId             = -1;
-  let lastPosMilliseconds = 0;
+  let timerId        = -1;
+  let lastPosSeconds = 0;
 
   return {
     start,
@@ -534,41 +534,38 @@ const playbackTimer = (() =>
     players.currentPlayer.getPositionCallback(updateCallback);
   }
   
-  function updateCallback(posMilliseconds, duration = 0)
+  function updateCallback(posMilliseconds, durationSeconds = 0)
   {
-    controls.setTimer(Math.round(posMilliseconds / 1000), duration);
-    updateTimeRemainingWarning(posMilliseconds, duration);
-    callEventHandler(EVENT.MEDIA_TIMER, { currentTrack: players.getCurrentTrack(), position: posMilliseconds, duration: duration });
+    const positionSeconds = Math.round(posMilliseconds / 1000);
+
+    controls.setTimer(positionSeconds, durationSeconds, settings.autoPlay);
+    updateTimeRemainingWarning(positionSeconds, durationSeconds);
+    callEventHandler(EVENT.MEDIA_TIMER, { currentTrack: players.getCurrentTrack(), position: posMilliseconds, duration: durationSeconds });
   }
   
   function resetTimeRemainingWarning()
   {
-    lastPosMilliseconds = 0;
+    lastPosSeconds = 0;
     controls.stopBlinkPlayPause();
   }
   
-  function updateTimeRemainingWarning(posMilliseconds, duration)
+  function updateTimeRemainingWarning(positionSeconds, durationSeconds)
   {
     if ((settings.autoPlay === false) && settings.timeRemainingWarning)
     {
-      if ((posMilliseconds > 0) && (duration > 0))
+      if ((positionSeconds > 0) && (durationSeconds > 0) && (lastPosSeconds !== positionSeconds))
       {
-        const deltaTime = posMilliseconds - lastPosMilliseconds;
-        
-        if ((deltaTime > 900) || (deltaTime < 0))
+        const timeRemainingSeconds = durationSeconds - positionSeconds;
+        lastPosSeconds             = positionSeconds;
+
+        if (timeRemainingSeconds <= settings.timeRemainingSeconds)
         {
-          const timeRemainingSeconds = Math.round(duration - (posMilliseconds / 1000));
-          lastPosMilliseconds        = posMilliseconds;
-          
-          if (timeRemainingSeconds <= settings.timeRemainingSeconds)
-          {
-            controls.blinkPlayPause();
-            callEventHandler(EVENT.MEDIA_TIME_REMAINING, { timeRemainingSeconds: timeRemainingSeconds });
-          }
-          else
-          {
-            controls.stopBlinkPlayPause();
-          }
+          controls.blinkPlayPause();
+          callEventHandler(EVENT.MEDIA_TIME_REMAINING, { timeRemainingSeconds: timeRemainingSeconds });
+        }
+        else
+        {
+          controls.stopBlinkPlayPause();
         }
       }
     }

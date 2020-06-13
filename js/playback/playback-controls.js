@@ -30,7 +30,7 @@ const STATE = {
 
 const controls = {
   details:    { element: null, state: STATE.DISABLED, artistElement:   null, titleElement:    null },
-  timer:      { element: null, state: STATE.DISABLED, positionElement: null, durationElement: null, positionSecs: -1, durationSecs: -1 },
+  timer:      { element: null, state: STATE.DISABLED, positionElement: null, durationElement: null, positionSeconds: -1, durationSeconds: -1 },
   prevTrack:  { element: null, state: STATE.DISABLED },
   playPause:  { element: null, state: STATE.DISABLED, iconElement: null },
   nextTrack:  { element: null, state: STATE.DISABLED },
@@ -115,24 +115,28 @@ function getTimeString(seconds, from, length)
   return (new Date(seconds * 1000).toISOString().substr(from, length));
 }
 
-function setTimer(positionSecs, durationSecs)
+function setTimer(positionSeconds, durationSeconds, autoPlay = false)
 {
-  if ((positionSecs !== -1) && (controls.timer.positionSecs !== positionSecs))
+  if ((positionSeconds !== -1) && (controls.timer.positionSeconds !== positionSeconds))
   {
-    controls.timer.positionSecs = positionSecs;
-    controls.timer.positionElement.textContent = (positionSecs > (60 * 60)) ? getTimeString(positionSecs, 11, 8) : getTimeString(positionSecs, 14, 5);
+    controls.timer.positionSeconds = positionSeconds;
+
+    if (autoPlay === false)
+      positionSeconds = durationSeconds - positionSeconds;
+    
+    controls.timer.positionElement.textContent = (positionSeconds > (60 * 60)) ? getTimeString(positionSeconds, 11, 8) : getTimeString(positionSeconds, 14, 5);
   }
-  else if ((positionSecs === -1) && (controls.timer.positionSecs === -1))
+  else if ((positionSeconds === -1) && (controls.timer.positionSeconds === -1))
   {
     controls.timer.positionElement.textContent = '00:00';
   }
 
-  if ((durationSecs !== -1) && (controls.timer.durationSecs !== durationSecs))
+  if ((durationSeconds !== -1) && (controls.timer.durationSeconds !== durationSeconds))
   {
-    controls.timer.durationSecs = durationSecs;
-    controls.timer.durationElement.textContent = (durationSecs > (60 * 60)) ? getTimeString(durationSecs, 11, 8) : getTimeString(durationSecs, 14, 5);
+    controls.timer.durationSeconds = durationSeconds;
+    controls.timer.durationElement.textContent = (durationSeconds > (60 * 60)) ? getTimeString(durationSeconds, 11, 8) : getTimeString(durationSeconds, 14, 5);
   }
-  else if ((durationSecs === -1) && (controls.timer.durationSecs === -1))
+  else if ((durationSeconds === -1) && (controls.timer.durationSeconds === -1))
   {
     controls.timer.durationElement.textContent = '00:00';
   }
