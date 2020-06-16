@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger      from '../common/debuglogger.js?ver=1.7.5';
-import * as mediaPlayer      from './mediaplayer.js?ver=1.7.5';
-import * as controls         from './playback-controls.js?ver=1.7.5';
-import * as eventLogger      from './eventlogger.js?ver=1.7.5';
+import * as debugLogger      from '../common/debuglogger.js?ver=1.7.6';
+import * as mediaPlayer      from './mediaplayer.js?ver=1.7.6';
+import * as controls         from './playback-controls.js?ver=1.7.6';
+import * as eventLogger      from './eventlogger.js?ver=1.7.6';
 
 
 export {
@@ -40,6 +40,7 @@ const moduleConfig = {
   soundCloudIframeIdRegEx: null,
   entriesSelector:         'article',
   entryTitleData:          'data-entry-title',
+  progressControlsId:      'progress-controls',
   playbackControlsId:      'playback-controls',
   updateTimerInterval:     200,  // Milliseconds between each timer event
 };
@@ -60,14 +61,13 @@ const EVENT = {
   MEDIA_PAUSED:         40,
   MEDIA_MUTED:          50,
   MEDIA_ENDED:          60,
-  MEDIA_TIMER:          70,
-  MEDIA_TIME_REMAINING: 80,
-  MEDIA_SHOW:           90,
-  CONTINUE_AUTOPLAY:    100,
-  RESUME_AUTOPLAY:      110,
-  AUTOPLAY_BLOCKED:     120,
-  PLAYBACK_BLOCKED:     130,
-  MEDIA_UNAVAILABLE:    140,
+  MEDIA_TIME_REMAINING: 70,
+  MEDIA_SHOW:           80,
+  CONTINUE_AUTOPLAY:    90,
+  RESUME_AUTOPLAY:      100,
+  AUTOPLAY_BLOCKED:     110,
+  PLAYBACK_BLOCKED:     120,
+  MEDIA_UNAVAILABLE:    130,
 };
 
 
@@ -78,7 +78,7 @@ const EVENT = {
 function init(callback = null)
 {
   eventCallback = callback;
-  controls.init(moduleConfig.playbackControlsId);
+  controls.init(moduleConfig.progressControlsId, moduleConfig.playbackControlsId, seekClickCallback);
   initYouTubeAPI();
   initSoundCloudAPI();
 }
@@ -274,6 +274,11 @@ function nextClick(event)
   }
 }
 
+function seekClickCallback(positionSeconds)
+{
+  players.currentPlayer.seekTo(positionSeconds);
+}
+
 function toggleMute()
 {
   settings.masterMute = (settings.masterMute === true) ? false : true;
@@ -318,49 +323,57 @@ function getStatus()
 
 
 // ************************************************************************************************
-// Playback controls and embedded players state sync
+// Playback controls and embedded players state sync module
 // ************************************************************************************************
 
-const SYNCSTATE = {
-  PLAY:  1,
-  PAUSE: 2,
-};
-
-let syncPlayersState = function syncPlayersStateRecursive(nextPlayerIndex, syncState)
+const playersState = (() =>
 {
-  debug.log(`syncPlayersState() - prevPlayerIndex: ${players.getPlayerIndex()} - nextPlayerIndex: ${nextPlayerIndex} - syncState: ${debug.getObjectKeyForValue(SYNCSTATE, syncState)}`);
+  const STATE = {
+    PLAY:  1,
+    PAUSE: 2,
+  };
   
-  if (players.getPlayerIndex() === nextPlayerIndex)
+  let sync = function syncRecursive(nextPlayerIndex, syncState)
   {
-    if (syncState === SYNCSTATE.PLAY)
+    debug.log(`syncPlayersState() - prevPlayerIndex: ${players.getPlayerIndex()} - nextPlayerIndex: ${nextPlayerIndex} - syncState: ${debug.getObjectKeyForValue(STATE, syncState)}`);
+    
+    if (players.getPlayerIndex() === nextPlayerIndex)
     {
-      controls.updatePlayState(players.getStatus());
-      callEventHandler(EVENT.MEDIA_PLAYING, { postId: players.currentPlayer.getPostId() });
+      if (syncState === STATE.PLAY)
+      {
+        controls.updatePlayState(players.getStatus());
+        callEventHandler(EVENT.MEDIA_PLAYING, { postId: players.currentPlayer.getPostId() });
+      }
+      else if (syncState === STATE.PAUSE)
+      {
+        controls.updatePauseState();
+        callEventHandler(EVENT.MEDIA_PAUSED, { postId: players.currentPlayer.getPostId() });
+      }
     }
-    else if (syncState === SYNCSTATE.PAUSE)
+    else
     {
-      controls.updatePauseState();
-      callEventHandler(EVENT.MEDIA_PAUSED, { postId: players.currentPlayer.getPostId() });
+      if (nextPlayerIndex !== -1)
+      {
+        const prevPlayerIndex = players.getPlayerIndex();
+        
+        players.currentPlayer.stop();
+        players.setPlayerIndex(nextPlayerIndex);
+  
+        if (nextPlayerIndex > prevPlayerIndex)
+          controls.updateNextState(players.getStatus());
+        else
+          controls.updatePrevState(players.getStatus());
+        
+        syncRecursive(nextPlayerIndex, syncState);
+      }
     }
-  }
-  else
-  {
-    if (nextPlayerIndex !== -1)
-    {
-      const prevPlayerIndex = players.getPlayerIndex();
-      
-      players.currentPlayer.stop();
-      players.setPlayerIndex(nextPlayerIndex);
+  };
 
-      if (nextPlayerIndex > prevPlayerIndex)
-        controls.updateNextState(players.getStatus());
-      else
-        controls.updatePrevState(players.getStatus());
-      
-      syncPlayersStateRecursive(nextPlayerIndex, syncState);
-    }
-  }
-};
+  return {
+    STATE,
+    sync,
+  };
+})();
 
 
 // ************************************************************************************************
@@ -538,15 +551,15 @@ const playbackTimer = (() =>
   {
     const positionSeconds = Math.round(posMilliseconds / 1000);
 
+    controls.updateProgressPosition(posMilliseconds, durationSeconds);
     controls.setTimer(positionSeconds, durationSeconds, settings.autoPlay);
     updateTimeRemainingWarning(positionSeconds, durationSeconds);
-    callEventHandler(EVENT.MEDIA_TIMER, { currentTrack: players.getCurrentTrack(), position: posMilliseconds, duration: durationSeconds });
   }
   
   function resetTimeRemainingWarning()
   {
     lastPosSeconds = 0;
-    controls.stopBlinkPlayPause();
+    controls.blinkPlayPause(false);
   }
   
   function updateTimeRemainingWarning(positionSeconds, durationSeconds)
@@ -560,12 +573,12 @@ const playbackTimer = (() =>
 
         if (timeRemainingSeconds <= settings.timeRemainingSeconds)
         {
-          controls.blinkPlayPause();
+          controls.blinkPlayPause(true);
           callEventHandler(EVENT.MEDIA_TIME_REMAINING, { timeRemainingSeconds: timeRemainingSeconds });
         }
         else
         {
-          controls.stopBlinkPlayPause();
+          controls.blinkPlayPause(false);
         }
       }
     }
@@ -630,7 +643,7 @@ function onYouTubePlayerStateChange(event)
         debug.log('onYouTubePlayerStateChange: PLAYING');
 
         // Call order is important on play events for state handling: Always sync first!
-        syncPlayersState(players.indexFromUid(event.target.f.id), SYNCSTATE.PLAY);
+        playersState.sync(players.indexFromUid(event.target.f.id), playersState.STATE.PLAY);
         players.currentPlayer.setDuration(Math.round(event.target.getDuration()));
         playbackTimer.start();
 
@@ -641,7 +654,7 @@ function onYouTubePlayerStateChange(event)
 
     case YT.PlayerState.PAUSED: // eslint-disable-line no-undef
       debug.log('onYouTubePlayerStateChange: PAUSED');
-      syncPlayersState(players.indexFromUid(event.target.f.id), SYNCSTATE.PAUSE);
+      playersState.sync(players.indexFromUid(event.target.f.id), playersState.STATE.PAUSE);
       playbackTimer.stop(false);
       break;
 
@@ -720,7 +733,7 @@ function onSoundCloudPlayerEventPlay(event)
   eventLog.add(eventLogger.SOURCE.SOUNDCLOUD, Date.now(), eventLogger.EVENT.STATE_PLAYING, event.soundId);
 
   // Call order is important on play events for state handling: Always sync first!
-  syncPlayersState(players.indexFromUid(event.soundId), SYNCSTATE.PLAY);
+  playersState.sync(players.indexFromUid(event.soundId), playersState.STATE.PLAY);
   
   if (settings.masterMute === false)
     players.currentPlayer.setVolume(settings.masterVolume);
@@ -765,7 +778,7 @@ function onSoundCloudPlayerEventPause(event)
       {
         if (positionMilliseconds > 0)
         {
-          syncPlayersState(players.indexFromUid(event.soundId), SYNCSTATE.PAUSE);
+          playersState.sync(players.indexFromUid(event.soundId), playersState.STATE.PAUSE);
           playbackTimer.stop(false);
         }
       });    

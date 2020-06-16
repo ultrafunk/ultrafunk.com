@@ -26,7 +26,7 @@ use \Ultrafunk\ThemeTags as ultrafunk;
 <?php wp_body_open(); ?>
 <a class="skip-link screen-reader-text" href="#site-content"><?php esc_html_e('Skip to content', 'ultrafunk'); ?></a>
 <header id="site-header">
-  <?php ultrafunk\nav_progress_bar(); ?>
+  <?php ultrafunk\nav_progress_controls(); ?>
   <div class="site-header-container">
     <?php ultrafunk\nav_search(); ?>
     <div class="site-branding-flex-container">

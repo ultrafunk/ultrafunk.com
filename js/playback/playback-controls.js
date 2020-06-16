@@ -8,6 +8,8 @@
 export {
   init,
   ready,
+  updateProgressPosition,
+  updateProgressPercent,
   setDetails,
   setTimer,
   isPlaying,
@@ -16,8 +18,8 @@ export {
   updatePauseState,
   updateNextState,
   updateMuteState,
+  updateAutoPlayState,
   blinkPlayPause,
-  stopBlinkPlayPause,
 };
 
 
@@ -29,6 +31,7 @@ const STATE = {
 };
 
 const controls = {
+  progress:   { seekElement: null, barElement: null, seekClickCallback: null },
   details:    { element: null, state: STATE.DISABLED, artistElement:   null, titleElement:    null },
   timer:      { element: null, state: STATE.DISABLED, positionElement: null, durationElement: null, positionSeconds: -1, durationSeconds: -1 },
   prevTrack:  { element: null, state: STATE.DISABLED },
@@ -43,8 +46,21 @@ const controls = {
 //
 // ************************************************************************************************
 
-function init(controlsId)
+function init(progressId, controlsId, seekClickCallback)
 {
+  const playbackProgress = document.getElementById(progressId);
+
+  if (playbackProgress !== null)
+  {
+    controls.progress.seekElement       = playbackProgress.querySelector('.seek-control');
+    controls.progress.barElement        = playbackProgress.querySelector('.bar-control');
+    controls.progress.seekClickCallback = seekClickCallback;
+  }
+  else
+  {
+    console.error(`playbackControls.init(): Unable to getElementById() for '#${progressId}'`);
+  }
+
   const playbackControls = document.getElementById(controlsId);
 
   if (playbackControls !== null)
@@ -71,6 +87,8 @@ function init(controlsId)
 
 function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks, isMuted)
 {
+  controls.progress.seekElement.addEventListener('click', progressSeekClick);
+  
   setState(controls.details, STATE.ENABLED);
   setState(controls.timer, STATE.ENABLED);
 
@@ -88,6 +106,38 @@ function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks, isMut
   setState(controls.mute, STATE.ENABLED);
   controls.mute.element.addEventListener('click', muteClick);
   updateMuteState(isMuted);
+}
+
+function updateProgressPosition(posMilliseconds, durationSeconds)
+{
+  // Prevent division by zero
+  if (durationSeconds === 0)
+    updateProgressBar(0);
+  else
+    updateProgressBar(posMilliseconds / (durationSeconds * 1000));
+}
+
+function updateProgressPercent(progressPercent)
+{
+  updateProgressBar(progressPercent / 100);
+}
+
+function updateProgressBar(scaleX)
+{
+  controls.progress.barElement.style.transform = `scaleX(${scaleX})`;
+}
+
+function progressSeekClick(event)
+{
+  if (controls.timer.durationSeconds > 0)
+  {
+    const progressPercent = ((event.clientX / document.documentElement.clientWidth) * 100);
+    const seekPosSeconds  = Math.round((controls.timer.durationSeconds * progressPercent) / 100);
+    controls.progress.seekClickCallback(seekPosSeconds);
+
+    if (isPlaying() === false)
+      updateProgressPercent(progressPercent);
+  }
 }
 
 function setState(control, state = STATE.DISABLED)
@@ -193,13 +243,24 @@ function updateMuteState(isMuted)
   controls.mute.iconElement.textContent = isMuted ? 'volume_off' : 'volume_up';
 }
 
-function blinkPlayPause()
+function updateAutoPlayState(autoPlay)
 {
-  controls.playPause.element.classList.toggle('time-remaining-warning');
+  if (autoPlay)
+  {
+    controls.progress.barElement.classList.remove('no-autoplay');
+    controls.playPause.element.classList.remove('no-autoplay');
+  }
+  else
+  {
+    controls.progress.barElement.classList.add('no-autoplay');
+    controls.playPause.element.classList.add('no-autoplay');
+  }
 }
 
-function stopBlinkPlayPause()
+function blinkPlayPause(toggleBlink)
 {
-  controls.playPause.element.classList.remove('time-remaining-warning');
+  if (toggleBlink)
+    controls.playPause.element.classList.toggle('time-remaining-warning');
+  else
+    controls.playPause.element.classList.remove('time-remaining-warning');
 }
-

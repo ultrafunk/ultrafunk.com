@@ -5,11 +5,15 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.7.5';
-import * as storage     from '../common/storage.js?ver=1.7.5';
-import * as utils       from '../common/utils.js?ver=1.7.5';
-import * as eventLogger from './eventlogger.js?ver=1.7.5';
-import * as playback    from './playback.js?ver=1.7.5';
+import * as debugLogger from '../common/debuglogger.js?ver=1.7.6';
+import * as storage     from '../common/storage.js?ver=1.7.6';
+import * as utils       from '../common/utils.js?ver=1.7.6';
+import * as eventLogger from './eventlogger.js?ver=1.7.6';
+import * as playback    from './playback.js?ver=1.7.6';
+import {
+  updateProgressPercent,
+  updateAutoPlayState
+} from './playback-controls.js?ver=1.7.6';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -58,8 +62,7 @@ const defaultSettings = {
 
 // Shared DOM elements for all, submodules can have local const elements = {...}
 const moduleElements = {
-  playbackProgressBar:    null,
-  playbackControls:       { playPause: null, details: null },
+  playbackDetailsControl: null,
   fullscreenChangeTarget: null,
   nowPlayingIcons:        null,
   footerAutoPlayToggle:   null,
@@ -134,12 +137,10 @@ function initInteraction()
 {
   debug.log('initInteraction()');
 
-  useKeyboardShortcuts                      = moduleConfig.keyboardShortcuts;
-  moduleElements.playbackProgressBar        = document.getElementById('playback-progress').querySelector('.playback-progress-bar');
-  moduleElements.playbackControls.playPause = document.getElementById('playback-controls').querySelector('.play-pause-control');
-  moduleElements.playbackControls.details   = document.getElementById('playback-controls').querySelector('.details-control');
-  moduleElements.nowPlayingIcons            = document.querySelectorAll(moduleConfig.nowPlayingIconSelector);
-  moduleElements.footerAutoPlayToggle       = document.getElementById(moduleConfig.autoPlayToggleId);
+  useKeyboardShortcuts                  = moduleConfig.keyboardShortcuts;
+  moduleElements.playbackDetailsControl = document.getElementById('playback-controls').querySelector('.details-control');
+  moduleElements.nowPlayingIcons        = document.querySelectorAll(moduleConfig.nowPlayingIconSelector);
+  moduleElements.footerAutoPlayToggle   = document.getElementById(moduleConfig.autoPlayToggleId);
 
   window.addEventListener('blur',    windowEventBlur);
   window.addEventListener('focus',   windowEventFocus);
@@ -178,7 +179,6 @@ const playbackEvents = (() =>
       [playback.EVENT.MEDIA_PAUSED]:         mediaPaused,
       [playback.EVENT.MEDIA_MUTED]:          mediaMuted,
       [playback.EVENT.MEDIA_ENDED]:          mediaEnded,
-      [playback.EVENT.MEDIA_TIMER]:          mediaTimer,
       [playback.EVENT.MEDIA_TIME_REMAINING]: mediaTimeRemaining,
       [playback.EVENT.MEDIA_SHOW]:           mediaShow,
       [playback.EVENT.CONTINUE_AUTOPLAY]:    continueAutoplay,
@@ -193,7 +193,7 @@ const playbackEvents = (() =>
   {
   //debugEvent(playbackEvent);
 
-    updateProgressBar(playersReadyCount++ / playersCount);
+    updateProgressPercent((playersReadyCount++ / playersCount) * 100);
   }
   
   function ready(playbackEvent)
@@ -201,8 +201,8 @@ const playbackEvents = (() =>
     debugEvent(playbackEvent);
 
     isPlaybackReady = true;
-    updateProgressBar(0);
-    moduleElements.playbackControls.details.addEventListener('click', playbackDetailsClick);
+    updateProgressPercent(0);
+    moduleElements.playbackDetailsControl.addEventListener('click', playbackDetailsClick);
     moduleElements.footerAutoPlayToggle.addEventListener('click', autoPlayToggle);
   }
   
@@ -241,15 +241,8 @@ const playbackEvents = (() =>
     if (settings.user.autoExitFullscreen)
       exitFullscreenTrack();
   
-    updateProgressBar(0);
+    updateProgressPercent(0);
     resetNowPlayingIcons();
-  }
-  
-  function mediaTimer(playbackEvent, eventData)
-  {
-  //debugEvent(playbackEvent, eventData);
-  
-    updateProgressBar(eventData.position / (eventData.duration * 1000));
   }
   
   function mediaTimeRemaining(playbackEvent, eventData)
@@ -339,11 +332,6 @@ const playbackEvents = (() =>
     }
   }
 
-  function updateProgressBar(scaleX)
-  {
-    moduleElements.playbackProgressBar.style.transform = `scaleX(${scaleX})`;
-  }
-  
   function resetNowPlayingIcons(nowPlayingElement)
   {
     moduleElements.nowPlayingIcons.forEach(element =>
@@ -683,11 +671,11 @@ function updateAutoPlayDOM(newAutoPlay)
 {
   debug.log(`updateAutoPlayDOM() - newAutoPlay: ${newAutoPlay}`);
 
+  updateAutoPlayState(newAutoPlay);  
+
   if (newAutoPlay)
   {
     document.body.classList.remove('blurred');
-    moduleElements.playbackProgressBar.classList.remove('no-autoplay');
-    moduleElements.playbackControls.playPause.classList.remove('no-autoplay');
     moduleElements.nowPlayingIcons.forEach(element => element.classList.remove('no-autoplay'));
     moduleElements.footerAutoPlayToggle.querySelector('.autoplay-on-off').textContent = 'ON';
   }
@@ -696,8 +684,6 @@ function updateAutoPlayDOM(newAutoPlay)
     if ((document.hasFocus() === false) && settings.user.blurFocusBgChange)
       document.body.classList.add('blurred');
     
-    moduleElements.playbackProgressBar.classList.add('no-autoplay');
-    moduleElements.playbackControls.playPause.classList.add('no-autoplay');
     moduleElements.nowPlayingIcons.forEach(element => element.classList.add('no-autoplay'));
     moduleElements.footerAutoPlayToggle.querySelector('.autoplay-on-off').textContent = 'OFF';
   }

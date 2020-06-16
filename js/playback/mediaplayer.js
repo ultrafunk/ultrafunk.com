@@ -191,6 +191,12 @@ class SoundCloud extends MediaPlayer
     this.embeddedPlayer.pause();
     this.seekTo(0);
   }
+
+  // Override parent because SoundCloud seekTo() needs milliseconds instead of just seconds
+  seekTo(positionSeconds)
+  {
+    this.embeddedPlayer.seekTo(positionSeconds * 1000);
+  }
   
   getVolumeCallback(volumeCallback)
   {

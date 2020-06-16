@@ -141,7 +141,7 @@ class Request
     $this->params['type'] = $this->url_parts[1];
 
     if ((true === $this->shuffle_slug) || (true === $this->shuffle_slug_page))
-      $this->params['path'] = ($this->url_parts[1] . '/' . $this->url_parts[2]);
+      $this->params['path'] = ($this->params['type'] . '/' . $this->params['slug']);
 
     $shuffle_params               = &get_shuffle_params();
     $shuffle_params['is_shuffle'] = $this->is_shuffle;

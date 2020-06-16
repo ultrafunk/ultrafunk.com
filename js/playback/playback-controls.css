@@ -6,8 +6,8 @@
 */
 
 .site-theme-light {
-  --playback-progress-bar-color: #dd0000;
-  --playback-progress-bar-color-no-autoplay: #4080ff;
+  --progress-bar-color: #dd0000;
+  --progress-bar-color-no-autoplay: #4080ff;
   
   --playback-text-color: #333;
   --playback-text-hover-color: #dd0000;
@@ -21,8 +21,8 @@
 }
 
 .site-theme-dark {
-  --playback-progress-bar-color: #dd0000;
-  --playback-progress-bar-color-no-autoplay: #4080ff;
+  --progress-bar-color: #dd0000;
+  --progress-bar-color-no-autoplay: #4080ff;
   
   --playback-text-color: #eee;
   --playback-text-hover-color: #dd0000;
@@ -35,21 +35,29 @@
   --playback-prev-next-hover-color: #aaa;
 }
 
-#playback-progress {
+#progress-controls {
   background: rgba(0, 0, 0, 0.3);
   width: 100%;
 }
 
-#playback-progress .playback-progress-bar {
-  background: var(--playback-progress-bar-color);
+#progress-controls .seek-control {
+  position: absolute;
+  width: 100%;
+  padding-bottom: 10px;
+  cursor: pointer;
+  z-index: 100;
+}
+
+#progress-controls .bar-control {
+  background: var(--progress-bar-color);
   height: 5px;
   transform: scaleX(0);
   transform-origin: left;
   will-change: transform;
 }
 
-#playback-progress .playback-progress-bar.no-autoplay {
-  background: var(--playback-progress-bar-color-no-autoplay);
+#progress-controls .bar-control.no-autoplay {
+  background: var(--progress-bar-color-no-autoplay);
 }
 
 #playback-controls {

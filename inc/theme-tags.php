@@ -113,12 +113,12 @@ function footer_logo()
   <?php
 }
 
-function nav_progress_bar()
+function nav_progress_controls()
 {
   ?>
-  <div id="playback-progress">
-    <div class="playback-progress-bar"></div>
-    <div class="playback-progress-bar-background"></div>
+  <div id="progress-controls">
+    <div class="seek-control" title="Track progress"></div>
+    <div class="bar-control"></div>
   </div>
   <?php
 }
