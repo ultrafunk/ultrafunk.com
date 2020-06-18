@@ -117,8 +117,8 @@ function nav_progress_controls()
 {
   ?>
   <div id="progress-controls">
-    <div class="seek-control" title="Track progress"></div>
-    <div class="bar-control"></div>
+    <div class="seek-control state-disabled" title="Track progress"></div>
+    <div class="bar-control state-disabled"></div>
   </div>
   <?php
 }

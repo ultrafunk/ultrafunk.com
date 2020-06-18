@@ -43,9 +43,14 @@
 #progress-controls .seek-control {
   position: absolute;
   width: 100%;
-  padding-bottom: 10px;
+  padding-bottom: 15px;
   cursor: pointer;
   z-index: 100;
+}
+
+#progress-controls .seek-control.state-disabled {
+  pointer-events: none;
+  cursor: default;
 }
 
 #progress-controls .bar-control {

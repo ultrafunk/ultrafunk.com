@@ -16,12 +16,16 @@ export {
   updatePrevState,
   updatePlayState,
   updatePauseState,
+  blinkPlayPause,
   updateNextState,
   updateMuteState,
   updateAutoPlayState,
-  blinkPlayPause,
 };
 
+
+const settings = {
+  autoPlay: false,
+};
 
 const STATE = {
   DISABLED: 'state-disabled',
@@ -31,19 +35,20 @@ const STATE = {
 };
 
 const controls = {
-  progress:   { seekElement: null, barElement: null, seekClickCallback: null },
-  details:    { element: null, state: STATE.DISABLED, artistElement:   null, titleElement:    null },
-  timer:      { element: null, state: STATE.DISABLED, positionElement: null, durationElement: null, positionSeconds: -1, durationSeconds: -1 },
-  prevTrack:  { element: null, state: STATE.DISABLED },
-  playPause:  { element: null, state: STATE.DISABLED, iconElement: null },
-  nextTrack:  { element: null, state: STATE.DISABLED },
-  shuffle:    { element: null, state: STATE.DISABLED },
-  mute:       { element: null, state: STATE.DISABLED, iconElement: null },
+  progressSeek: { element: null, state: STATE.DISABLED, clickCallback: null },
+  progressBar:  { element: null, state: STATE.DISABLED },
+  details:      { element: null, state: STATE.DISABLED, artistElement: null, titleElement: null },
+  timer:        { element: null, state: STATE.DISABLED, positionElement: null, durationElement: null, positionSeconds: -1, durationSeconds: -1 },
+  prevTrack:    { element: null, state: STATE.DISABLED },
+  playPause:    { element: null, state: STATE.DISABLED, iconElement: null },
+  nextTrack:    { element: null, state: STATE.DISABLED },
+  shuffle:      { element: null, state: STATE.DISABLED },
+  mute:         { element: null, state: STATE.DISABLED, iconElement: null },
 };
 
 
 // ************************************************************************************************
-//
+// Init and make ready all controls
 // ************************************************************************************************
 
 function init(progressId, controlsId, seekClickCallback)
@@ -52,9 +57,9 @@ function init(progressId, controlsId, seekClickCallback)
 
   if (playbackProgress !== null)
   {
-    controls.progress.seekElement       = playbackProgress.querySelector('.seek-control');
-    controls.progress.barElement        = playbackProgress.querySelector('.bar-control');
-    controls.progress.seekClickCallback = seekClickCallback;
+    controls.progressSeek.element       = playbackProgress.querySelector('.seek-control');
+    controls.progressSeek.clickCallback = seekClickCallback;
+    controls.progressBar.element        = playbackProgress.querySelector('.bar-control');
   }
   else
   {
@@ -87,7 +92,9 @@ function init(progressId, controlsId, seekClickCallback)
 
 function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks, isMuted)
 {
-  controls.progress.seekElement.addEventListener('click', progressSeekClick);
+  setState(controls.progressSeek, STATE.ENABLED);
+  controls.progressSeek.element.addEventListener('click', progressSeekClick);
+  setState(controls.progressBar, STATE.ENABLED);
   
   setState(controls.details, STATE.ENABLED);
   setState(controls.timer, STATE.ENABLED);
@@ -108,6 +115,23 @@ function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks, isMut
   updateMuteState(isMuted);
 }
 
+function setState(control, state = STATE.DISABLED)
+{
+  control.element.classList.remove(control.state);
+  control.element.classList.add(state);
+  control.state = state;
+  
+  if (state === STATE.PLAY)
+    controls.playPause.iconElement.textContent = 'play_circle_filled';
+  else if (state === STATE.PAUSE)
+    controls.playPause.iconElement.textContent = 'pause_circle_filled';
+}
+
+
+// ************************************************************************************************
+// Progress bar and position seek
+// ************************************************************************************************
+
 function updateProgressPosition(posMilliseconds, durationSeconds)
 {
   // Prevent division by zero
@@ -124,7 +148,7 @@ function updateProgressPercent(progressPercent)
 
 function updateProgressBar(scaleX)
 {
-  controls.progress.barElement.style.transform = `scaleX(${scaleX})`;
+  controls.progressBar.element.style.transform = `scaleX(${scaleX})`;
 }
 
 function progressSeekClick(event)
@@ -133,24 +157,20 @@ function progressSeekClick(event)
   {
     const progressPercent = ((event.clientX / document.documentElement.clientWidth) * 100);
     const seekPosSeconds  = Math.round((controls.timer.durationSeconds * progressPercent) / 100);
-    controls.progress.seekClickCallback(seekPosSeconds);
+    controls.progressSeek.clickCallback(seekPosSeconds);
 
     if (isPlaying() === false)
+    {
       updateProgressPercent(progressPercent);
+      setTimer(seekPosSeconds, controls.timer.durationSeconds);
+    }
   }
 }
 
-function setState(control, state = STATE.DISABLED)
-{
-  control.element.classList.remove(control.state);
-  control.element.classList.add(state);
-  control.state = state;
-  
-  if (state === STATE.PLAY)
-    controls.playPause.iconElement.textContent = 'play_circle_filled';
-  else if (state === STATE.PAUSE)
-    controls.playPause.iconElement.textContent = 'pause_circle_filled';
-}
+
+// ************************************************************************************************
+// Details (Artist + Title) and track timer
+// ************************************************************************************************
 
 function setDetails(playbackStatus)
 {
@@ -159,22 +179,25 @@ function setDetails(playbackStatus)
   controls.details.titleElement.textContent  = playbackStatus.title  || '';
 }
 
-function getTimeString(seconds, from, length)
+//
+// ToDo: playback-controls.js should probably have its own window.addEventListener('resize')
+//       so that it can implement CSS media-query max-width transitions on its own instead of
+//       using (element.clientWidth === 0) and other "tricks"...
+//
+function setTimer(positionSeconds, durationSeconds)
 {
-  // ToDo: This can probably be optimized a bit?
-  return (new Date(seconds * 1000).toISOString().substr(from, length));
-}
+  // Just bail early if the control is not visible, no need to update the DOM
+  if (controls.timer.element.clientWidth === 0)
+    return;
 
-function setTimer(positionSeconds, durationSeconds, autoPlay = false)
-{
   if ((positionSeconds !== -1) && (controls.timer.positionSeconds !== positionSeconds))
   {
     controls.timer.positionSeconds = positionSeconds;
 
-    if (autoPlay === false)
+    if (settings.autoPlay === false)
       positionSeconds = durationSeconds - positionSeconds;
     
-    controls.timer.positionElement.textContent = (positionSeconds > (60 * 60)) ? getTimeString(positionSeconds, 11, 8) : getTimeString(positionSeconds, 14, 5);
+    setTimerText(controls.timer.positionElement, positionSeconds);
   }
   else if ((positionSeconds === -1) && (controls.timer.positionSeconds === -1))
   {
@@ -184,7 +207,7 @@ function setTimer(positionSeconds, durationSeconds, autoPlay = false)
   if ((durationSeconds !== -1) && (controls.timer.durationSeconds !== durationSeconds))
   {
     controls.timer.durationSeconds = durationSeconds;
-    controls.timer.durationElement.textContent = (durationSeconds > (60 * 60)) ? getTimeString(durationSeconds, 11, 8) : getTimeString(durationSeconds, 14, 5);
+    setTimerText(controls.timer.durationElement, durationSeconds);
   }
   else if ((durationSeconds === -1) && (controls.timer.durationSeconds === -1))
   {
@@ -192,11 +215,22 @@ function setTimer(positionSeconds, durationSeconds, autoPlay = false)
   }
 }
 
+function setTimerText(element, seconds)
+{
+  const timeString = new Date(seconds * 1000).toISOString();
+  element.textContent = (seconds > (60 * 60)) ? timeString.substr(11, 8) : timeString.substr(14, 5);
+}
+
 function clearTimer()
 {
   controls.timer.positionElement.textContent = '00:00';
   controls.timer.durationElement.textContent = '00:00';
 }
+
+
+// ************************************************************************************************
+// Playback controls (prev, play/pause, next and mute)
+// ************************************************************************************************
 
 function isPlaying()
 {
@@ -228,6 +262,14 @@ function updatePauseState()
   setState(controls.playPause, STATE.PLAY);
 }
 
+function blinkPlayPause(toggleBlink)
+{
+  if (toggleBlink)
+    controls.playPause.element.classList.toggle('time-remaining-warning');
+  else
+    controls.playPause.element.classList.remove('time-remaining-warning');
+}
+
 function updateNextState(playbackStatus)
 {
   clearTimer();
@@ -243,24 +285,30 @@ function updateMuteState(isMuted)
   controls.mute.iconElement.textContent = isMuted ? 'volume_off' : 'volume_up';
 }
 
+
+// ************************************************************************************************
+//
+// ************************************************************************************************
+
 function updateAutoPlayState(autoPlay)
 {
+  settings.autoPlay = autoPlay;
+
+  if ((isPlaying() === false) && (controls.timer.positionSeconds > 0))
+  {
+    setTimerText(controls.timer.positionElement, (autoPlay === true) ? controls.timer.positionSeconds : (controls.timer.durationSeconds - controls.timer.positionSeconds));
+    setTimerText(controls.timer.durationElement, controls.timer.durationSeconds);
+  }
+
   if (autoPlay)
   {
-    controls.progress.barElement.classList.remove('no-autoplay');
+    controls.progressBar.element.classList.remove('no-autoplay');
     controls.playPause.element.classList.remove('no-autoplay');
   }
   else
   {
-    controls.progress.barElement.classList.add('no-autoplay');
+    controls.progressBar.element.classList.add('no-autoplay');
     controls.playPause.element.classList.add('no-autoplay');
   }
 }
 
-function blinkPlayPause(toggleBlink)
-{
-  if (toggleBlink)
-    controls.playPause.element.classList.toggle('time-remaining-warning');
-  else
-    controls.playPause.element.classList.remove('time-remaining-warning');
-}

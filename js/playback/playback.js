@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger      from '../common/debuglogger.js?ver=1.7.6';
-import * as mediaPlayer      from './mediaplayer.js?ver=1.7.6';
-import * as controls         from './playback-controls.js?ver=1.7.6';
-import * as eventLogger      from './eventlogger.js?ver=1.7.6';
+import * as debugLogger      from '../common/debuglogger.js?ver=1.7.7';
+import * as mediaPlayer      from './mediaplayer.js?ver=1.7.7';
+import * as controls         from './playback-controls.js?ver=1.7.7';
+import * as eventLogger      from './eventlogger.js?ver=1.7.7';
 
 
 export {
@@ -335,7 +335,7 @@ const playersState = (() =>
   
   let sync = function syncRecursive(nextPlayerIndex, syncState)
   {
-    debug.log(`syncPlayersState() - prevPlayerIndex: ${players.getPlayerIndex()} - nextPlayerIndex: ${nextPlayerIndex} - syncState: ${debug.getObjectKeyForValue(STATE, syncState)}`);
+    debug.log(`playersState.sync() - prevPlayerIndex: ${players.getPlayerIndex()} - nextPlayerIndex: ${nextPlayerIndex} - syncState: ${debug.getObjectKeyForValue(STATE, syncState)}`);
     
     if (players.getPlayerIndex() === nextPlayerIndex)
     {
@@ -552,7 +552,7 @@ const playbackTimer = (() =>
     const positionSeconds = Math.round(posMilliseconds / 1000);
 
     controls.updateProgressPosition(posMilliseconds, durationSeconds);
-    controls.setTimer(positionSeconds, durationSeconds, settings.autoPlay);
+    controls.setTimer(positionSeconds, durationSeconds);
     updateTimeRemainingWarning(positionSeconds, durationSeconds);
   }
   
