@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger      from '../common/debuglogger.js?ver=1.7.7';
-import * as mediaPlayer      from './mediaplayer.js?ver=1.7.7';
-import * as controls         from './playback-controls.js?ver=1.7.7';
-import * as eventLogger      from './eventlogger.js?ver=1.7.7';
+import * as debugLogger      from '../common/debuglogger.js?ver=1.7.8';
+import * as mediaPlayer      from './mediaplayer.js?ver=1.7.8';
+import * as controls         from './playback-controls.js?ver=1.7.8';
+import * as eventLogger      from './eventlogger.js?ver=1.7.8';
 
 
 export {

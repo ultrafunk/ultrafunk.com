@@ -179,17 +179,8 @@ function setDetails(playbackStatus)
   controls.details.titleElement.textContent  = playbackStatus.title  || '';
 }
 
-//
-// ToDo: playback-controls.js should probably have its own window.addEventListener('resize')
-//       so that it can implement CSS media-query max-width transitions on its own instead of
-//       using (element.clientWidth === 0) and other "tricks"...
-//
 function setTimer(positionSeconds, durationSeconds)
 {
-  // Just bail early if the control is not visible, no need to update the DOM
-  if (controls.timer.element.clientWidth === 0)
-    return;
-
   if ((positionSeconds !== -1) && (controls.timer.positionSeconds !== positionSeconds))
   {
     controls.timer.positionSeconds = positionSeconds;
