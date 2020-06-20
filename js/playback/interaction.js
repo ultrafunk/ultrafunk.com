@@ -5,15 +5,15 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.7.8';
-import * as storage     from '../common/storage.js?ver=1.7.8';
-import * as utils       from '../common/utils.js?ver=1.7.8';
-import * as eventLogger from './eventlogger.js?ver=1.7.8';
-import * as playback    from './playback.js?ver=1.7.8';
+import * as debugLogger from '../common/debuglogger.js?ver=1.7.9';
+import * as storage     from '../common/storage.js?ver=1.7.9';
+import * as utils       from '../common/utils.js?ver=1.7.9';
+import * as eventLogger from './eventlogger.js?ver=1.7.9';
+import * as playback    from './playback.js?ver=1.7.9';
 import {
   updateProgressPercent,
   updateAutoPlayState
-} from './playback-controls.js?ver=1.7.8';
+} from './playback-controls.js?ver=1.7.9';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -62,7 +62,7 @@ const defaultSettings = {
 
 // Shared DOM elements for all, submodules can have local const elements = {...}
 const moduleElements = {
-  playbackDetailsControl: null,
+  playbackControls:       { details: null, thumbnail: null },
   fullscreenChangeTarget: null,
   nowPlayingIcons:        null,
   footerAutoPlayToggle:   null,
@@ -88,11 +88,11 @@ document.addEventListener('DOMContentLoaded', () =>
     });
 
     playback.setSettings({
-      autoPlay:                settings.user.autoPlay,
-      masterVolume:            settings.user.masterVolume,
-      masterMute:              settings.user.masterMute,
-      timeRemainingWarning:    settings.user.timeRemainingWarning,
-      timeRemainingSeconds:    settings.user.timeRemainingSeconds,
+      autoPlay:             settings.user.autoPlay,
+      masterVolume:         settings.user.masterVolume,
+      masterMute:           settings.user.masterMute,
+      timeRemainingWarning: settings.user.timeRemainingWarning,
+      timeRemainingSeconds: settings.user.timeRemainingSeconds,
     });
 
     playbackEvents.setHandlers();
@@ -137,10 +137,11 @@ function initInteraction()
 {
   debug.log('initInteraction()');
 
-  useKeyboardShortcuts                  = moduleConfig.keyboardShortcuts;
-  moduleElements.playbackDetailsControl = document.getElementById('playback-controls').querySelector('.details-control');
-  moduleElements.nowPlayingIcons        = document.querySelectorAll(moduleConfig.nowPlayingIconSelector);
-  moduleElements.footerAutoPlayToggle   = document.getElementById(moduleConfig.autoPlayToggleId);
+  useKeyboardShortcuts                      = moduleConfig.keyboardShortcuts;
+  moduleElements.playbackControls.details   = document.getElementById('playback-controls').querySelector('.details-control');
+  moduleElements.playbackControls.thumbnail = document.getElementById('playback-controls').querySelector('.thumbnail-control');
+  moduleElements.nowPlayingIcons            = document.querySelectorAll(moduleConfig.nowPlayingIconSelector);
+  moduleElements.footerAutoPlayToggle       = document.getElementById(moduleConfig.autoPlayToggleId);
 
   window.addEventListener('blur',    windowEventBlur);
   window.addEventListener('focus',   windowEventFocus);
@@ -202,7 +203,8 @@ const playbackEvents = (() =>
 
     isPlaybackReady = true;
     updateProgressPercent(0);
-    moduleElements.playbackDetailsControl.addEventListener('click', playbackDetailsClick);
+    moduleElements.playbackControls.details.addEventListener('click', playbackDetailsClick);
+    moduleElements.playbackControls.thumbnail.addEventListener('click', playbackDetailsClick);
     moduleElements.footerAutoPlayToggle.addEventListener('click', autoPlayToggle);
   }
   

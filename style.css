@@ -4,7 +4,7 @@ Theme URI: https://github.com/ultrafunk/ultrafunk.com
 Author: Ultrafunk
 Author URI: https://ultrafunk.com
 Description: ultrafunk.com WordPress theme
-Version: 1.7.8
+Version: 1.7.9
 License: Apache License 2.0
 License URI: https://www.apache.org/licenses/LICENSE-2.0
 Text Domain: ultrafunk
@@ -197,7 +197,7 @@ body.no-playback-controls .site-branding-flex-container {
 }
 
 .site-branding {
-  margin-right: 20px;
+  margin-right: 25px;
 }
 
 .site-branding img {

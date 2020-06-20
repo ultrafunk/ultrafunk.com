@@ -6,7 +6,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.7.8';
+import * as debugLogger from '../common/debuglogger.js?ver=1.7.9';
 
 
 export {
@@ -98,7 +98,7 @@ function setValue(keyName, keyValue)
 
 
 // ************************************************************************************************
-// Read and write localStorage JSON data
+//
 // ************************************************************************************************
 
 function mergeObjectProps(oldObject, newObject, keyName)
@@ -148,6 +148,11 @@ function removeOrphanedObjectProps(oldObject, newObject, keyName)
     // Handle playback settings only keys / properties here
   }
 }
+
+
+// ************************************************************************************************
+// Read and write localStorage JSON data
+// ************************************************************************************************
 
 function readWriteJsonProxy(keyName, defaultValue = null, setDefault = true)
 {

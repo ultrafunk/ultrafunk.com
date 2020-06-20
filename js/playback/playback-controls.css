@@ -81,18 +81,6 @@
   height: 64px;
 }
 
-#playback-controls .timer-control {
-  display: inline-block;
-  font-size: 15px;
-  line-height: 20px;
-  font-weight: 400;
-  text-align: right;
-  margin-right: 7px;
-  color: var(--playback-text-color);
-  user-select: none;
-  min-width: 38px;
-}
-
 #playback-controls .details-control {
   display: inline-block;
   font-size: 15px;
@@ -102,7 +90,7 @@
   text-align: right;
   white-space: nowrap;
   overflow: hidden;
-  margin-right: 20px;
+  margin-right: 25px;
   color: var(--playback-text-color);
   user-select: none;
 }
@@ -114,6 +102,49 @@
 #playback-controls .details-control:hover {
   color: var(--playback-text-hover-color);
   cursor: pointer;
+}
+
+#playback-controls .thumbnail-control {
+  width: 50px;
+  height: 50px;
+  margin-right: 25px;
+  display: inline-block;
+}
+
+#playback-controls .thumbnail-control:hover {
+  cursor: pointer;
+}
+
+#playback-controls .thumbnail-control.state-disabled {
+  display: none;
+}
+
+#playback-controls .thumbnail-control.loading {
+  border-radius: 7px;
+  background-color: var(--playback-ctrl-disabled-color);
+}
+
+body.single #playback-controls .thumbnail-control {
+  display: none;
+}
+
+#playback-controls .thumbnail-control img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 7px;
+}
+
+#playback-controls .timer-control {
+  display: inline-block;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 400;
+  text-align: right;
+  margin-right: 10px;
+  color: var(--playback-text-color);
+  user-select: none;
+  min-width: 38px;
 }
 
 #playback-controls .prev-control,
@@ -274,7 +305,7 @@
   animation-play-state: paused !important;
 }
 
-@media screen and (max-width: 1000px) {
+@media screen and (max-width: 1050px) {
 
   #playback-controls {
     margin-right: -15px;
@@ -282,6 +313,10 @@
   
   #playback-controls .details-control {
     margin-right: 5px;
+  }
+
+  #playback-controls .thumbnail-control {
+    display: none !important;
   }
 
   #playback-controls .timer-control {

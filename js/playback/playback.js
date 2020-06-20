@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger      from '../common/debuglogger.js?ver=1.7.8';
-import * as mediaPlayer      from './mediaplayer.js?ver=1.7.8';
-import * as controls         from './playback-controls.js?ver=1.7.8';
-import * as eventLogger      from './eventlogger.js?ver=1.7.8';
+import * as debugLogger      from '../common/debuglogger.js?ver=1.7.9';
+import * as mediaPlayer      from './mediaplayer.js?ver=1.7.9';
+import * as controls         from './playback-controls.js?ver=1.7.9';
+import * as eventLogger      from './eventlogger.js?ver=1.7.9';
 
 
 export {
@@ -141,27 +141,33 @@ function getAllEmbeddedPlayers()
       {
         /* eslint-disable */
         const embeddedPlayer = SC.Widget(iframeId);
+        player = new mediaPlayer.SoundCloud(postId, iframeId, embeddedPlayer, getSoundCloudSoundId(iframe.src));
 
-        embeddedPlayer.bind(SC.Widget.Events.READY,  onSoundCloudPlayerEventReady);
+        // Preload thumbnail image as early as possible
+        embeddedPlayer.bind(SC.Widget.Events.READY, () =>
+        {
+          player.setThumbnail();
+          onSoundCloudPlayerEventReady();
+        });
+
         embeddedPlayer.bind(SC.Widget.Events.PLAY,   onSoundCloudPlayerEventPlay);
         embeddedPlayer.bind(SC.Widget.Events.PAUSE,  onSoundCloudPlayerEventPause);
         embeddedPlayer.bind(SC.Widget.Events.FINISH, onSoundCloudPlayerEventFinish);
         embeddedPlayer.bind(SC.Widget.Events.ERROR,  onSoundCloudPlayerEventError);
         /* eslint-enable */
-
-        player = new mediaPlayer.SoundCloud(postId, iframeId, embeddedPlayer, getSoundCloudSoundId(iframe.src));
       }
 
-      player.setArtistTitle(entryTitle);
+      mediaPlayer.setArtistTitle(player, entryTitle);
       players.getMediaPlayers().push(player);
       
       debug.log(player);
     });
   });
 
-  setPropsForSamePostId();
+//setPropsForSamePostId();
 }
 
+/*
 function setPropsForSamePostId()
 {
   const mediaPlayers = players.getMediaPlayers();
@@ -181,6 +187,7 @@ function setPropsForSamePostId()
       indexes.forEach(index => mediaPlayers[index].setDataSource(mediaPlayer.DATA_SOURCE.GET_FROM_SERVER));
   });
 }
+*/
 
 function updateMediaPlayersReady()
 {
@@ -413,6 +420,7 @@ const players = (() =>
       numTracks:    players.getNumTracks(),
       artist:       players.currentPlayer.getArtist(),
       title:        players.currentPlayer.getTitle(),
+      thumbnailSrc: players.currentPlayer.getThumbnailSrc(),
     };
   }
 
@@ -612,10 +620,13 @@ window.onYouTubeIframeAPIReady = function()
   getAllEmbeddedPlayers();
 };
 
-function onYouTubePlayerReady()
+function onYouTubePlayerReady(event)
 {
   debug.log('onYouTubePlayerReady()');
   updateMediaPlayersReady();
+
+  // ToDo: Make thumbnail load 100% async (async/await?)
+  players.playerFromUid(event.target.f.id).setThumbnail(event.target.getVideoData().video_id);
 }
 
 function onYouTubePlayerStateChange(event)
@@ -734,7 +745,7 @@ function onSoundCloudPlayerEventPlay(event)
 
   // Call order is important on play events for state handling: Always sync first!
   playersState.sync(players.indexFromUid(event.soundId), playersState.STATE.PLAY);
-  
+
   if (settings.masterMute === false)
     players.currentPlayer.setVolume(settings.masterVolume);
   

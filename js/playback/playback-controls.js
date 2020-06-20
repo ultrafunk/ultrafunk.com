@@ -38,6 +38,7 @@ const controls = {
   progressSeek: { element: null, state: STATE.DISABLED, clickCallback: null },
   progressBar:  { element: null, state: STATE.DISABLED },
   details:      { element: null, state: STATE.DISABLED, artistElement: null, titleElement: null },
+  thumbnail:    { element: null, state: STATE.DISABLED, img: null },
   timer:        { element: null, state: STATE.DISABLED, positionElement: null, durationElement: null, positionSeconds: -1, durationSeconds: -1 },
   prevTrack:    { element: null, state: STATE.DISABLED },
   playPause:    { element: null, state: STATE.DISABLED, iconElement: null },
@@ -73,6 +74,8 @@ function init(progressId, controlsId, seekClickCallback)
     controls.details.element       = playbackControls.querySelector('.details-control');
     controls.details.artistElement = controls.details.element.querySelector('.details-artist');
     controls.details.titleElement  = controls.details.element.querySelector('.details-title');
+    controls.thumbnail.element     = playbackControls.querySelector('.thumbnail-control');
+    controls.thumbnail.img         = controls.thumbnail.element.querySelector('img');
     controls.timer.element         = playbackControls.querySelector('.timer-control');
     controls.timer.positionElement = controls.timer.element.querySelector('.timer-position');
     controls.timer.durationElement = controls.timer.element.querySelector('.timer-duration');
@@ -97,6 +100,7 @@ function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks, isMut
   setState(controls.progressBar, STATE.ENABLED);
   
   setState(controls.details, STATE.ENABLED);
+  setState(controls.thumbnail, STATE.ENABLED);
   setState(controls.timer, STATE.ENABLED);
 
   setState(controls.prevTrack, STATE.DISABLED);
@@ -174,9 +178,22 @@ function progressSeekClick(event)
 
 function setDetails(playbackStatus)
 {
-  setTimer(-1, -1);
   controls.details.artistElement.textContent = playbackStatus.artist || ''; // Artist will contain the post title if all else fails
   controls.details.titleElement.textContent  = playbackStatus.title  || '';
+  setThumbnail(playbackStatus.thumbnailSrc);
+  setTimer(-1, -1);
+}
+
+function setThumbnail(thumbnailSrc)
+{
+  controls.thumbnail.element.classList.add('loading');
+
+  if (thumbnailSrc !== null)
+    controls.thumbnail.img.src = thumbnailSrc;
+  else
+    controls.thumbnail.img.src = '/wp-content/themes/ultrafunk/img/photo_filled_grey.png';
+
+  controls.thumbnail.img.decode().then(() => { controls.thumbnail.element.classList.remove('loading'); });
 }
 
 function setTimer(positionSeconds, durationSeconds)

@@ -12,6 +12,9 @@ export {
 //Classes
   YouTube,
   SoundCloud,
+//Functions
+  setArtistTitle,
+  setArtistTitleFromServer,
 };
 
 
@@ -48,63 +51,40 @@ class MediaPlayer
     this.dataSource = DATA_SOURCE.GET_FROM_POST_TITLE;
     this.artist     = null;
     this.title      = null;
+
+    this.thumbnailSrc       = null;
+    this.thumbnail          = new Image();
+    this.thumbnail.decoding = 'async';
   }
   
-  getPostId()               { return this.postId;           }
-  getIframeId()             { return this.iframeId;         }
-  getUid()                  { return this.iframeId;         }
-  getEmbeddedPlayer()       { return this.embeddedPlayer;   }
+  getPostId()                   { return this.postId;                    }
+  getIframeId()                 { return this.iframeId;                  }
+  getUid()                      { return this.iframeId;                  }
+  getEmbeddedPlayer()           { return this.embeddedPlayer;            }
 
-  setPlayable(playable)     { this.playable = playable;     }
+  setPlayable(playable)         { this.playable = playable;              }
 
-  getDuration()             { return this.duration;         }
-  setDuration(duration)     { this.duration = duration;     }
+  getDuration()                 { return this.duration;                  }
+  setDuration(duration)         { this.duration = duration;              }
 
-  getDataSource()           { return this.dataSource;       }
-  setDataSource(dataSource) { this.dataSource = dataSource; }
+  getDataSource()               { return this.dataSource;                }
+  setDataSource(dataSource)     { this.dataSource = dataSource;          }
 
-  getArtist()               { return this.artist;           }
-  setArtist(artist)         { this.artist = artist;         }
+  getArtist()                   { return this.artist;                    }
+  setArtist(artist)             { this.artist = artist;                  }
 
-  getTitle()                { return this.title;            }
-  setTitle(title)           { this.title = title;           }
+  getTitle()                    { return this.title;                     }
+  setTitle(title)               { this.title = title;                    }
 
-  setArtistTitle(artistTitle)
-  {
-    if ((artistTitle !== null) && (artistTitle.length > 0))
-    {
-      const match = artistTitle.match(artistTitleRegEx);
-        
-      if (match !== null)
-      {
-        this.artist = artistTitle.slice(0, match.index);
-        this.title  = artistTitle.slice(match.index + match[0].length);
-      }
-      else
-      {
-        this.artist = artistTitle;
-      }
-    }
-  }
+  getThumbnailSrc()             { return this.thumbnailSrc;              }
+
+  seekTo(position)              { this.embeddedPlayer.seekTo(position);  }
+  setVolume(volume)             { this.embeddedPlayer.setVolume(volume); }
 
   setArtistTitleFromServer(artistTitle)
   {
-    if (this.dataSource === DATA_SOURCE.GET_FROM_SERVER)
-    {
-      if (artistTitle.match(artistTitleRegEx) !== null)
-        this.setArtistTitle(artistTitle);
-      else
-        this.setArtistTitle(`${this.artist} - ${artistTitle}`);
-
-      this.dataSource = DATA_SOURCE.ISSET_FROM_SERVER;
-      return true;
-    }
-    
-    return false;
+    return setArtistTitleFromServer(this, artistTitle);
   }
-
-  seekTo(position)  { this.embeddedPlayer.seekTo(position);  }
-  setVolume(volume) { this.embeddedPlayer.setVolume(volume); }
 }
 
 
@@ -117,6 +97,12 @@ class YouTube extends MediaPlayer
   constructor(postId, iframeId, embeddedPlayer)
   {
     super(postId, iframeId, embeddedPlayer);
+  }
+
+  setThumbnail(videoId)
+  {
+    this.thumbnailSrc  = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+    this.thumbnail.src = this.thumbnailSrc;
   }
 
   pause() { this.embeddedPlayer.pauseVideo(); }
@@ -163,6 +149,20 @@ class SoundCloud extends MediaPlayer
     this.volume  = DEFAULT.VOLUME_MAX;
   }
 
+  setThumbnail()
+  {
+    this.embeddedPlayer.getCurrentSound(soundObject =>
+    {
+      const thumbnailUrl = (soundObject.artwork_url !== null) ? soundObject.artwork_url : soundObject.user.avatar_url;
+
+      if ((thumbnailUrl !== null) && (thumbnailUrl !== undefined))
+      {
+        this.thumbnailSrc  = thumbnailUrl;
+        this.thumbnail.src = thumbnailUrl;
+      }
+    });
+  }
+
   // Override parent getUid() because SoundCloud provides its own UID
   getUid() { return this.soundId;         }
   pause()  { this.embeddedPlayer.pause(); }
@@ -189,13 +189,13 @@ class SoundCloud extends MediaPlayer
   stop()
   {
     this.embeddedPlayer.pause();
-    this.seekTo(0);
+    super.seekTo(0);
   }
 
   // Override parent because SoundCloud seekTo() needs milliseconds instead of just seconds
   seekTo(positionSeconds)
   {
-    this.embeddedPlayer.seekTo(positionSeconds * 1000);
+    super.seekTo(positionSeconds * 1000);
   }
   
   getVolumeCallback(volumeCallback)
@@ -209,7 +209,7 @@ class SoundCloud extends MediaPlayer
     if (volume !== 0)
       this.volume = volume;
 
-    this.embeddedPlayer.setVolume(volume);
+    super.setVolume(volume);
   }
 
   mute(setMute)
@@ -225,3 +225,43 @@ class SoundCloud extends MediaPlayer
     this.embeddedPlayer.getPosition(positionMilliseconds => positionCallback(positionMilliseconds, this.duration));
   }
 }
+
+
+// ************************************************************************************************
+//
+// ************************************************************************************************
+
+function setArtistTitle(mediaPlayer, artistTitle)
+{
+  if ((artistTitle !== null) && (artistTitle.length > 0))
+  {
+    const match = artistTitle.match(artistTitleRegEx);
+      
+    if (match !== null)
+    {
+      mediaPlayer.artist = artistTitle.slice(0, match.index);
+      mediaPlayer.title  = artistTitle.slice(match.index + match[0].length);
+    }
+    else
+    {
+      mediaPlayer.artist = artistTitle;
+    }
+  }
+}
+
+function setArtistTitleFromServer(mediaPlayer, artistTitle)
+{
+  if (mediaPlayer.dataSource === DATA_SOURCE.GET_FROM_SERVER)
+  {
+    if (artistTitle.match(artistTitleRegEx) !== null)
+      setArtistTitle(mediaPlayer, artistTitle);
+    else
+      setArtistTitle(mediaPlayer, `${mediaPlayer.artist} - ${artistTitle}`);
+
+    mediaPlayer.dataSource = DATA_SOURCE.ISSET_FROM_SERVER;
+    return true;
+  }
+  
+  return false;
+}
+

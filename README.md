@@ -22,18 +22,18 @@ PHP version 7.3 or greater
 
 # Screenshots (might be outdated...)
 
-![ultrafunk-screenshot-01](https://ultrafunk.com/wp-content/themes/ultrafunk/screenshots/screenshot_mobile_11.png)
+![ultrafunk-screenshot-01](https://ultrafunk.com/wp-content/uploads/screenshots/screenshot_mobile_11.png)
 
-![ultrafunk-screenshot-02](https://ultrafunk.com/wp-content/themes/ultrafunk/screenshots/screenshot_mobile_22.png)
+![ultrafunk-screenshot-02](https://ultrafunk.com/wp-content/uploads/screenshots/screenshot_mobile_22.png)
 
-![ultrafunk-screenshot-03](https://ultrafunk.com/wp-content/themes/ultrafunk/screenshots/screenshot_mobile_33.png)
+![ultrafunk-screenshot-03](https://ultrafunk.com/wp-content/uploads/screenshots/screenshot_mobile_33.png)
 
-![ultrafunk-screenshot-04](https://ultrafunk.com/wp-content/themes/ultrafunk/screenshots/screenshot_desktop_11.png)
+![ultrafunk-screenshot-04](https://ultrafunk.com/wp-content/uploads/screenshots/screenshot_desktop_11.png)
 
-![ultrafunk-screenshot-05](https://ultrafunk.com/wp-content/themes/ultrafunk/screenshots/screenshot_desktop_22.png)
+![ultrafunk-screenshot-05](https://ultrafunk.com/wp-content/uploads/screenshots/screenshot_desktop_22.png)
 
-![ultrafunk-screenshot-06](https://ultrafunk.com/wp-content/themes/ultrafunk/screenshots/screenshot_desktop_33.png)
+![ultrafunk-screenshot-06](https://ultrafunk.com/wp-content/uploads/screenshots/screenshot_desktop_33.png)
 
-![ultrafunk-screenshot-07](https://ultrafunk.com/wp-content/themes/ultrafunk/screenshots/screenshot_desktop_44.png)
+![ultrafunk-screenshot-07](https://ultrafunk.com/wp-content/uploads/screenshots/screenshot_desktop_44.png)
 
-![ultrafunk-screenshot-08](https://ultrafunk.com/wp-content/themes/ultrafunk/screenshots/screenshot_desktop_55.png)
+![ultrafunk-screenshot-08](https://ultrafunk.com/wp-content/uploads/screenshots/screenshot_desktop_55.png)
