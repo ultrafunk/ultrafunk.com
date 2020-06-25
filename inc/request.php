@@ -233,19 +233,13 @@ function create_shuffle_transient($request)
 {
   $args = get_posts_args($request);
 
-//console_log($args);
-
   if (null !== $args)
   {
     $posts_array['shuffle'] = $request->params['path'];
     $posts_array['postIds'] = get_posts($args);
 
-  //console_log($posts_array);
-  
     if (true === shuffle($posts_array['postIds']))
     {
-    //console_log($posts_array);
-  
       $transient_name = get_transient_name();
       
       if (empty($transient_name))
@@ -297,8 +291,6 @@ function do_parse_request($do_parse, $wp)
     {
       $paged = shuffle_page_num($request, 9999);
     
-    //console_log($request);
-  
       if (0 !== $paged)
       {
         $transient = false;
@@ -316,10 +308,7 @@ function do_parse_request($do_parse, $wp)
           $transient = get_transient(get_transient_name());
 
           if ((false !== $transient) && ($request->params['path'] !== $transient['shuffle']))
-          {
-          //console_log('transient[shuffle] does not match: (' . $request->params['path'] . ' !== ' . $transient['shuffle'] . ')');
             $transient = false;
-          }
 
           perf_stop('get_rnd_transient');
         }

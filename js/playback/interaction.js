@@ -5,15 +5,15 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.7.9';
-import * as storage     from '../common/storage.js?ver=1.7.9';
-import * as utils       from '../common/utils.js?ver=1.7.9';
-import * as eventLogger from './eventlogger.js?ver=1.7.9';
-import * as playback    from './playback.js?ver=1.7.9';
+import * as debugLogger from '../common/debuglogger.js?ver=1.7.10';
+import * as storage     from '../common/storage.js?ver=1.7.10';
+import * as utils       from '../common/utils.js?ver=1.7.10';
+import * as eventLogger from './eventlogger.js?ver=1.7.10';
+import * as playback    from './playback.js?ver=1.7.10';
 import {
   updateProgressPercent,
   updateAutoPlayState
-} from './playback-controls.js?ver=1.7.9';
+} from './playback-controls.js?ver=1.7.10';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -35,7 +35,7 @@ const moduleConfig = {
 
 const defaultSettings = {
   // Incremental version to check for new properties
-  version:           8,
+  version:           9,
   storageChangeSync: false,
   // User (public) settings
   user: {
@@ -43,6 +43,9 @@ const defaultSettings = {
     autoScroll:            true,
     masterVolume:          100,
     masterMute:            false,
+    autoXFade:             false,
+    autoXFadeSeconds:      10,
+    autoXFadeCurve:        0,
     smoothScrolling:       true,
     autoExitFullscreen:    true,  // Automatically exit fullscreen when a track ends
     animateNowPlayingIcon: true,  // Current track indicator icon CSS pulse animation ON / OFF
@@ -91,6 +94,9 @@ document.addEventListener('DOMContentLoaded', () =>
       autoPlay:             settings.user.autoPlay,
       masterVolume:         settings.user.masterVolume,
       masterMute:           settings.user.masterMute,
+      autoXFade:            settings.user.autoXFade,
+      autoXFadeSeconds:     settings.user.autoXFadeSeconds,
+      autoXFadeCurve:       settings.user.autoXFadeCurve,
       timeRemainingWarning: settings.user.timeRemainingWarning,
       timeRemainingSeconds: settings.user.timeRemainingSeconds,
     });

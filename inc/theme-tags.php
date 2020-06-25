@@ -117,7 +117,7 @@ function nav_progress_controls()
 {
   ?>
   <div id="progress-controls">
-    <div class="seek-control state-disabled" title="Track progress"></div>
+    <div class="seek-control state-disabled" title="Track progress / seek"></div>
     <div class="bar-control state-disabled"></div>
   </div>
   <?php
@@ -128,7 +128,7 @@ function nav_playback_controls()
   ?>
   <div id="playback-controls">
     <div class="details-control state-disabled" title="Current track"><span class="details-artist"></span><br><span class="details-title"></span></div>
-    <div class="thumbnail-control state-disabled" title="Current track"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/img/thumbnail_placeholder.png" alt="" title="Current track"></div>
+    <div class="thumbnail-control state-disabled" title="Current track"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/img/thumbnail_placeholder.png" alt=""></div>
     <div class="timer-control state-disabled" title="Track position &amp; duration"><span class="timer-position"></span><br><span class="timer-duration"></span></div>
     <div class="prev-control state-disabled" title="Previous track / seek (arrow left)"><i class="material-icons">skip_previous</i></div>
     <div class="play-pause-control state-disabled" title="Play / Pause (space)"><i class="material-icons">play_circle_filled</i></div>
@@ -150,7 +150,7 @@ function nav_items($class)
 {
   ?>
   <div class="<?php echo $class; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>">
-    <div class="nav-menu-toggle" title="Toggle menu (m)"><i class="material-icons">menu</i></div>
+    <div class="nav-menu-toggle" title="Toggle menu (c)"><i class="material-icons">menu</i></div>
     <div class="nav-search-toggle" title="Show / Hide search (s)"><i class="material-icons">search</i></div>
   </div>
   <?php

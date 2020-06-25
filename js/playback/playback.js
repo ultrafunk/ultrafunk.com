@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger      from '../common/debuglogger.js?ver=1.7.9';
-import * as mediaPlayer      from './mediaplayer.js?ver=1.7.9';
-import * as controls         from './playback-controls.js?ver=1.7.9';
-import * as eventLogger      from './eventlogger.js?ver=1.7.9';
+import * as debugLogger      from '../common/debuglogger.js?ver=1.7.10';
+import * as mediaPlayer      from './mediaplayer.js?ver=1.7.10';
+import * as controls         from './playback-controls.js?ver=1.7.10';
+import * as eventLogger      from './eventlogger.js?ver=1.7.10';
 
 
 export {
@@ -47,6 +47,9 @@ const moduleConfig = {
 
 const settings = {
   autoPlay:             true,
+  autoXFade:            false,
+  autoXFadeSeconds:     10,
+  autoXFadeCurve:       0,
   masterVolume:         mediaPlayer.DEFAULT.VOLUME_MAX,
   masterMute:           false,
   timeRemainingWarning: true, // Flash Play / Pause button
@@ -83,15 +86,9 @@ function init(callback = null)
   initSoundCloudAPI();
 }
 
-function setObjectProps(source = null, dest = null)
-{
-  if ((source !== null) && (dest !== null))
-    Object.entries(source).forEach(([key, value]) => dest[key] = value);
-}
-
-function setConfig(configProps = null)          { setObjectProps(configProps, moduleConfig);    }
-function setSettings(settingsProps = null)      { setObjectProps(settingsProps, settings);      }
-function setEventHandlers(handlersProps = null) { setObjectProps(handlersProps, eventHandlers); }
+function setConfig(configProps = {})          { Object.assign(moduleConfig, configProps);    }
+function setSettings(settingsProps = {})      { Object.assign(settings, settingsProps);      }
+function setEventHandlers(handlersProps = {}) { Object.assign(eventHandlers, handlersProps); }
 
 function callEventHandler(playbackEvent, eventData = null)
 {
@@ -158,7 +155,7 @@ function getAllEmbeddedPlayers()
       }
 
       mediaPlayer.setArtistTitle(player, entryTitle);
-      players.getMediaPlayers().push(player);
+      players.add(player);
       
       debug.log(player);
     });
@@ -229,25 +226,23 @@ function prevClick(event)
   debug.log(`prevClick() - prevTrack: ${players.getCurrentTrack() - 1} - numTracks: ${players.getNumTracks()} - event: ${((event !== null) ? event.type : 'null')}`);
 
   if (players.getCurrentTrack() > 0)
-    players.currentPlayer.getPositionCallback(prevClickCallback);
-}
-
-function prevClickCallback(positionMilliseconds)
-{
-//debug.log(`prevClickCallback() - positionMilliseconds: ${positionMilliseconds} - currentTrack: ${getCurrentTrack()} - currentPlayer: ${getCurrentPlayer()}`);
-
-  if (positionMilliseconds > 3000)
   {
-    players.currentPlayer.seekTo(0);
-    playbackTimer.updateCallback(0);
-  }
-  else
-  {
-    if (players.getCurrentTrack() > 1)
-      players.currentPlayer.stop();
-    
-    if (players.prevTrack(controls.isPlaying()))
-      controls.updatePrevState(players.getStatus());
+    players.currentPlayer.getPositionCallback((positionMilliseconds) =>
+    {
+      if (positionMilliseconds > 3000)
+      {
+        players.currentPlayer.seekTo(0);
+        playbackTimer.updateCallback(0);
+      }
+      else
+      {
+        if (players.getCurrentTrack() > 1)
+          players.currentPlayer.stop();
+        
+        if (players.prevTrack(controls.isPlaying()))
+          controls.updatePrevState(players.getStatus());
+      }
+    });
   }
 }
 
@@ -390,27 +385,31 @@ const playersState = (() =>
 const players = (() =>
 {
   const mediaPlayers = [];
+  const indexMap     = new Map();
   let playerIndex    = 0;
 
   return {
-    getMediaPlayers()               { return mediaPlayers;                    },
+  // Variables
+    indexMap,
+  // Functions
+    add,
     getPlayerIndex()                { return playerIndex;                     },
     setPlayerIndex(nextPlayerIndex) { playerIndex = nextPlayerIndex;          },
     get currentPlayer()             { return mediaPlayers[playerIndex];       },
     getNumTracks()                  { return mediaPlayers.length;             },
     getCurrentTrack()               { return playerIndex + 1;                 },
-    playerFromUid(uId)              { return mediaPlayers[indexFromUid(uId)]; },
-    trackFromUid(uId)               { return (indexFromUid(uId) + 1);         },
-    indexFromUid,
+    playerFromUid(uId)              { return mediaPlayers[indexMap.get(uId)]; },
+    trackFromUid(uId)               { return (indexMap.get(uId) + 1);         },
     getStatus,
     prevTrack,
     nextTrack,
     jumpToTrack,
   };
   
-  function indexFromUid(uId)
+  function add(player)
   {
-    return mediaPlayers.findIndex(player => player.getUid() === uId);
+    mediaPlayers.push(player);
+    indexMap.set(player.getUid(), mediaPlayers.length - 1);
   }
 
   function getStatus()
@@ -546,10 +545,16 @@ const playbackTimer = (() =>
       updateCallback(0);
       callEventHandler(EVENT.MEDIA_ENDED);
     }
-  
+
     resetTimeRemainingWarning();
   }
   
+  function resetTimeRemainingWarning()
+  {
+    lastPosSeconds = 0;
+    controls.blinkPlayPause(false);
+  }
+
   function update()
   {
     players.currentPlayer.getPositionCallback(updateCallback);
@@ -562,12 +567,6 @@ const playbackTimer = (() =>
     controls.updateProgressPosition(posMilliseconds, durationSeconds);
     controls.setTimer(positionSeconds, durationSeconds);
     updateTimeRemainingWarning(positionSeconds, durationSeconds);
-  }
-  
-  function resetTimeRemainingWarning()
-  {
-    lastPosSeconds = 0;
-    controls.blinkPlayPause(false);
   }
   
   function updateTimeRemainingWarning(positionSeconds, durationSeconds)
@@ -654,7 +653,7 @@ function onYouTubePlayerStateChange(event)
         debug.log('onYouTubePlayerStateChange: PLAYING');
 
         // Call order is important on play events for state handling: Always sync first!
-        playersState.sync(players.indexFromUid(event.target.f.id), playersState.STATE.PLAY);
+        playersState.sync(players.indexMap.get(event.target.f.id), playersState.STATE.PLAY);
         players.currentPlayer.setDuration(Math.round(event.target.getDuration()));
         playbackTimer.start();
 
@@ -665,7 +664,7 @@ function onYouTubePlayerStateChange(event)
 
     case YT.PlayerState.PAUSED: // eslint-disable-line no-undef
       debug.log('onYouTubePlayerStateChange: PAUSED');
-      playersState.sync(players.indexFromUid(event.target.f.id), playersState.STATE.PAUSE);
+      playersState.sync(players.indexMap.get(event.target.f.id), playersState.STATE.PAUSE);
       playbackTimer.stop(false);
       break;
 
@@ -744,7 +743,7 @@ function onSoundCloudPlayerEventPlay(event)
   eventLog.add(eventLogger.SOURCE.SOUNDCLOUD, Date.now(), eventLogger.EVENT.STATE_PLAYING, event.soundId);
 
   // Call order is important on play events for state handling: Always sync first!
-  playersState.sync(players.indexFromUid(event.soundId), playersState.STATE.PLAY);
+  playersState.sync(players.indexMap.get(event.soundId), playersState.STATE.PLAY);
 
   if (settings.masterMute === false)
     players.currentPlayer.setVolume(settings.masterVolume);
@@ -789,7 +788,7 @@ function onSoundCloudPlayerEventPause(event)
       {
         if (positionMilliseconds > 0)
         {
-          playersState.sync(players.indexFromUid(event.soundId), playersState.STATE.PAUSE);
+          playersState.sync(players.indexMap.get(event.soundId), playersState.STATE.PAUSE);
           playbackTimer.stop(false);
         }
       });    
