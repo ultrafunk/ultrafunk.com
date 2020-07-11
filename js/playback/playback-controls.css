@@ -222,18 +222,22 @@ body.single #playback-controls .thumbnail-control {
 
 #playback-controls .shuffle-control.state-disabled a {
   color: var(--playback-ctrl-disabled-color);
+  display: inline-block;
 }
 
 #playback-controls .shuffle-control.state-disabled a:hover {
   color: var(---playback-ctrl-disabled-color);
+  display: inline-block;
 }
 
 #playback-controls .shuffle-control.state-enabled a {
   color: var(--playback-prev-next-color);
+  display: inline-block;
 }
 
 #playback-controls .shuffle-control.state-enabled a:hover {
   color: var(--playback-text-hover-color);
+  display: inline-block;
 }
 
 #playback-controls .mute-control .material-icons {

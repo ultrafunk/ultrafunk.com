@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.7.10';
+import * as debugLogger from '../common/debuglogger.js?ver=1.8.0';
 
 
 export {
@@ -16,6 +16,7 @@ export {
   getCssPropString,
   getCssPropValue,
   matchesMedia,
+  replaceClass,
   getObjectFromKeyValue,
   snackbar,
 };
@@ -90,6 +91,12 @@ function matchesMedia(matchMedia)
   return false;
 }
 
+function replaceClass(element, removeClass, addClass)
+{
+  element.classList.remove(removeClass);
+  element.classList.add(addClass);
+}
+
 function getObjectFromKeyValue(object, key, value, defaultObject)
 {
   const values = Object.values(object);
@@ -120,14 +127,16 @@ const snackbar = (() =>
       <div class="${config.id}-wrapper">
         <div class="${config.id}-message">
         </div>
-        <div class="${config.id}-button">
+        <div class="${config.id}-button-action">
+        </div>
+        <div class="${config.id}-button-close">
           <span class="material-icons" title="Dismiss">close</span>
         </div>
       </div>
     </div>
   `;
 
-  let elements         = { snackbar: null };
+  let elements         = { snackbar: null, buttonAction: null };
   let visibleTimeoutId = -1;
   let fadeTimeoutId    = -1;
   
@@ -135,7 +144,7 @@ const snackbar = (() =>
     show,
   };
   
-  function show(message, timeout = 5, actionClickFunction = null)
+  function show(message, timeout = 5, actionWord = null, actionClickCallback = null)
   {
     debug.log(`snackbar.show(): ${message} (${timeout} sec)`);
   
@@ -151,13 +160,16 @@ const snackbar = (() =>
 
       elements.snackbar.querySelector(`.${config.id}-message`).innerHTML = message;
       elements.snackbar.classList.add('fadein');
-      const actionElement = elements.snackbar.querySelector('.action-text');
+      elements.buttonAction.style.display = 'none';
   
-      if ((actionClickFunction !== null) && (actionElement !== null))
+      if ((actionWord !== null) && (actionClickCallback !== null))
       {
-        actionElement.addEventListener('click', () =>
+        elements.buttonAction.style.display = 'block';
+        elements.buttonAction.textContent   = actionWord;
+
+        elements.buttonAction.addEventListener('click', () =>
         {
-          actionClickFunction();
+          actionClickCallback();
           reset(true);
         });
       }
@@ -183,8 +195,9 @@ const snackbar = (() =>
       if (afterElement !== null)
       {
         afterElement.insertAdjacentHTML('afterend', html);
-        elements.snackbar = document.getElementById(config.id);
-        elements.snackbar.querySelector(`.${config.id}-button`).addEventListener('click', () => reset(true));
+        elements.snackbar     = document.getElementById(config.id);
+        elements.buttonAction = elements.snackbar.querySelector(`.${config.id}-button-action`);
+        elements.snackbar.querySelector(`.${config.id}-button-close`).addEventListener('click', () => reset(true));
       }
       else
       {

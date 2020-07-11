@@ -12,19 +12,19 @@ const DEBUG = false;
 
 
 // ************************************************************************************************
-// 
+// DebugLog parent and child classes
 // ************************************************************************************************
 
 class DebugLog
 {
   constructor(caller = 'unknown')
   {
-    this.caller = padString(caller.toUpperCase(), 11, '.');
+    this.caller = padString(caller.toUpperCase(), 15, '.');
   }
   
-  isDebug()     { return DEBUG;                           }
-  warn(data)    { console.warn(`${this.caller}:`,  data); }
-  error(data)   { console.error(`${this.caller}:`, data); }
+  isDebug()   { return DEBUG;                           }
+  warn(data)  { console.warn(`${this.caller}:`,  data); }
+  error(data) { console.error(`${this.caller}:`, data); }
 }
 
 class DevBuild extends DebugLog
@@ -78,7 +78,7 @@ class ProdBuild extends DebugLog
 
 
 // ************************************************************************************************
-// 
+// DebugLog class support functions
 // ************************************************************************************************
 
 function getInstance(caller)

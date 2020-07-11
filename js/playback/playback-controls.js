@@ -5,6 +5,10 @@
 //
 
 
+import * as debugLogger from '../common/debuglogger.js?ver=1.8.0';
+import { replaceClass } from '../common/utils.js?ver=1.8.0';
+
+
 export {
   init,
   ready,
@@ -23,9 +27,9 @@ export {
 };
 
 
-const settings = {
-  autoPlay: false,
-};
+const debug  = debugLogger.getInstance('playback-controls');
+let config   = {};
+let settings = {};
 
 const STATE = {
   DISABLED: 'state-disabled',
@@ -35,16 +39,17 @@ const STATE = {
 };
 
 const controls = {
-  progressSeek: { element: null, state: STATE.DISABLED, clickCallback: null },
-  progressBar:  { element: null, state: STATE.DISABLED },
-  details:      { element: null, state: STATE.DISABLED, artistElement: null, titleElement: null },
-  thumbnail:    { element: null, state: STATE.DISABLED, img: null },
-  timer:        { element: null, state: STATE.DISABLED, positionElement: null, durationElement: null, positionSeconds: -1, durationSeconds: -1 },
-  prevTrack:    { element: null, state: STATE.DISABLED },
-  playPause:    { element: null, state: STATE.DISABLED, iconElement: null },
-  nextTrack:    { element: null, state: STATE.DISABLED },
-  shuffle:      { element: null, state: STATE.DISABLED },
-  mute:         { element: null, state: STATE.DISABLED, iconElement: null },
+  progressSeek:   { element:  null, state: STATE.DISABLED, clickCallback: null },
+  progressBar:    { element:  null, state: STATE.DISABLED },
+  details:        { element:  null, state: STATE.DISABLED, artistElement: null, titleElement: null },
+  thumbnail:      { element:  null, state: STATE.DISABLED, img: null },
+  timer:          { element:  null, state: STATE.DISABLED, positionElement: null, durationElement: null, positionSeconds: -1, durationSeconds: -1 },
+  prevTrack:      { element:  null, state: STATE.DISABLED },
+  playPause:      { element:  null, state: STATE.DISABLED, iconElement: null },
+  nextTrack:      { element:  null, state: STATE.DISABLED },
+  shuffle:        { element:  null, state: STATE.DISABLED },
+  mute:           { element:  null, state: STATE.DISABLED, iconElement: null },
+  trackCrossfade: { elements: null, clickCallback: null },
 };
 
 
@@ -52,9 +57,12 @@ const controls = {
 // Init and make ready all controls
 // ************************************************************************************************
 
-function init(progressId, controlsId, seekClickCallback)
+function init(playbackConfig, playbackSettings, seekClickCallback, crossfadeClickCallback)
 {
-  const playbackProgress = document.getElementById(progressId);
+  config   = playbackConfig;
+  settings = playbackSettings;
+
+  const playbackProgress = document.getElementById(config.progressControlsId);
 
   if (playbackProgress !== null)
   {
@@ -64,10 +72,10 @@ function init(progressId, controlsId, seekClickCallback)
   }
   else
   {
-    console.error(`playbackControls.init(): Unable to getElementById() for '#${progressId}'`);
+    debug.error(`playbackControls.init(): Unable to getElementById() for '#${config.progressControlsId}'`);
   }
 
-  const playbackControls = document.getElementById(controlsId);
+  const playbackControls = document.getElementById(config.playbackControlsId);
 
   if (playbackControls !== null)
   {
@@ -89,8 +97,13 @@ function init(progressId, controlsId, seekClickCallback)
   }
   else
   {
-    console.error(`playbackControls.init(): Unable to getElementById() for '#${controlsId}'`);
+    debug.error(`playbackControls.init(): Unable to getElementById() for '#${config.playbackControlsId}'`);
   }
+
+  controls.trackCrossfade.elements = document.querySelectorAll(config.entryMetaControlsSelector);
+
+  if (controls.trackCrossfade.elements.length !== 0)
+    controls.trackCrossfade.clickCallback = crossfadeClickCallback;
 }
 
 function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks, isMuted)
@@ -117,12 +130,14 @@ function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks, isMut
   setState(controls.mute, STATE.ENABLED);
   controls.mute.element.addEventListener('click', muteClick);
   updateMuteState(isMuted);
+
+  if (controls.trackCrossfade.elements.length > 1)
+    controls.trackCrossfade.elements.forEach((element) => element.addEventListener('click', trackCrossfadeClick));
 }
 
 function setState(control, state = STATE.DISABLED)
 {
-  control.element.classList.remove(control.state);
-  control.element.classList.add(state);
+  replaceClass(control.element, control.state, state);
   control.state = state;
   
   if (state === STATE.PLAY)
@@ -136,13 +151,13 @@ function setState(control, state = STATE.DISABLED)
 // Progress bar and position seek
 // ************************************************************************************************
 
-function updateProgressPosition(posMilliseconds, durationSeconds)
+function updateProgressPosition(positionMilliseconds, durationSeconds)
 {
   // Prevent division by zero
   if (durationSeconds === 0)
     updateProgressBar(0);
   else
-    updateProgressBar(posMilliseconds / (durationSeconds * 1000));
+    updateProgressBar(positionMilliseconds / (durationSeconds * 1000));
 }
 
 function updateProgressPercent(progressPercent)
@@ -263,11 +278,13 @@ function updatePlayState(playbackStatus)
   setState(controls.playPause, STATE.PAUSE);
   setState(controls.prevTrack, STATE.ENABLED);
   setDetails(playbackStatus);
+  updateTrackCrossfadeState(true, playbackStatus.currentTrack);
 }
 
 function updatePauseState()
 {
   setState(controls.playPause, STATE.PLAY);
+  updateTrackCrossfadeState(false);
 }
 
 function blinkPlayPause(toggleBlink)
@@ -293,22 +310,44 @@ function updateMuteState(isMuted)
   controls.mute.iconElement.textContent = isMuted ? 'volume_off' : 'volume_up';
 }
 
+function trackCrossfadeClick(event)
+{
+  if (isPlaying())
+  {
+    const element = event.target.closest('article').querySelector('iframe');
+
+    if (element !== null)
+      controls.trackCrossfade.clickCallback(element.id);
+  }
+}
+
+function updateTrackCrossfadeState(isPlaying, currentTrack = -1)
+{
+  controls.trackCrossfade.elements.forEach((element, index) =>
+  {
+    if (currentTrack === (index + 1))
+      replaceClass(element, (isPlaying ? STATE.ENABLED : STATE.DISABLED), (isPlaying ? STATE.DISABLED : STATE.ENABLED));
+    else
+      replaceClass(element, (isPlaying ? STATE.DISABLED : STATE.ENABLED), (isPlaying ? STATE.ENABLED : STATE.DISABLED));
+  });
+}
+
 
 // ************************************************************************************************
 //
 // ************************************************************************************************
 
-function updateAutoPlayState(autoPlay)
+function updateAutoPlayState()
 {
-  settings.autoPlay = autoPlay;
-
   if ((isPlaying() === false) && (controls.timer.positionSeconds > 0))
   {
-    setTimerText(controls.timer.positionElement, (autoPlay === true) ? controls.timer.positionSeconds : (controls.timer.durationSeconds - controls.timer.positionSeconds));
+    setTimerText(controls.timer.positionElement, (settings.autoPlay === true) ? controls.timer.positionSeconds : (controls.timer.durationSeconds - controls.timer.positionSeconds));
     setTimerText(controls.timer.durationElement, controls.timer.durationSeconds);
   }
 
-  if (autoPlay)
+  controls.trackCrossfade.elements.forEach(element => (settings.autoPlay ? element.classList.remove('no-autoplay') : element.classList.add('no-autoplay')));
+
+  if (settings.autoPlay)
   {
     controls.progressBar.element.classList.remove('no-autoplay');
     controls.playPause.element.classList.remove('no-autoplay');

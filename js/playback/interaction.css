@@ -8,19 +8,19 @@
 .site-theme-light {
   --snackbar-background-color: #444;
   --snackbar-text-color: #fff;
-  --snackbar-action-color: #4b96ff;
-  --snackbar-action-hover-color: #dd0000;
-  --snackbar-button-color: #999;
-  --snackbar-button-hover-color: #fff;
+  --snackbar-button-action-color: #4b96ff;
+  --snackbar-button-action-hover-color: #dd0000;
+  --snackbar-button-close-color: #999;
+  --snackbar-button-close-hover-color: #fff;
 }
 
 .site-theme-dark {
   --snackbar-background-color: #555;
   --snackbar-text-color: #fff;
-  --snackbar-action-color: #4b96ff;
-  --snackbar-action-hover-color: #dd0000;
-  --snackbar-button-color: #999;
-  --snackbar-button-hover-color: #fff;
+  --snackbar-button-action-color: #4b96ff;
+  --snackbar-button-action-hover-color: #dd0000;
+  --snackbar-button-close-color: #999;
+  --snackbar-button-close-hover-color: #fff;
 }
 
 #snackbar {
@@ -50,28 +50,27 @@
   border-radius: 5px;
 }
 
-#snackbar .action-text {
-  font-weight: 700;
-  cursor: pointer;
-  color: var(--snackbar-action-color);
-  text-decoration: none;
-  border: 3px solid;
-  margin: 0 5px;
-  padding: 0 5px;
-  text-transform: uppercase;
-}
-
-#snackbar .action-text:hover {
-  color: var(--snackbar-action-hover-color);
-  text-decoration: none;
-}
-
 #snackbar .snackbar-message {
   float: left;
 }
 
-#snackbar .snackbar-button {
-  color: var(--snackbar-button-color);
+#snackbar .snackbar-button-action {
+  font-weight: 700;
+  font-size: 25px;
+  cursor: pointer;
+  color: var(--snackbar-button-action-color);
+  text-decoration: none;
+  text-transform: uppercase;
+  margin-left: 22px;
+}
+
+#snackbar .snackbar-button-action:hover {
+  color: var(--snackbar-button-action-hover-color);
+  text-decoration: none;
+}
+
+#snackbar .snackbar-button-close {
+  color: var(--snackbar-button-close-color);
   float: right;
   padding: 0px 0px 0px 22px;
   width: 40px;
@@ -79,12 +78,12 @@
   user-select: none;
 }
 
-#snackbar .snackbar-button .material-icons {
+#snackbar .snackbar-button-close .material-icons {
   font-size: 40px;
 }
 
-#snackbar .snackbar-button:hover {
-  color: var(--snackbar-button-hover-color);
+#snackbar .snackbar-button-close:hover {
+  color: var(--snackbar-button-close-hover-color);
   cursor: pointer;
 }
 
@@ -127,7 +126,7 @@
     margin: 0px 10px;
     padding: 6px 10px 6px 15px;
     font-size: 15px;
-    line-height: 23px;
+    line-height: 22px;
     max-width: 100%;
     width: 100%;
   }
@@ -136,17 +135,19 @@
     padding: 4px 0px;
   }
 
-  #snackbar .action-text {
-    border: 2px solid;
+  #snackbar .snackbar-button-action {
+    font-size: 18px;
+    margin-left: auto;
+    padding-left: 12px;
   }
   
-  #snackbar .snackbar-button {
-    padding: 0px 0px 0px 10px;
+  #snackbar .snackbar-button-close {
+    padding: 0px 0px 0px 12px;
     width: 32px;
     height: 32px;
   }
   
-  #snackbar .snackbar-button .material-icons {
+  #snackbar .snackbar-button-close .material-icons {
     font-size: 32px;
   }
   
@@ -156,7 +157,7 @@
 
   #snackbar .snackbar-wrapper {
     font-size: 14px;
-    line-height: 22px;
+    line-height: 21px;
   }
 
 }

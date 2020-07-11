@@ -5,9 +5,9 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.7.10';
-import * as storage     from './common/storage.js?ver=1.7.10';
-import * as utils       from './common/utils.js?ver=1.7.10';
+import * as debugLogger from './common/debuglogger.js?ver=1.8.0';
+import * as storage     from './common/storage.js?ver=1.8.0';
+import * as utils       from './common/utils.js?ver=1.8.0';
 
 
 const debug  = debugLogger.getInstance('index');
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () =>
   }
 
   resize.setTopMargin();
-  resize.setLastInnerWidth(window.innerWidth);
+//resize.setLastInnerWidth(window.innerWidth);
 });
 
 document.addEventListener('keydown', (event) =>
@@ -122,7 +122,7 @@ function initIndex()
   moduleElements.siteContent       = document.getElementById('site-content');
   moduleElements.siteContentSearch = document.querySelector('#site-content form input.search-field');
 
-  resize.addEventListener();
+//resize.addEventListener();
   scroll.addEventListener();
 
   navSearch.init();
@@ -563,15 +563,16 @@ const navSearch = (() =>
 const resize = (() =>
 {
   let headerHeight   = 0;
-  let lastInnerWidth = 0;
+//let lastInnerWidth = 0;
 
   return {
     getHeaderHeight()             { return headerHeight;         },
-    setLastInnerWidth(innerWidth) { lastInnerWidth = innerWidth; },
-    addEventListener,
+  //setLastInnerWidth(innerWidth) { lastInnerWidth = innerWidth; },
+  //addEventListener,
     setTopMargin,
   };
 
+  /*
   function addEventListener()
   {
     window.addEventListener('resize', () =>
@@ -586,6 +587,7 @@ const resize = (() =>
       }
     });
   }
+  */
   
   function setTopMargin()
   {
@@ -670,8 +672,7 @@ const scroll = (() =>
     if (isScrolledDown === false)
     {
       isScrolledDown = true;
-      moduleElements.siteHeader.classList.remove('sticky-nav-up');
-      moduleElements.siteHeader.classList.add('sticky-nav-down');
+      utils.replaceClass(moduleElements.siteHeader, 'sticky-nav-up', 'sticky-nav-down');
     }
   }
 
@@ -680,8 +681,7 @@ const scroll = (() =>
     if (isScrolledDown === true)
     {
       isScrolledDown = false;
-      moduleElements.siteHeader.classList.remove('sticky-nav-down');
-      moduleElements.siteHeader.classList.add('sticky-nav-up');
+      utils.replaceClass(moduleElements.siteHeader, 'sticky-nav-down', 'sticky-nav-up');
     }
 
     if (navMenu.isRevealed() === true)

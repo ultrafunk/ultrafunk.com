@@ -201,14 +201,13 @@ function embed_iframe_setparams($cached_html, $url, $attr, $post_id)
   {
     $origin      = (true === WP_DEBUG) ? 'https://wordpress.ultrafunk.com' : 'https://ultrafunk.com';
     $cached_html = str_ireplace('<iframe', sprintf('<iframe id="youtube-uid-%s"', uniqid()), $cached_html);
-    /*
-    $cached_html = str_ireplace('www.youtube.com', 'www.youtube-nocookie.com', $cached_html);
-    */
+  //$cached_html = str_ireplace('www.youtube.com', 'www.youtube-nocookie.com', $cached_html);
     $cached_html = str_ireplace('?feature=oembed', sprintf('?feature=oembed&enablejsapi=1&origin=%s', $origin), $cached_html);
   }
   else if (false !== stripos($cached_html, 'soundcloud.com/'))
   {
     $cached_html = str_ireplace('<iframe', sprintf('<iframe id="soundcloud-uid-%s" allow="autoplay"', uniqid()), $cached_html);
+    $cached_html = str_ireplace('?visual=true', '?visual=true&single_active=false', $cached_html);
   }
   
   return $cached_html;

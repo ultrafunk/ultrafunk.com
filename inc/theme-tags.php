@@ -52,7 +52,7 @@ function pre_wp_head()
   <link rel="preload" href="<?php echo $template_uri . '/js/common/storage.js?ver='             . $version; ?>" as="script" crossorigin>
   <link rel="preload" href="<?php echo $template_uri . '/js/common/utils.js?ver='               . $version; ?>" as="script" crossorigin>
   <link rel="preload" href="<?php echo $template_uri . '/js/playback/eventlogger.js?ver='       . $version; ?>" as="script" crossorigin>
-  <link rel="preload" href="<?php echo $template_uri . '/js/playback/mediaplayer.js?ver='       . $version; ?>" as="script" crossorigin>
+  <link rel="preload" href="<?php echo $template_uri . '/js/playback/mediaplayers.js?ver='      . $version; ?>" as="script" crossorigin>
   <link rel="preload" href="<?php echo $template_uri . '/js/playback/playback-controls.js?ver=' . $version; ?>" as="script" crossorigin>
   <link rel="preload" href="<?php echo $template_uri . '/js/playback/playback.js?ver='          . $version; ?>" as="script" crossorigin>
   <?php
@@ -344,9 +344,23 @@ function entry_title()
 function meta_date_author()
 {
   ?>
-  <span class="date-author-long" title="Monthly archive"> <a href="/<?php echo get_the_date('Y/m'); ?>/"><?php echo get_the_date(); ?></a></span>
-  <span class="date-author-short" title="Monthly archive"><a href="/<?php echo get_the_date('Y/m'); ?>/"><?php echo get_the_date('d. M y'); ?></a></span>
+  <div class="entry-meta-date-author">
+    <span class="date-author-long" title="Monthly archive"> <a href="/<?php echo get_the_date('Y/m'); ?>/"><?php echo get_the_date(); ?></a></span>
+    <span class="date-author-short" title="Monthly archive"><a href="/<?php echo get_the_date('Y/m'); ?>/"><?php echo get_the_date('d. M y'); ?></a></span>
+  </div>
   <?php
+}
+
+function meta_controls()
+{
+  if (!is_404() && !is_singular() && ('post' === get_post_type()))
+  {
+    ?>
+    <div class="entry-meta-controls">
+      <div class="crossfade-control state-disabled"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/img/crossfade_icon_01.png" alt="" title="Crossfade to this track"></div>
+    </div>
+    <?php
+  }
 }
 
 function intro_banner()

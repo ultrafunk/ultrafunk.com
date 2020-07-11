@@ -6,7 +6,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.7.10';
+import * as debugLogger from '../common/debuglogger.js?ver=1.8.0';
 
 
 export {
@@ -66,7 +66,7 @@ function isAvailable(storageType)
 
 
 // ************************************************************************************************
-// 
+// get / set local storage key => value pairs
 // ************************************************************************************************
 
 function getValue(keyName, defaultValue = null, setDefault = true)
@@ -98,7 +98,7 @@ function setValue(keyName, keyValue)
 
 
 // ************************************************************************************************
-//
+// Merge and cleanup storage objects on new version
 // ************************************************************************************************
 
 function mergeObjectProps(oldObject, newObject, keyName)

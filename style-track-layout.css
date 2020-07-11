@@ -100,6 +100,26 @@
   line-height: 25px;
 }
 
+.track-layout-2-column .entry-meta-controls .crossfade-control {
+  width: 44px;
+  margin-right: -5px;
+  bottom: -23px;
+}
+
+.track-layout-2-column .entry-meta-controls .crossfade-control img {
+  width: 44px;
+}
+
+.track-layout-3-column .entry-meta-controls .crossfade-control {
+  width: 40px;
+  margin-right: -5px;
+  bottom: -17px;
+}
+
+.track-layout-3-column .entry-meta-controls .crossfade-control img {
+  width: 40px;
+}
+
 .track-layout-2-column figure.wp-block-embed {
   margin: 20px 0 0 0;
 }

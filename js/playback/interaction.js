@@ -5,15 +5,15 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.7.10';
-import * as storage     from '../common/storage.js?ver=1.7.10';
-import * as utils       from '../common/utils.js?ver=1.7.10';
-import * as eventLogger from './eventlogger.js?ver=1.7.10';
-import * as playback    from './playback.js?ver=1.7.10';
+import * as debugLogger from '../common/debuglogger.js?ver=1.8.0';
+import * as storage     from '../common/storage.js?ver=1.8.0';
+import * as utils       from '../common/utils.js?ver=1.8.0';
+import * as eventLogger from './eventlogger.js?ver=1.8.0';
+import * as playback    from './playback.js?ver=1.8.0';
 import {
   updateProgressPercent,
   updateAutoPlayState
-} from './playback-controls.js?ver=1.7.10';
+} from './playback-controls.js?ver=1.8.0';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -25,8 +25,9 @@ let useKeyboardShortcuts = false;
 const moduleConfig = {
   youTubeIframeIdRegEx:    /youtube-uid/i,
   soundCloudIframeIdRegEx: /soundcloud-uid/i,
-  nowPlayingIconSelector:  'h2.entry-title',
+  nowPlayingIconsSelector: 'h2.entry-title',
   autoPlayToggleId:        'footer-autoplay-toggle',
+  footerCrossfadeToggleId: 'footer-crossfade-toggle',
   keyboardShortcuts:       true,
   allowKeyboardShortcuts:  'allowKeyboardShortcuts',
   denyKeyboardShortcuts:   'denyKeyboardShortcuts',
@@ -35,17 +36,22 @@ const moduleConfig = {
 
 const defaultSettings = {
   // Incremental version to check for new properties
-  version:           9,
+  version:           12,
   storageChangeSync: false,
   // User (public) settings
   user: {
+  // Audio settings
     autoPlay:              true,
-    autoScroll:            true,
     masterVolume:          100,
     masterMute:            false,
-    autoXFade:             false,
-    autoXFadeSeconds:      10,
-    autoXFadeCurve:        0,
+    autoCrossfade:         false,
+    autoCrossfadeLength:   20,
+    autoCrossfadeCurve:    0,     // 0 = Equal Power (default), 1 = Linear
+    trackCrossfade:        true,
+    trackCrossfadeLength:  10,
+    trackCrossfadeCurve:   0,     // 0 = Equal Power (default), 1 = Linear
+  // UI settings
+    autoScroll:            true,
     smoothScrolling:       true,
     autoExitFullscreen:    true,  // Automatically exit fullscreen when a track ends
     animateNowPlayingIcon: true,  // Current track indicator icon CSS pulse animation ON / OFF
@@ -69,6 +75,7 @@ const moduleElements = {
   fullscreenChangeTarget: null,
   nowPlayingIcons:        null,
   footerAutoPlayToggle:   null,
+  footerCrossfadeToggle:  null,
 };
 
 
@@ -94,16 +101,19 @@ document.addEventListener('DOMContentLoaded', () =>
       autoPlay:             settings.user.autoPlay,
       masterVolume:         settings.user.masterVolume,
       masterMute:           settings.user.masterMute,
-      autoXFade:            settings.user.autoXFade,
-      autoXFadeSeconds:     settings.user.autoXFadeSeconds,
-      autoXFadeCurve:       settings.user.autoXFadeCurve,
+      autoCrossfade:        settings.user.autoCrossfade,
+      autoCrossfadeLength:  settings.user.autoCrossfadeLength,
+      trackCrossfade:       settings.user.trackCrossfade,
+      trackCrossfadeLength: settings.user.trackCrossfadeLength,
       timeRemainingWarning: settings.user.timeRemainingWarning,
       timeRemainingSeconds: settings.user.timeRemainingSeconds,
     });
 
-    playbackEvents.setHandlers();
+    playbackEvents.addListeners();
     playback.init();
+
     updateAutoPlayDOM(settings.user.autoPlay);
+    updateCrossfadeDOM(settings.user.autoCrossfade);
   }
 });
 
@@ -146,8 +156,9 @@ function initInteraction()
   useKeyboardShortcuts                      = moduleConfig.keyboardShortcuts;
   moduleElements.playbackControls.details   = document.getElementById('playback-controls').querySelector('.details-control');
   moduleElements.playbackControls.thumbnail = document.getElementById('playback-controls').querySelector('.thumbnail-control');
-  moduleElements.nowPlayingIcons            = document.querySelectorAll(moduleConfig.nowPlayingIconSelector);
+  moduleElements.nowPlayingIcons            = document.querySelectorAll(moduleConfig.nowPlayingIconsSelector);
   moduleElements.footerAutoPlayToggle       = document.getElementById(moduleConfig.autoPlayToggleId);
+  moduleElements.footerCrossfadeToggle      = document.getElementById(moduleConfig.footerCrossfadeToggleId);
 
   window.addEventListener('blur',    windowEventBlur);
   window.addEventListener('focus',   windowEventFocus);
@@ -174,10 +185,10 @@ const playbackEvents = (() =>
   return {
     setPlayersCount(numPlayers) { playersCount += numPlayers; },
     isPlaybackReady()           { return isPlaybackReady;     },
-    setHandlers,
+    addListeners,
   };
 
-  function setHandlers()
+  function addListeners()
   {
     playback.setEventHandlers({
       [playback.EVENT.LOADING]:              loading,
@@ -212,17 +223,17 @@ const playbackEvents = (() =>
     moduleElements.playbackControls.details.addEventListener('click', playbackDetailsClick);
     moduleElements.playbackControls.thumbnail.addEventListener('click', playbackDetailsClick);
     moduleElements.footerAutoPlayToggle.addEventListener('click', autoPlayToggle);
+    moduleElements.footerCrossfadeToggle.addEventListener('click', crossfadeToggle);
   }
   
   function mediaPlaying(playbackEvent, eventData)
   {
     debugEvent(playbackEvent, eventData);
   
-    const nowPlayingIcon = document.querySelector(`#${eventData.postId} ${moduleConfig.nowPlayingIconSelector}`);
+    const nowPlayingIcon = document.querySelector(`#${eventData.postId} ${moduleConfig.nowPlayingIconsSelector}`);
   
     resetNowPlayingIcons(nowPlayingIcon);
-    nowPlayingIcon.classList.remove('playing-paused');
-    nowPlayingIcon.classList.add('now-playing-icon');
+    utils.replaceClass(nowPlayingIcon, 'playing-paused', 'now-playing-icon');
 
     if (settings.user.animateNowPlayingIcon)
       nowPlayingIcon.classList.add('playing-animate');
@@ -232,7 +243,7 @@ const playbackEvents = (() =>
   {
     debugEvent(playbackEvent, eventData);
   
-    document.querySelector(`#${eventData.postId} ${moduleConfig.nowPlayingIconSelector}`).classList.add('playing-paused');
+    document.querySelector(`#${eventData.postId} ${moduleConfig.nowPlayingIconsSelector}`).classList.add('playing-paused');
   }
 
   function mediaMuted(playbackEvent, eventData)
@@ -266,7 +277,9 @@ const playbackEvents = (() =>
     debugEvent(playbackEvent, eventData);
   
     mediaEnded();
-    scrollTo.id(eventData.postId, eventData.iframeId);
+
+    if (eventData.scrollToMedia)
+      scrollTo.id(eventData.postId, eventData.iframeId);
   }
   
   function continueAutoplay(playbackEvent)
@@ -292,7 +305,7 @@ const playbackEvents = (() =>
   {
     debugEvent(playbackEvent);
   
-    utils.snackbar.show('Autoplay was blocked, click or tap <span class="action-text">play</span> to continue...', 30, () =>
+    utils.snackbar.show('Autoplay was blocked, click or tap Play to continue...', 30, 'play', () =>
     {
       if (playback.getStatus().isPlaying === false)
         playback.togglePlayPause();
@@ -313,7 +326,7 @@ const playbackEvents = (() =>
   
     if (isPremiumTrack(eventData.postId))
     {
-      utils.snackbar.show('YouTube Premium track, skipping... <span class="action-text">Help</span>', 10, () => { window.location.href = '/channel/premium/'; });
+      utils.snackbar.show('YouTube Premium track, skipping...', 10, 'help',  () => { window.location.href = '/channel/premium/'; });
       playbackEventErrorTryNext(eventData, 5);
     }
     else
@@ -331,7 +344,7 @@ const playbackEvents = (() =>
   
   function debugEvent(playbackEvent = null, eventData = null)
   {
-    if (debug.isDebug && (playbackEvent !== null))
+    if (debug.isDebug() && (playbackEvent !== null))
     {
       debug.log(`playbackEvents.${debug.getObjectKeyForValue(playback.EVENT, playbackEvent)} (${playbackEvent})`);
     
@@ -355,7 +368,8 @@ const playbackEvents = (() =>
     {
       if (eventData.currentTrack < eventData.numTracks)
       {
-        playback.jumpToTrack(eventData.currentTrack + 1, true);
+        // Only supports skipping FORWARD for now...
+        playback.skipToTrack(eventData.currentTrack + 1, true);
       }
       else
       {
@@ -522,59 +536,27 @@ document.addEventListener('keydown', (event) =>
 
       case 'f':
       case 'F':
-        {
-          event.preventDefault();
-
-          if (moduleElements.fullscreenChangeTarget === null)
-            enterFullscreenTrack();
-          else
-            exitFullscreenTrack();
-        }
+        fullscreenToggle(event);
         break;
 
       case 'm':
       case 'M':
         event.preventDefault();
         playback.toggleMute();
-        utils.snackbar.show(settings.user.masterMute ? 'Volume is muted (m to unmute)' : 'Volume is unmuted (m to mute)', 3);
+        utils.snackbar.show(settings.user.masterMute ? 'Volume is muted (<b>m</b> to unmute)' : 'Volume is unmuted (<b>m</b> to mute)', 3);
+        break;
+
+      case 'x':
+      case 'X':
+          crossfadeToggle(event);
         break;
 
       case 'ArrowLeft':
-        {
-          event.preventDefault();
-          exitFullscreenTrack();
-
-          if (event.shiftKey === true)
-          {
-            subPaginationClick(event, navigationVars.prevUrl); // eslint-disable-line no-undef
-          }
-          else
-          {
-            eventLog.add(eventLogger.SOURCE.KEYBOARD, Date.now(), eventLogger.EVENT.KEY_ARROW_LEFT, null);
-
-            if (!doubleTapNavPrev(navigationVars.prevUrl, playback.getStatus())) // eslint-disable-line no-undef
-              playback.prevClick(event);
-          }
-        }
+        arrowLeftKey(event);
         break;
 
       case 'ArrowRight':
-        {
-          event.preventDefault();
-          exitFullscreenTrack();
-
-          if (event.shiftKey === true)
-          {
-            subPaginationClick(event, navigationVars.nextUrl); // eslint-disable-line no-undef
-          }
-          else
-          {
-            eventLog.add(eventLogger.SOURCE.KEYBOARD, Date.now(), eventLogger.EVENT.KEY_ARROW_RIGHT, null);
-
-            if (!doubleTapNavNext(navigationVars.nextUrl, playback.getStatus())) // eslint-disable-line no-undef
-              playback.nextClick(event);
-          }
-        }
+        arrowRightKey(event);
         break;
 
       case 'F12':
@@ -596,6 +578,34 @@ document.addEventListener('keydown', (event) =>
   }
 });
 
+function fullscreenToggle(event)
+{
+  event.preventDefault();
+
+  if (moduleElements.fullscreenChangeTarget === null)
+    enterFullscreenTrack();
+  else
+    exitFullscreenTrack();
+}
+
+function arrowLeftKey(event)
+{
+  event.preventDefault();
+  exitFullscreenTrack();
+
+  if (event.shiftKey === true)
+  {
+    subPaginationClick(event, navigationVars.prevUrl); // eslint-disable-line no-undef
+  }
+  else
+  {
+    eventLog.add(eventLogger.SOURCE.KEYBOARD, Date.now(), eventLogger.EVENT.KEY_ARROW_LEFT, null);
+
+    if (!doubleTapNavPrev(navigationVars.prevUrl, playback.getStatus())) // eslint-disable-line no-undef
+      playback.prevClick(event);
+  }
+}
+
 function doubleTapNavPrev(prevUrl, playbackStatus)
 {
   if (prevUrl !== null)
@@ -613,6 +623,24 @@ function doubleTapNavPrev(prevUrl, playbackStatus)
   }
   
   return false;
+}
+
+function arrowRightKey(event)
+{
+  event.preventDefault();
+  exitFullscreenTrack();
+
+  if (event.shiftKey === true)
+  {
+    subPaginationClick(event, navigationVars.nextUrl); // eslint-disable-line no-undef
+  }
+  else
+  {
+    eventLog.add(eventLogger.SOURCE.KEYBOARD, Date.now(), eventLogger.EVENT.KEY_ARROW_RIGHT, null);
+
+    if (!doubleTapNavNext(navigationVars.nextUrl, playback.getStatus())) // eslint-disable-line no-undef
+      playback.nextClick(event);
+  }
 }
 
 function doubleTapNavNext(nextUrl, playbackStatus)
@@ -668,33 +696,55 @@ function autoPlayToggle(event)
   updateAutoPlayData(settings.user.autoPlay);
 }
 
-function updateAutoPlayData(newAutoPlay)
+function updateAutoPlayData(autoPlay)
 {
-  utils.snackbar.show(newAutoPlay ? 'Autoplay enabled (Shift + F12 to disable)' : 'Autoplay disabled (Shift + F12 to enable)', 5);
-  playback.setSettings({ autoPlay: newAutoPlay });
-  updateAutoPlayDOM(newAutoPlay);
+  utils.snackbar.show(autoPlay ? 'Autoplay enabled (<b>Shift</b> + <b>F12</b> to disable)' : 'Autoplay disabled (<b>Shift</b> + <b>F12</b> to enable)', 5);
+  playback.setSettings({ autoPlay: autoPlay });
+  updateAutoPlayDOM(autoPlay);
 }
 
-function updateAutoPlayDOM(newAutoPlay)
+function updateAutoPlayDOM(autoPlay)
 {
-  debug.log(`updateAutoPlayDOM() - newAutoPlay: ${newAutoPlay}`);
+  debug.log(`updateAutoPlayDOM() - autoPlay: ${autoPlay}`);
 
-  updateAutoPlayState(newAutoPlay);  
+  updateAutoPlayState(autoPlay);  
+  moduleElements.footerAutoPlayToggle.querySelector('.autoplay-on-off').textContent = autoPlay ? 'ON' : 'OFF';
+  moduleElements.nowPlayingIcons.forEach(element => (autoPlay ? element.classList.remove('no-autoplay') : element.classList.add('no-autoplay')));
 
-  if (newAutoPlay)
+  if (autoPlay)
   {
     document.body.classList.remove('blurred');
-    moduleElements.nowPlayingIcons.forEach(element => element.classList.remove('no-autoplay'));
-    moduleElements.footerAutoPlayToggle.querySelector('.autoplay-on-off').textContent = 'ON';
   }
   else
   {
     if ((document.hasFocus() === false) && settings.user.blurFocusBgChange)
       document.body.classList.add('blurred');
-    
-    moduleElements.nowPlayingIcons.forEach(element => element.classList.add('no-autoplay'));
-    moduleElements.footerAutoPlayToggle.querySelector('.autoplay-on-off').textContent = 'OFF';
   }
+}
+
+
+// ************************************************************************************************
+// Crossfade UI toggle and data + DOM update
+// ************************************************************************************************
+
+function crossfadeToggle(event)
+{
+  event.preventDefault();
+  settings.user.autoCrossfade = (settings.user.autoCrossfade === true) ? false : true;
+  updateCrossfadeData(settings.user.autoCrossfade);
+}
+
+function updateCrossfadeData(autoCrossfade)
+{
+  utils.snackbar.show(autoCrossfade ? 'Auto Crossfade enabled (<b>x</b> to disable)' : 'Auto Crossfade disabled (<b>x</b> to enable)', 5);
+  playback.setSettings({ autoCrossfade: autoCrossfade });
+  updateCrossfadeDOM(autoCrossfade);
+}
+
+function updateCrossfadeDOM(autoCrossfade)
+{
+  debug.log(`updateCrossfadeDOM() - autoCrossfade: ${autoCrossfade}`);
+  moduleElements.footerCrossfadeToggle.querySelector('.crossfade-on-off').textContent = autoCrossfade ? 'ON' : 'OFF';
 }
 
 
