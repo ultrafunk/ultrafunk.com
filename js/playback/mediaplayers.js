@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.8.0';
+import * as debugLogger from '../common/debuglogger.js?ver=1.8.1';
 
 
 export {
@@ -407,21 +407,14 @@ const mediaPlayers = ((crossfadePlayers, playTrackCallback) =>
 
 const crossfadePlayers = (() =>
 {
-  let players = {};
-
-  let intervalId = -1;
-  let isFading   = false;
-
-  let fadeOutPlayer = null;
-  let fadeInPlayer  = null;
-
-  let fadeStartVolume  = 0;
-  let fadeStartTime    = 0;
-  let fadeLength       = 0;
-  let fadePosition     = 0;
-
-// Debug only
-  let prevFadePosition = -1.1;
+  let players         = {};
+  let intervalId      = -1;
+  let isFading        = false;
+  let fadeOutPlayer   = null;
+  let fadeInPlayer    = null;
+  let fadeStartVolume = 0;
+  let fadeStartTime   = 0;
+  let fadeLength      = 0;
 
   return {
     setPlayers(mediaPlayers) { players = mediaPlayers; },
@@ -431,11 +424,11 @@ const crossfadePlayers = (() =>
     mute,
   };
 
-  function start(fadeStartSeconds, fadeLengthSeconds, fadeInUid = null)
+  function start(crossfadeStartTime, crossfadeLength, crossfadeCurve = 0, fadeInUid = null)
   {
     if ((isFading === false) && (set(fadeInUid) === true))
     {
-      debug.log(`crossfadePlayers.start() - fadeLength: ${fadeLengthSeconds} - fadeInUid: ${fadeInUid}`);
+      debug.log(`crossfadePlayers.start() - crossfadeLength: ${crossfadeLength - 1} - crossfadeCurve: ${((crossfadeCurve === 0) ? 'Equal Power' : 'Linear')} - fadeInUid: ${fadeInUid}`);
 
       isFading = true;
       fadeInPlayer.setVolume(0);
@@ -445,10 +438,19 @@ const crossfadePlayers = (() =>
       else
         players.jumpToTrack(players.trackFromUid(fadeInUid), true, false);
 
+      fadeStartTime   = crossfadeStartTime + 1;
+      fadeLength      = crossfadeLength - 1;
       fadeStartVolume = settings.masterVolume;
-      fadeStartTime   = fadeStartSeconds;
-      fadeLength      = fadeLengthSeconds;
-      intervalId      = setInterval(linearFade, config.updateTimerInterval);
+
+      // The easy and lazy way to compensate for buffering latency is +1 second...
+      setTimeout(() =>
+      {
+        if (isFading)
+        {
+          const fadeFunction = (crossfadeCurve === 0) ? equalPowerFade : linearFade;
+          intervalId = setInterval(fadeFunction, config.updateCrossfadeInterval);
+        }
+      }, (1000 - config.updateCrossfadeInterval));
     }
   }
 
@@ -487,12 +489,10 @@ const crossfadePlayers = (() =>
         }, 200);
       }
     
-      isFading         = false;
-      fadeStartVolume  = 0;
-      fadeStartTime    = 0;
-      fadeLength       = 0;
-      fadePosition     = 0;
-      prevFadePosition = -1.1;
+      isFading        = false;
+      fadeStartVolume = 0;
+      fadeStartTime   = 0;
+      fadeLength      = 0;
     }
   }
 
@@ -513,34 +513,59 @@ const crossfadePlayers = (() =>
     return false;
   }
 
-  function debugFade(fadeOutVolume, fadeInVolume)
+  function equalPowerFade()
   {
-    if (debug.isDebug() && ((fadePosition - prevFadePosition) >= 0.9))
+    fadeOutPlayer.getPosition((positionMilliseconds) =>
     {
-      debug.log(`crossfadePlayers.fade() - fadeOutVolume: ${fadeOutVolume} - fadeInVolume: ${fadeInVolume} - fadePosition: ${Math.round(fadePosition * 100) / 100}`);
-      prevFadePosition = fadePosition;
-    }
+      // Clamp negative values
+      const position     = ((positionMilliseconds / 1000) - fadeStartTime);
+      const fadePosition = (position >= 0) ? position : 0;
+
+      // Clamp negative values
+      const volume     = fadeStartVolume - (fadeStartVolume * (fadePosition / fadeLength));
+      const fadeVolume = (volume >= 0) ? volume : 0;
+
+      const fadeOutVolume = Math.round(Math.sqrt(fadeStartVolume * fadeVolume));
+      const fadeInVolume  = Math.round(Math.sqrt(fadeStartVolume * (fadeStartVolume - fadeVolume)));
+
+      if ((fadeVolume <= 0) && (fadeInVolume >= fadeStartVolume))
+      {
+        stop();
+      }
+      else
+      {
+        /*
+        if ((fadeOutVolume === 100) || (fadeInVolume === 100))
+          debug.log(`fadePosition: ${fadePosition.toFixed(3)} - fadeVolume: ${fadeVolume.toFixed(3)} - fadeOutVolume: ${fadeOutVolume} - fadeInVolume: ${fadeInVolume}`);
+        */
+
+        fadeOutPlayer.setVolume(fadeOutVolume);
+        fadeInPlayer.setVolume(fadeInVolume);
+      }
+    });
   }
 
   function linearFade()
   {
     fadeOutPlayer.getPosition((positionMilliseconds) =>
     {
-      fadePosition = ((positionMilliseconds / 1000) - fadeStartTime);
+      const fadePosition  = ((positionMilliseconds / 1000) - fadeStartTime);
+      const fadeInVolume  = Math.round(fadeStartVolume * (fadePosition / fadeLength));
+      const fadeOutVolume = fadeStartVolume - fadeInVolume;
 
-      const currentFadeInVolume  = Math.round(fadeStartVolume * (fadePosition / fadeLength));
-      const currentFadeOutVolume = fadeStartVolume - currentFadeInVolume;
-  
-      debugFade(currentFadeOutVolume, currentFadeInVolume);
-  
-      if ((currentFadeOutVolume < 0) && (currentFadeInVolume > fadeStartVolume))
+      if ((fadeOutVolume < 0) && (fadeInVolume > fadeStartVolume))
       {
         stop();
       }
       else
       {
-        fadeOutPlayer.setVolume(currentFadeOutVolume);
-        fadeInPlayer.setVolume(currentFadeInVolume);
+        /*
+        if ((fadeOutVolume === 100) || (fadeInVolume === 100))
+          debug.log(`fadePosition: ${fadePosition.toFixed(3)} - fadeInVolume: ${fadeInVolume} - fadeOutVolume: ${fadeOutVolume}`);
+        */
+
+        fadeOutPlayer.setVolume(fadeOutVolume);
+        fadeInPlayer.setVolume(fadeInVolume);
       }
     });
   }

@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger  from '../common/debuglogger.js?ver=1.8.0';
-import * as mediaPlayers from './mediaplayers.js?ver=1.8.0';
-import * as controls     from './playback-controls.js?ver=1.8.0';
-import * as eventLogger  from './eventlogger.js?ver=1.8.0';
+import * as debugLogger  from '../common/debuglogger.js?ver=1.8.1';
+import * as mediaPlayers from './mediaplayers.js?ver=1.8.1';
+import * as controls     from './playback-controls.js?ver=1.8.1';
+import * as eventLogger  from './eventlogger.js?ver=1.8.1';
 
 
 export {
@@ -44,7 +44,8 @@ const moduleConfig = {
   progressControlsId:        'progress-controls',
   playbackControlsId:        'playback-controls',
   entryMetaControlsSelector: '.entry-meta-controls .crossfade-control',
-  updateTimerInterval:       200,  // Milliseconds between each timer event
+  updateTimerInterval:       200, // Milliseconds between each timer event
+  updateCrossfadeInterval:    50, // Milliseconds between each crossfade event
 };
 
 const settings = {
@@ -305,10 +306,10 @@ function trackCrossfadeClick(fadeInIframeId)
         const timeRemaining   = players.current.getDuration() - positionSeconds;
 
         // Check for shortest "allowed" fade time
-        if (timeRemaining >= 5)
+        if (timeRemaining >= 6)
         {
           const fadeLength = (timeRemaining > settings.trackCrossfadeLength) ? settings.trackCrossfadeLength : timeRemaining;
-          players.crossfade.start(positionSeconds, fadeLength, fadeInUid);
+          players.crossfade.start(positionSeconds, fadeLength, settings.trackCrossfadeCurve, fadeInUid);
         }
       });
     }
@@ -499,7 +500,7 @@ const playbackTimer = (() =>
       if ((durationSeconds - positionSeconds) === settings.autoCrossfadeLength)
       {
         if ((players.getCurrentTrack() + 1) <= players.getNumTracks())
-          players.crossfade.start((positionMilliseconds / 1000), settings.autoCrossfadeLength);
+          players.crossfade.start((positionMilliseconds / 1000), settings.autoCrossfadeLength, settings.autoCrossfadeCurve);
       }
     }
   }

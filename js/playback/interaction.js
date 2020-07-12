@@ -5,15 +5,15 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.8.0';
-import * as storage     from '../common/storage.js?ver=1.8.0';
-import * as utils       from '../common/utils.js?ver=1.8.0';
-import * as eventLogger from './eventlogger.js?ver=1.8.0';
-import * as playback    from './playback.js?ver=1.8.0';
+import * as debugLogger from '../common/debuglogger.js?ver=1.8.1';
+import * as storage     from '../common/storage.js?ver=1.8.1';
+import * as utils       from '../common/utils.js?ver=1.8.1';
+import * as eventLogger from './eventlogger.js?ver=1.8.1';
+import * as playback    from './playback.js?ver=1.8.1';
 import {
   updateProgressPercent,
   updateAutoPlayState
-} from './playback-controls.js?ver=1.8.0';
+} from './playback-controls.js?ver=1.8.1';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -45,10 +45,10 @@ const defaultSettings = {
     masterVolume:          100,
     masterMute:            false,
     autoCrossfade:         false,
-    autoCrossfadeLength:   20,
+    autoCrossfadeLength:   16,    // 16 === 15 seconds fade time, +1 to compensate for buffering latency
     autoCrossfadeCurve:    0,     // 0 = Equal Power (default), 1 = Linear
     trackCrossfade:        true,
-    trackCrossfadeLength:  10,
+    trackCrossfadeLength:  11,    // 11 === 10 seconds fade time, +1 to compensate for buffering latency
     trackCrossfadeCurve:   0,     // 0 = Equal Power (default), 1 = Linear
   // UI settings
     autoScroll:            true,

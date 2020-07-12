@@ -5,8 +5,8 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.8.0';
-import { replaceClass } from '../common/utils.js?ver=1.8.0';
+import * as debugLogger from '../common/debuglogger.js?ver=1.8.1';
+import { replaceClass } from '../common/utils.js?ver=1.8.1';
 
 
 export {
