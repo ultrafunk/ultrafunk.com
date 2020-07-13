@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger  from '../common/debuglogger.js?ver=1.8.1';
-import * as mediaPlayers from './mediaplayers.js?ver=1.8.1';
-import * as controls     from './playback-controls.js?ver=1.8.1';
-import * as eventLogger  from './eventlogger.js?ver=1.8.1';
+import * as debugLogger  from '../common/debuglogger.js?ver=1.8.2';
+import * as mediaPlayers from './mediaplayers.js?ver=1.8.2';
+import * as controls     from './playback-controls.js?ver=1.8.2';
+import * as eventLogger  from './eventlogger.js?ver=1.8.2';
 
 
 export {
@@ -641,6 +641,10 @@ function onYouTubePlayerStateChange(event)
           playbackTimer.stop(true);
           nextClick(null);
         }
+        else
+        {
+          players.crossfade.stop();
+        }
       }
       break;
 
@@ -779,6 +783,10 @@ function onSoundCloudPlayerEventFinish(event)
   {
     playbackTimer.stop(true);
     nextClick(null);
+  }
+  else
+  {
+    players.crossfade.stop();
   }
 }
 

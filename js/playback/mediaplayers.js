@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.8.1';
+import * as debugLogger from '../common/debuglogger.js?ver=1.8.2';
 
 
 export {
@@ -439,7 +439,7 @@ const crossfadePlayers = (() =>
         players.jumpToTrack(players.trackFromUid(fadeInUid), true, false);
 
       fadeStartTime   = crossfadeStartTime + 1;
-      fadeLength      = crossfadeLength - 1;
+      fadeLength      = crossfadeLength - 1 - (config.updateCrossfadeInterval / 1000);
       fadeStartVolume = settings.masterVolume;
 
       // The easy and lazy way to compensate for buffering latency is +1 second...
@@ -528,7 +528,7 @@ const crossfadePlayers = (() =>
       const fadeOutVolume = Math.round(Math.sqrt(fadeStartVolume * fadeVolume));
       const fadeInVolume  = Math.round(Math.sqrt(fadeStartVolume * (fadeStartVolume - fadeVolume)));
 
-      if ((fadeVolume <= 0) && (fadeInVolume >= fadeStartVolume))
+      if ((fadePosition >= fadeLength) && (fadeVolume <= 0) && (fadeInVolume >= fadeStartVolume))
       {
         stop();
       }
@@ -553,7 +553,7 @@ const crossfadePlayers = (() =>
       const fadeInVolume  = Math.round(fadeStartVolume * (fadePosition / fadeLength));
       const fadeOutVolume = fadeStartVolume - fadeInVolume;
 
-      if ((fadeOutVolume < 0) && (fadeInVolume > fadeStartVolume))
+      if ((fadePosition > fadeLength) && (fadeOutVolume < 0) && (fadeInVolume > fadeStartVolume))
       {
         stop();
       }

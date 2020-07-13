@@ -5,15 +5,15 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.8.1';
-import * as storage     from '../common/storage.js?ver=1.8.1';
-import * as utils       from '../common/utils.js?ver=1.8.1';
-import * as eventLogger from './eventlogger.js?ver=1.8.1';
-import * as playback    from './playback.js?ver=1.8.1';
+import * as debugLogger from '../common/debuglogger.js?ver=1.8.2';
+import * as storage     from '../common/storage.js?ver=1.8.2';
+import * as utils       from '../common/utils.js?ver=1.8.2';
+import * as eventLogger from './eventlogger.js?ver=1.8.2';
+import * as playback    from './playback.js?ver=1.8.2';
 import {
   updateProgressPercent,
   updateAutoPlayState
-} from './playback-controls.js?ver=1.8.1';
+} from './playback-controls.js?ver=1.8.2';
 
 
 const debug              = debugLogger.getInstance('interaction');
