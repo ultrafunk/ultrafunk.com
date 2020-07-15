@@ -8,19 +8,19 @@
 .site-theme-light {
   --snackbar-background-color: #444;
   --snackbar-text-color: #fff;
-  --snackbar-button-action-color: #4b96ff;
-  --snackbar-button-action-hover-color: #dd0000;
-  --snackbar-button-close-color: #999;
-  --snackbar-button-close-hover-color: #fff;
+  --snackbar-action-button-color: #4b96ff;
+  --snackbar-action-button-hover-color: #dd0000;
+  --snackbar-close-button-color: #999;
+  --snackbar-close-button-hover-color: #fff;
 }
 
 .site-theme-dark {
   --snackbar-background-color: #555;
   --snackbar-text-color: #fff;
-  --snackbar-button-action-color: #4b96ff;
-  --snackbar-button-action-hover-color: #dd0000;
-  --snackbar-button-close-color: #999;
-  --snackbar-button-close-hover-color: #fff;
+  --snackbar-action-button-color: #4b96ff;
+  --snackbar-action-button-hover-color: #dd0000;
+  --snackbar-close-button-color: #999;
+  --snackbar-close-button-hover-color: #fff;
 }
 
 #snackbar {
@@ -54,23 +54,23 @@
   float: left;
 }
 
-#snackbar .snackbar-button-action {
+#snackbar .snackbar-action-button {
   font-weight: 700;
   font-size: 25px;
   cursor: pointer;
-  color: var(--snackbar-button-action-color);
+  color: var(--snackbar-action-button-color);
   text-decoration: none;
   text-transform: uppercase;
   margin-left: 22px;
 }
 
-#snackbar .snackbar-button-action:hover {
-  color: var(--snackbar-button-action-hover-color);
+#snackbar .snackbar-action-button:hover {
+  color: var(--snackbar-action-button-hover-color);
   text-decoration: none;
 }
 
-#snackbar .snackbar-button-close {
-  color: var(--snackbar-button-close-color);
+#snackbar .snackbar-close-button {
+  color: var(--snackbar-close-button-color);
   float: right;
   padding: 0px 0px 0px 22px;
   width: 40px;
@@ -78,12 +78,12 @@
   user-select: none;
 }
 
-#snackbar .snackbar-button-close .material-icons {
+#snackbar .snackbar-close-button .material-icons {
   font-size: 40px;
 }
 
-#snackbar .snackbar-button-close:hover {
-  color: var(--snackbar-button-close-hover-color);
+#snackbar .snackbar-close-button:hover {
+  color: var(--snackbar-close-button-hover-color);
   cursor: pointer;
 }
 
@@ -135,19 +135,19 @@
     padding: 4px 0px;
   }
 
-  #snackbar .snackbar-button-action {
+  #snackbar .snackbar-action-button {
     font-size: 18px;
     margin-left: auto;
     padding-left: 12px;
   }
   
-  #snackbar .snackbar-button-close {
+  #snackbar .snackbar-close-button {
     padding: 0px 0px 0px 12px;
     width: 32px;
     height: 32px;
   }
   
-  #snackbar .snackbar-button-close .material-icons {
+  #snackbar .snackbar-close-button .material-icons {
     font-size: 32px;
   }
   

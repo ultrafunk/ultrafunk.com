@@ -4,7 +4,7 @@ Theme URI: https://github.com/ultrafunk/ultrafunk.com
 Author: Ultrafunk
 Author URI: https://ultrafunk.com
 Description: ultrafunk.com WordPress theme
-Version: 1.8.2
+Version: 1.8.3
 License: Apache License 2.0
 License URI: https://www.apache.org/licenses/LICENSE-2.0
 Text Domain: ultrafunk
@@ -569,6 +569,12 @@ a:hover#footer-track-layout-toggle {
 body.no-playback-controls #footer-autoplay-toggle,
 body.no-playback-controls #footer-crossfade-toggle {
   display: none;
+}
+
+#footer-crossfade-toggle.disabled {
+  opacity: 0.25;
+  pointer-events: none;
+  cursor: default;
 }
 
 

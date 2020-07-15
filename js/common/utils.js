@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.8.2';
+import * as debugLogger from '../common/debuglogger.js?ver=1.8.3';
 
 
 export {
@@ -127,24 +127,25 @@ const snackbar = (() =>
       <div class="${config.id}-wrapper">
         <div class="${config.id}-message">
         </div>
-        <div class="${config.id}-button-action">
+        <div class="${config.id}-action-button">
         </div>
-        <div class="${config.id}-button-close">
+        <div class="${config.id}-close-button">
           <span class="material-icons" title="Dismiss">close</span>
         </div>
       </div>
     </div>
   `;
 
-  let elements         = { snackbar: null, buttonAction: null };
-  let visibleTimeoutId = -1;
-  let fadeTimeoutId    = -1;
+  let elements             = { snackbar: null, actionButton: null };
+  let actionButtonCallback = null;
+  let visibleTimeoutId     = -1;
+  let fadeTimeoutId        = -1;
   
   return {
     show,
   };
   
-  function show(message, timeout = 5, actionWord = null, actionClickCallback = null)
+  function show(message, timeout = 5, actionText = null, actionClickCallback = null)
   {
     debug.log(`snackbar.show(): ${message} (${timeout} sec)`);
   
@@ -160,18 +161,14 @@ const snackbar = (() =>
 
       elements.snackbar.querySelector(`.${config.id}-message`).innerHTML = message;
       elements.snackbar.classList.add('fadein');
-      elements.buttonAction.style.display = 'none';
+      elements.actionButton.style.display = 'none';
   
-      if ((actionWord !== null) && (actionClickCallback !== null))
+      if ((actionText !== null) && (actionClickCallback !== null))
       {
-        elements.buttonAction.style.display = 'block';
-        elements.buttonAction.textContent   = actionWord;
-
-        elements.buttonAction.addEventListener('click', () =>
-        {
-          actionClickCallback();
-          reset(true);
-        });
+        actionButtonCallback = actionClickCallback;
+        elements.actionButton.style.display = 'block';
+        elements.actionButton.textContent   = actionText;
+        elements.actionButton.addEventListener('click', actionButtonClick);
       }
       
       if (timeout !== 0)
@@ -186,6 +183,12 @@ const snackbar = (() =>
     }
   }
 
+  function actionButtonClick()
+  {
+    actionButtonCallback();
+    reset(true);
+  }
+
   function init()
   {
     if (elements.snackbar === null)
@@ -196,8 +199,8 @@ const snackbar = (() =>
       {
         afterElement.insertAdjacentHTML('afterend', html);
         elements.snackbar     = document.getElementById(config.id);
-        elements.buttonAction = elements.snackbar.querySelector(`.${config.id}-button-action`);
-        elements.snackbar.querySelector(`.${config.id}-button-close`).addEventListener('click', () => reset(true));
+        elements.actionButton = elements.snackbar.querySelector(`.${config.id}-action-button`);
+        elements.snackbar.querySelector(`.${config.id}-close-button`).addEventListener('click', () => reset(true));
       }
       else
       {

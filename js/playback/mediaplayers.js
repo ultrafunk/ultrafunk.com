@@ -1,11 +1,11 @@
 //
-// Embedded media player classes
+// Embedded media player classes, support modules and related functions
 //
 // https://ultrafunk.com
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.8.2';
+import * as debugLogger from '../common/debuglogger.js?ver=1.8.3';
 
 
 export {
@@ -428,7 +428,7 @@ const crossfadePlayers = (() =>
   {
     if ((isFading === false) && (set(fadeInUid) === true))
     {
-      debug.log(`crossfadePlayers.start() - crossfadeLength: ${crossfadeLength - 1} - crossfadeCurve: ${((crossfadeCurve === 0) ? 'Equal Power' : 'Linear')} - fadeInUid: ${fadeInUid}`);
+      debug.log(`crossfadePlayers.start() - crossfadeLength: ${crossfadeLength - 1} - crossfadeCurve: ${((crossfadeCurve === 0) ? 'EqualPower (0)' : 'Linear (1)')} - fadeInUid: ${fadeInUid}`);
 
       isFading = true;
       fadeInPlayer.setVolume(0);

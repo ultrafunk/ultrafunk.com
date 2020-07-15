@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger  from '../common/debuglogger.js?ver=1.8.2';
-import * as mediaPlayers from './mediaplayers.js?ver=1.8.2';
-import * as controls     from './playback-controls.js?ver=1.8.2';
-import * as eventLogger  from './eventlogger.js?ver=1.8.2';
+import * as debugLogger  from '../common/debuglogger.js?ver=1.8.3';
+import * as mediaPlayers from './mediaplayers.js?ver=1.8.3';
+import * as controls     from './playback-controls.js?ver=1.8.3';
+import * as eventLogger  from './eventlogger.js?ver=1.8.3';
 
 
 export {
@@ -45,7 +45,7 @@ const moduleConfig = {
   playbackControlsId:        'playback-controls',
   entryMetaControlsSelector: '.entry-meta-controls .crossfade-control',
   updateTimerInterval:       200, // Milliseconds between each timer event
-  updateCrossfadeInterval:    50, // Milliseconds between each crossfade event
+  updateCrossfadeInterval:   50,  // Milliseconds between each crossfade event
 };
 
 const settings = {
@@ -53,10 +53,10 @@ const settings = {
   masterVolume:         mediaPlayers.DEFAULT.VOLUME_MAX,
   masterMute:           false,
   autoCrossfade:        false,
-  autoCrossfadeLength:  20,
-  autoCrossfadeCurve:   0,
+  autoCrossfadeLength:  16,
+  autoCrossfadeCurve:   1,
   trackCrossfade:       true,
-  trackCrossfadeLength: 10,
+  trackCrossfadeLength: 9,
   trackCrossfadeCurve:  0,
   timeRemainingWarning: true, // Flash Play / Pause button
   timeRemainingSeconds: 30,   // Seconds left when warning is shown
@@ -389,20 +389,17 @@ const playersState = (() =>
     }
     else
     {
-      if (nextPlayerIndex !== -1)
-      {
-        const prevPlayerIndex = players.getPlayerIndex();
-        
-        players.stop();
-        players.setPlayerIndex(nextPlayerIndex);
-  
-        if (nextPlayerIndex > prevPlayerIndex)
-          controls.updateNextState(players.getStatus());
-        else
-          controls.updatePrevState(players.getStatus());
-        
-        syncRecursive(nextPlayerIndex, syncState);
-      }
+      const prevPlayerIndex = players.getPlayerIndex();
+      
+      players.stop();
+      players.setPlayerIndex(nextPlayerIndex);
+
+      if (nextPlayerIndex > prevPlayerIndex)
+        controls.updateNextState(players.getStatus());
+      else
+        controls.updatePrevState(players.getStatus());
+      
+      syncRecursive(nextPlayerIndex, syncState);
     }
   };
 

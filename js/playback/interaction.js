@@ -5,15 +5,15 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.8.2';
-import * as storage     from '../common/storage.js?ver=1.8.2';
-import * as utils       from '../common/utils.js?ver=1.8.2';
-import * as eventLogger from './eventlogger.js?ver=1.8.2';
-import * as playback    from './playback.js?ver=1.8.2';
+import * as debugLogger from '../common/debuglogger.js?ver=1.8.3';
+import * as storage     from '../common/storage.js?ver=1.8.3';
+import * as utils       from '../common/utils.js?ver=1.8.3';
+import * as eventLogger from './eventlogger.js?ver=1.8.3';
+import * as playback    from './playback.js?ver=1.8.3';
 import {
   updateProgressPercent,
   updateAutoPlayState
-} from './playback-controls.js?ver=1.8.2';
+} from './playback-controls.js?ver=1.8.3';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -36,7 +36,7 @@ const moduleConfig = {
 
 const defaultSettings = {
   // Incremental version to check for new properties
-  version:           12,
+  version:           13,
   storageChangeSync: false,
   // User (public) settings
   user: {
@@ -46,9 +46,9 @@ const defaultSettings = {
     masterMute:            false,
     autoCrossfade:         false,
     autoCrossfadeLength:   16,    // 16 === 15 seconds fade time, +1 to compensate for buffering latency
-    autoCrossfadeCurve:    0,     // 0 = Equal Power (default), 1 = Linear
+    autoCrossfadeCurve:    1,     // 0 = Equal Power (default), 1 = Linear
     trackCrossfade:        true,
-    trackCrossfadeLength:  11,    // 11 === 10 seconds fade time, +1 to compensate for buffering latency
+    trackCrossfadeLength:  9,     // 9 === 8 seconds fade time, +1 to compensate for buffering latency
     trackCrossfadeCurve:   0,     // 0 = Equal Power (default), 1 = Linear
   // UI settings
     autoScroll:            true,
@@ -66,6 +66,7 @@ const defaultSettings = {
     showLeftArrowHint:  true,
     showRightArrowHint: true,
     showDetailsHint:    true,
+    showCoverImageHint: true,
   },
 };
 
@@ -326,7 +327,7 @@ const playbackEvents = (() =>
   
     if (isPremiumTrack(eventData.postId))
     {
-      utils.snackbar.show('YouTube Premium track, skipping...', 10, 'help',  () => { window.location.href = '/channel/premium/'; });
+      utils.snackbar.show('YouTube Premium track, skipping...', 6, 'help',  () => { window.location.href = '/channel/premium/'; });
       playbackEventErrorTryNext(eventData, 5);
     }
     else
@@ -481,7 +482,11 @@ function playbackDetailsClick(event)
 {
   showCurrentTrack(event);
   eventLog.add(eventLogger.SOURCE.MOUSE, Date.now(), eventLogger.EVENT.MOUSE_CLICK, null);
-  showInteractionHint('showDetailsHint', '<b>Tip:</b> Double click or double tap on Artist &amp; Title for full screen track');
+
+  if (event.target.tagName.toLowerCase() === 'img')
+    showInteractionHint('showCoverImageHint', '<b>Tip:</b> Double click or double tap on the Track Image for full screen track');
+  else
+    showInteractionHint('showDetailsHint', '<b>Tip:</b> Double click or double tap on Artist &amp; Title for full screen track');
 
   if (eventLog.doubleClicked(eventLogger.SOURCE.MOUSE, eventLogger.EVENT.MOUSE_CLICK, moduleConfig.doubleClickDelay))
     enterFullscreenTrack();
@@ -710,6 +715,7 @@ function updateAutoPlayDOM(autoPlay)
   updateAutoPlayState(autoPlay);  
   moduleElements.footerAutoPlayToggle.querySelector('.autoplay-on-off').textContent = autoPlay ? 'ON' : 'OFF';
   moduleElements.nowPlayingIcons.forEach(element => (autoPlay ? element.classList.remove('no-autoplay') : element.classList.add('no-autoplay')));
+  autoPlay ? moduleElements.footerCrossfadeToggle.classList.remove('disabled') : moduleElements.footerCrossfadeToggle.classList.add('disabled');
 
   if (autoPlay)
   {

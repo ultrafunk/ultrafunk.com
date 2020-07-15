@@ -5,9 +5,9 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.8.2';
-import * as storage     from './common/storage.js?ver=1.8.2';
-import * as utils       from './common/utils.js?ver=1.8.2';
+import * as debugLogger from './common/debuglogger.js?ver=1.8.3';
+import * as storage     from './common/storage.js?ver=1.8.3';
+import * as utils       from './common/utils.js?ver=1.8.3';
 
 
 const debug  = debugLogger.getInstance('index');
@@ -22,7 +22,7 @@ const moduleConfig = {
 
 const defaultSettings = {
   // Incremental version to check for new properties
-  version:           3,
+  version:           4,
   storageChangeSync: false,
   // User (public) settings
   user: {
@@ -34,6 +34,7 @@ const defaultSettings = {
     banners: {
       showFrontpageIntro: true,
       showPremiumIntro:   true,
+      showPromoIntro:     true,
     },
   },
 };

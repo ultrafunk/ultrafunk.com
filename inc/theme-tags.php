@@ -128,7 +128,7 @@ function nav_playback_controls()
   ?>
   <div id="playback-controls">
     <div class="details-control state-disabled" title="Current track"><span class="details-artist"></span><br><span class="details-title"></span></div>
-    <div class="thumbnail-control state-disabled" title="Current track"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/img/thumbnail_placeholder.png" alt=""></div>
+    <div class="thumbnail-control state-disabled" title="Current track Cover image"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/img/thumbnail_placeholder.png" alt=""></div>
     <div class="timer-control state-disabled" title="Track position &amp; duration"><span class="timer-position"></span><br><span class="timer-duration"></span></div>
     <div class="prev-control state-disabled" title="Previous track / seek (arrow left)"><i class="material-icons">skip_previous</i></div>
     <div class="play-pause-control state-disabled" title="Play / Pause (space)"><i class="material-icons">play_circle_filled</i></div>
@@ -383,7 +383,14 @@ function intro_banner()
     $content  = apply_filters('the_content', wp_kses_post($post->post_content)); // phpcs:ignore WPThemeReview.CoreFunctionality.PrefixAllGlobals.NonPrefixedHooknameFound
     $display  = true;
   }
-  
+  else if (is_category('promo') && have_posts() && !is_paged())
+  {
+    $property = 'showPromoIntro';
+    $post     = get_post((true === WP_DEBUG) ? 2385 : 2717);
+    $content  = apply_filters('the_content', wp_kses_post($post->post_content)); // phpcs:ignore WPThemeReview.CoreFunctionality.PrefixAllGlobals.NonPrefixedHooknameFound
+    $display  = true;
+  }
+
   if (true === $display)
   {
     ?>
