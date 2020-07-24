@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.8.3';
+import * as debugLogger from '../common/debuglogger.js?ver=1.9.0';
 
 
 export {
@@ -345,10 +345,10 @@ const mediaPlayers = ((crossfadePlayers, playTrackCallback) =>
     crossfade.stop();
   }
   
-  function mute(setMute)
+  function mute()
   {
-    this.current.mute(setMute);
-    crossfade.mute(setMute);
+    this.current.mute(settings.masterMute);
+    crossfade.mute(settings.masterMute);
   }
 
   function getStatus()
@@ -428,7 +428,7 @@ const crossfadePlayers = (() =>
   {
     if ((isFading === false) && (set(fadeInUid) === true))
     {
-      debug.log(`crossfadePlayers.start() - crossfadeLength: ${crossfadeLength - 1} - crossfadeCurve: ${((crossfadeCurve === 0) ? 'EqualPower (0)' : 'Linear (1)')} - fadeInUid: ${fadeInUid}`);
+      debug.log(`crossfadePlayers.start() - crossfadeLength: ${crossfadeLength} - crossfadeCurve: ${((crossfadeCurve === 0) ? 'EqualPower (0)' : 'Linear (1)')} - fadeInUid: ${fadeInUid}`);
 
       isFading = true;
       fadeInPlayer.setVolume(0);
@@ -438,8 +438,8 @@ const crossfadePlayers = (() =>
       else
         players.jumpToTrack(players.trackFromUid(fadeInUid), true, false);
 
-      fadeStartTime   = crossfadeStartTime + 1;
-      fadeLength      = crossfadeLength - 1 - (config.updateCrossfadeInterval / 1000);
+      fadeStartTime   = crossfadeStartTime + config.bufferingDelay;
+      fadeLength      = crossfadeLength - config.bufferingDelay - (config.updateCrossfadeInterval / 1000);
       fadeStartVolume = settings.masterVolume;
 
       // The easy and lazy way to compensate for buffering latency is +1 second...

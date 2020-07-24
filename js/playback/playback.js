@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger  from '../common/debuglogger.js?ver=1.8.3';
-import * as mediaPlayers from './mediaplayers.js?ver=1.8.3';
-import * as controls     from './playback-controls.js?ver=1.8.3';
-import * as eventLogger  from './eventlogger.js?ver=1.8.3';
+import * as debugLogger  from '../common/debuglogger.js?ver=1.9.0';
+import * as mediaPlayers from './mediaplayers.js?ver=1.9.0';
+import * as controls     from './playback-controls.js?ver=1.9.0';
+import * as eventLogger  from './eventlogger.js?ver=1.9.0';
 
 
 export {
@@ -17,7 +17,6 @@ export {
 // Functions
   init,
   setConfig,
-  setSettings,
   setEventHandlers,
   togglePlayPause,
   prevClick,
@@ -33,6 +32,7 @@ export {
 const debug           = debugLogger.getInstance('playback');
 const eventLog        = new eventLogger.Playback(10);
 const eventHandlers   = {};
+let settings          = {};
 let players           = {};
 let playersReadyCount = 0;
 
@@ -46,20 +46,7 @@ const moduleConfig = {
   entryMetaControlsSelector: '.entry-meta-controls .crossfade-control',
   updateTimerInterval:       200, // Milliseconds between each timer event
   updateCrossfadeInterval:   50,  // Milliseconds between each crossfade event
-};
-
-const settings = {
-  autoPlay:             true,
-  masterVolume:         mediaPlayers.DEFAULT.VOLUME_MAX,
-  masterMute:           false,
-  autoCrossfade:        false,
-  autoCrossfadeLength:  16,
-  autoCrossfadeCurve:   1,
-  trackCrossfade:       true,
-  trackCrossfadeLength: 9,
-  trackCrossfadeCurve:  0,
-  timeRemainingWarning: true, // Flash Play / Pause button
-  timeRemainingSeconds: 30,   // Seconds left when warning is shown
+  bufferingDelay:            1,   // VERY rough estimate of "average" network buffering delay in seconds
 };
 
 // Playback events for listeners
@@ -68,24 +55,25 @@ const EVENT = {
   READY:                20,
   MEDIA_PLAYING:        30,
   MEDIA_PAUSED:         40,
-  MEDIA_MUTED:          50,
-  MEDIA_ENDED:          60,
-  MEDIA_TIME_REMAINING: 70,
-  MEDIA_SHOW:           80,
-  CONTINUE_AUTOPLAY:    90,
-  RESUME_AUTOPLAY:      100,
-  AUTOPLAY_BLOCKED:     110,
-  PLAYBACK_BLOCKED:     120,
-  MEDIA_UNAVAILABLE:    130,
+  MEDIA_ENDED:          50,
+  MEDIA_TIME_REMAINING: 60,
+  MEDIA_SHOW:           70,
+  CONTINUE_AUTOPLAY:    80,
+  RESUME_AUTOPLAY:      90,
+  AUTOPLAY_BLOCKED:     100,
+  PLAYBACK_BLOCKED:     110,
+  MEDIA_UNAVAILABLE:    120,
 };
 
 
 // ************************************************************************************************
-// Init, config, settings and event handlers
+// Init, config and event handlers
 // ************************************************************************************************
 
-function init()
+function init(playbackSettings)
 {
+  settings = playbackSettings;
+
   controls.init(moduleConfig, settings, seekClick, trackCrossfadeClick);
   players = mediaPlayers.getPlayers(moduleConfig, settings, playTrack);
 
@@ -94,7 +82,6 @@ function init()
 }
 
 function setConfig(configProps = {})          { Object.assign(moduleConfig, configProps);    }
-function setSettings(settingsProps = {})      { Object.assign(settings, settingsProps);      }
 function setEventHandlers(handlersProps = {}) { Object.assign(eventHandlers, handlersProps); }
 
 function callEventHandler(playbackEvent, eventData = null)
@@ -285,9 +272,8 @@ function seekClick(positionSeconds)
 function toggleMute()
 {
   settings.masterMute = (settings.masterMute === true) ? false : true;
-  players.mute(settings.masterMute);
-  controls.updateMuteState(settings.masterMute);
-  callEventHandler(EVENT.MEDIA_MUTED, { masterMute: settings.masterMute });
+  players.mute();
+  controls.updateMuteState();
 }
   
 function trackCrossfadeClick(fadeInIframeId)
@@ -308,7 +294,8 @@ function trackCrossfadeClick(fadeInIframeId)
         // Check for shortest "allowed" fade time
         if (timeRemaining >= 6)
         {
-          const fadeLength = (timeRemaining > settings.trackCrossfadeLength) ? settings.trackCrossfadeLength : timeRemaining;
+          const approxFadeLength = settings.trackCrossfadeLength + moduleConfig.bufferingDelay;
+          const fadeLength       = (timeRemaining > approxFadeLength) ? approxFadeLength : timeRemaining;
           players.crossfade.start(positionSeconds, fadeLength, settings.trackCrossfadeCurve, fadeInUid);
         }
       });
@@ -494,10 +481,12 @@ const playbackTimer = (() =>
   {
     if ((settings.masterMute !== true) && settings.autoPlay && settings.autoCrossfade)
     {
-      if ((durationSeconds - positionSeconds) === settings.autoCrossfadeLength)
+      const approxFadeLength = settings.autoCrossfadeLength + moduleConfig.bufferingDelay;
+
+      if ((durationSeconds - positionSeconds) === approxFadeLength)
       {
         if ((players.getCurrentTrack() + 1) <= players.getNumTracks())
-          players.crossfade.start((positionMilliseconds / 1000), settings.autoCrossfadeLength, settings.autoCrossfadeCurve);
+          players.crossfade.start((positionMilliseconds / 1000), approxFadeLength, settings.autoCrossfadeCurve);
       }
     }
   }

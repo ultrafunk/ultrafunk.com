@@ -5,15 +5,16 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.8.3';
-import * as storage     from '../common/storage.js?ver=1.8.3';
-import * as utils       from '../common/utils.js?ver=1.8.3';
-import * as eventLogger from './eventlogger.js?ver=1.8.3';
-import * as playback    from './playback.js?ver=1.8.3';
+import * as debugLogger     from '../common/debuglogger.js?ver=1.9.0';
+import * as storage         from '../common/storage.js?ver=1.9.0';
+import { playbackSettings } from '../common/settings.js?ver=1.9.0';
+import * as utils           from '../common/utils.js?ver=1.9.0';
+import * as eventLogger     from './eventlogger.js?ver=1.9.0';
+import * as playback        from './playback.js?ver=1.9.0';
 import {
   updateProgressPercent,
   updateAutoPlayState
-} from './playback-controls.js?ver=1.8.3';
+} from './playback-controls.js?ver=1.9.0';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -23,51 +24,15 @@ let useKeyboardShortcuts = false;
 
 // Shared config for all, submodules can have local const config = {...}
 const moduleConfig = {
-  youTubeIframeIdRegEx:    /youtube-uid/i,
-  soundCloudIframeIdRegEx: /soundcloud-uid/i,
-  nowPlayingIconsSelector: 'h2.entry-title',
-  autoPlayToggleId:        'footer-autoplay-toggle',
-  footerCrossfadeToggleId: 'footer-crossfade-toggle',
-  keyboardShortcuts:       true,
-  allowKeyboardShortcuts:  'allowKeyboardShortcuts',
-  denyKeyboardShortcuts:   'denyKeyboardShortcuts',
-  doubleClickDelay:        500,
-};
-
-const defaultSettings = {
-  // Incremental version to check for new properties
-  version:           13,
-  storageChangeSync: false,
-  // User (public) settings
-  user: {
-  // Audio settings
-    autoPlay:              true,
-    masterVolume:          100,
-    masterMute:            false,
-    autoCrossfade:         false,
-    autoCrossfadeLength:   16,    // 16 === 15 seconds fade time, +1 to compensate for buffering latency
-    autoCrossfadeCurve:    1,     // 0 = Equal Power (default), 1 = Linear
-    trackCrossfade:        true,
-    trackCrossfadeLength:  9,     // 9 === 8 seconds fade time, +1 to compensate for buffering latency
-    trackCrossfadeCurve:   0,     // 0 = Equal Power (default), 1 = Linear
-  // UI settings
-    autoScroll:            true,
-    smoothScrolling:       true,
-    autoExitFullscreen:    true,  // Automatically exit fullscreen when a track ends
-    animateNowPlayingIcon: true,  // Current track indicator icon CSS pulse animation ON / OFF
-    blurFocusBgChange:     false, // Set different background color when focus is lost (blurred)
-    timeRemainingWarning:  true,  // Flash Play / Pause button...
-    timeRemainingSeconds:  45,    // ...seconds left when warning is shown
-    autoExitFsOnWarning:   true,  // Automatically exit fullscreen early when timeRemainingWarning is enabled 
-  },
-  // Priv (private / internal) settings
-  priv: {
-    continueAutoPlay:   false,
-    showLeftArrowHint:  true,
-    showRightArrowHint: true,
-    showDetailsHint:    true,
-    showCoverImageHint: true,
-  },
+  youTubeIframeIdRegEx:        /youtube-uid/i,
+  soundCloudIframeIdRegEx:     /soundcloud-uid/i,
+  nowPlayingIconsSelector:     'h2.entry-title',
+  autoPlayToggleId:            'footer-autoplay-toggle',
+  footerCrossfadeToggleId:     'footer-crossfade-toggle',
+  keyboardShortcuts:           true,
+  allowKeyboardShortcutsEvent: 'allowKeyboardShortcuts',
+  denyKeyboardShortcutsEvent:  'denyKeyboardShortcuts',
+  doubleClickDelay:            500,
 };
 
 // Shared DOM elements for all, submodules can have local const elements = {...}
@@ -98,20 +63,8 @@ document.addEventListener('DOMContentLoaded', () =>
       soundCloudIframeIdRegEx: moduleConfig.soundCloudIframeIdRegEx,
     });
 
-    playback.setSettings({
-      autoPlay:             settings.user.autoPlay,
-      masterVolume:         settings.user.masterVolume,
-      masterMute:           settings.user.masterMute,
-      autoCrossfade:        settings.user.autoCrossfade,
-      autoCrossfadeLength:  settings.user.autoCrossfadeLength,
-      trackCrossfade:       settings.user.trackCrossfade,
-      trackCrossfadeLength: settings.user.trackCrossfadeLength,
-      timeRemainingWarning: settings.user.timeRemainingWarning,
-      timeRemainingSeconds: settings.user.timeRemainingSeconds,
-    });
-
     playbackEvents.addListeners();
-    playback.init();
+    playback.init(settings.user);
 
     updateAutoPlayDOM(settings.user.autoPlay);
     updateCrossfadeDOM(settings.user.autoCrossfade);
@@ -119,8 +72,8 @@ document.addEventListener('DOMContentLoaded', () =>
 });
 
 // Listen for triggered events to toggle keyboard capture = allow other input elements to use shortcut keys
-document.addEventListener(moduleConfig.allowKeyboardShortcuts, () => { if (moduleConfig.keyboardShortcuts) useKeyboardShortcuts = true;  });
-document.addEventListener(moduleConfig.denyKeyboardShortcuts,  () => { if (moduleConfig.keyboardShortcuts) useKeyboardShortcuts = false; });
+document.addEventListener(moduleConfig.allowKeyboardShortcutsEvent, () => { if (moduleConfig.keyboardShortcuts) useKeyboardShortcuts = true;  });
+document.addEventListener(moduleConfig.denyKeyboardShortcutsEvent,  () => { if (moduleConfig.keyboardShortcuts) useKeyboardShortcuts = false; });
 
 
 // ************************************************************************************************
@@ -146,7 +99,7 @@ function hasEmbeddedPlayers()
 function readSettings()
 {
   debug.log('readSettings()');
-  settings = storage.readWriteJsonProxy(storage.KEY.UF_PLAYBACK_SETTINGS, defaultSettings);
+  settings = storage.readWriteJsonProxy(storage.KEY.UF_PLAYBACK_SETTINGS, playbackSettings);
   debug.log(settings);
 }
 
@@ -196,7 +149,6 @@ const playbackEvents = (() =>
       [playback.EVENT.READY]:                ready,
       [playback.EVENT.MEDIA_PLAYING]:        mediaPlaying,
       [playback.EVENT.MEDIA_PAUSED]:         mediaPaused,
-      [playback.EVENT.MEDIA_MUTED]:          mediaMuted,
       [playback.EVENT.MEDIA_ENDED]:          mediaEnded,
       [playback.EVENT.MEDIA_TIME_REMAINING]: mediaTimeRemaining,
       [playback.EVENT.MEDIA_SHOW]:           mediaShow,
@@ -247,13 +199,6 @@ const playbackEvents = (() =>
     document.querySelector(`#${eventData.postId} ${moduleConfig.nowPlayingIconsSelector}`).classList.add('playing-paused');
   }
 
-  function mediaMuted(playbackEvent, eventData)
-  {
-    debugEvent(playbackEvent, eventData);
-
-    settings.user.masterMute = eventData.masterMute;
-  }
-  
   function mediaEnded(playbackEvent)
   {
     debugEvent(playbackEvent);
@@ -453,17 +398,23 @@ function windowEventStorage(event)
       // Stored settings have changed, read updated settings from storage
       readSettings();
   
+      /*
       // Check what has changed (old settings vs. new settings) and update data / UI where needed
       if (settings.user.autoPlay !== oldSettings.user.autoPlay)
         updateAutoPlayData(settings.user.autoPlay);
   
       // ToDo: This probably needs to update UI as well...
       if (settings.user.masterVolume !== oldSettings.user.masterVolume)
-        playback.setSettings({ masterVolume: settings.user.masterVolume });
+      {
+        // Do stuff...
+      }
   
       // ToDo: This probably needs to update UI as well...
       if (settings.user.masterMute !== oldSettings.user.masterMute)
-        playback.setSettings({ masterMute: settings.user.masterMute });
+      {
+        // Do stuff...
+      }
+      */
     }
   }
 }
@@ -484,7 +435,7 @@ function playbackDetailsClick(event)
   eventLog.add(eventLogger.SOURCE.MOUSE, Date.now(), eventLogger.EVENT.MOUSE_CLICK, null);
 
   if (event.target.tagName.toLowerCase() === 'img')
-    showInteractionHint('showCoverImageHint', '<b>Tip:</b> Double click or double tap on the Track Image for full screen track');
+    showInteractionHint('showTrackImageHint', '<b>Tip:</b> Double click or double tap on the Track Image for full screen track');
   else
     showInteractionHint('showDetailsHint', '<b>Tip:</b> Double click or double tap on Artist &amp; Title for full screen track');
 
@@ -691,28 +642,22 @@ function navigateTo(destUrl, continueAutoPlay = false)
 
 
 // ************************************************************************************************
-// AutoPlay UI toggle and data + DOM update
+// AutoPlay UI toggle and DOM update
 // ************************************************************************************************
 
 function autoPlayToggle(event)
 {
   event.preventDefault();
   settings.user.autoPlay = (settings.user.autoPlay === true) ? false : true;
-  updateAutoPlayData(settings.user.autoPlay);
-}
-
-function updateAutoPlayData(autoPlay)
-{
-  utils.snackbar.show(autoPlay ? 'Autoplay enabled (<b>Shift</b> + <b>F12</b> to disable)' : 'Autoplay disabled (<b>Shift</b> + <b>F12</b> to enable)', 5);
-  playback.setSettings({ autoPlay: autoPlay });
-  updateAutoPlayDOM(autoPlay);
+  utils.snackbar.show(settings.user.autoPlay ? 'Autoplay enabled (<b>Shift</b> + <b>F12</b> to disable)' : 'Autoplay disabled (<b>Shift</b> + <b>F12</b> to enable)', 5);
+  updateAutoPlayDOM(settings.user.autoPlay);
 }
 
 function updateAutoPlayDOM(autoPlay)
 {
   debug.log(`updateAutoPlayDOM() - autoPlay: ${autoPlay}`);
 
-  updateAutoPlayState(autoPlay);  
+  updateAutoPlayState();  
   moduleElements.footerAutoPlayToggle.querySelector('.autoplay-on-off').textContent = autoPlay ? 'ON' : 'OFF';
   moduleElements.nowPlayingIcons.forEach(element => (autoPlay ? element.classList.remove('no-autoplay') : element.classList.add('no-autoplay')));
   autoPlay ? moduleElements.footerCrossfadeToggle.classList.remove('disabled') : moduleElements.footerCrossfadeToggle.classList.add('disabled');
@@ -730,21 +675,15 @@ function updateAutoPlayDOM(autoPlay)
 
 
 // ************************************************************************************************
-// Crossfade UI toggle and data + DOM update
+// Crossfade UI toggle and DOM update
 // ************************************************************************************************
 
 function crossfadeToggle(event)
 {
   event.preventDefault();
   settings.user.autoCrossfade = (settings.user.autoCrossfade === true) ? false : true;
-  updateCrossfadeData(settings.user.autoCrossfade);
-}
-
-function updateCrossfadeData(autoCrossfade)
-{
-  utils.snackbar.show(autoCrossfade ? 'Auto Crossfade enabled (<b>x</b> to disable)' : 'Auto Crossfade disabled (<b>x</b> to enable)', 5);
-  playback.setSettings({ autoCrossfade: autoCrossfade });
-  updateCrossfadeDOM(autoCrossfade);
+  utils.snackbar.show(settings.user.autoCrossfade ? 'Auto Crossfade enabled (<b>x</b> to disable)' : 'Auto Crossfade disabled (<b>x</b> to enable)', 5);
+  updateCrossfadeDOM(settings.user.autoCrossfade);
 }
 
 function updateCrossfadeDOM(autoCrossfade)

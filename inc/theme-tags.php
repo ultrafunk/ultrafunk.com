@@ -49,6 +49,7 @@ function pre_wp_head()
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://s.ytimg.com" crossorigin>
   <link rel="preload" href="<?php echo $template_uri . '/js/common/debuglogger.js?ver='         . $version; ?>" as="script" crossorigin>
+  <link rel="preload" href="<?php echo $template_uri . '/js/common/settings.js?ver='            . $version; ?>" as="script" crossorigin>
   <link rel="preload" href="<?php echo $template_uri . '/js/common/storage.js?ver='             . $version; ?>" as="script" crossorigin>
   <link rel="preload" href="<?php echo $template_uri . '/js/common/utils.js?ver='               . $version; ?>" as="script" crossorigin>
   <link rel="preload" href="<?php echo $template_uri . '/js/playback/eventlogger.js?ver='       . $version; ?>" as="script" crossorigin>
@@ -128,7 +129,7 @@ function nav_playback_controls()
   ?>
   <div id="playback-controls">
     <div class="details-control state-disabled" title="Current track"><span class="details-artist"></span><br><span class="details-title"></span></div>
-    <div class="thumbnail-control state-disabled" title="Current track Cover image"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/img/thumbnail_placeholder.png" alt=""></div>
+    <div class="thumbnail-control state-disabled" title="Current track image"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/img/thumbnail_placeholder.png" alt=""></div>
     <div class="timer-control state-disabled" title="Track position &amp; duration"><span class="timer-position"></span><br><span class="timer-duration"></span></div>
     <div class="prev-control state-disabled" title="Previous track / seek (arrow left)"><i class="material-icons">skip_previous</i></div>
     <div class="play-pause-control state-disabled" title="Play / Pause (space)"><i class="material-icons">play_circle_filled</i></div>
@@ -166,7 +167,7 @@ function nav_pagination()
     
     if (!empty($prev_next_urls['prevUrl']))
     {
-      ?><a href="<?php echo $prev_next_urls['prevUrl']; ?>"><i class="material-icons sub-pagination-prev" title="Previous track / page (shift + arrow left)">arrow_backward</i></a><?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+      ?><a href="<?php echo $prev_next_urls['prevUrl']; ?>" class="prev-link"><i class="material-icons sub-pagination-prev" title="Previous track / page (shift + arrow left)">arrow_backward</i></a><?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
     else
     {
@@ -175,7 +176,7 @@ function nav_pagination()
     
     if (!empty($prev_next_urls['nextUrl']))
     {
-      ?><a href="<?php echo $prev_next_urls['nextUrl']; ?>"><i class="material-icons sub-pagination-next" title="Next track / page (shift + arrow right)">arrow_forward</i></a><?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+      ?><a href="<?php echo $prev_next_urls['nextUrl']; ?>" class="next-link"><i class="material-icons sub-pagination-next" title="Next track / page (shift + arrow right)">arrow_forward</i></a><?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }
     else
     {
@@ -188,7 +189,7 @@ function nav_pagination()
   {
     ?>
     <div class="sub-navigation-pagination">
-      <a href="" title="Go back" onclick="javascript:history.back();return false;"><i class="material-icons sub-pagination-prev">arrow_backward</i></a>
+      <a href="" title="Go back" onclick="javascript:history.back();return false;" class="prev-link"><i class="material-icons sub-pagination-prev">arrow_backward</i></a>
       <i class="material-icons sub-pagination-next disbled">arrow_forward</i>
     </div>
     <?php
@@ -240,7 +241,7 @@ function nav_title()
   }
   else if (is_page())
   {
-    $prefix     = '<b>' . $title . '</b>';
+    $prefix     = '<b>Go Back: </b> Previous page';
     $title      = '';
     $pagination = '';
   }

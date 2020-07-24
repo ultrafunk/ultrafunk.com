@@ -6,7 +6,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.8.3';
+import * as debugLogger from '../common/debuglogger.js?ver=1.9.0';
 
 
 export {
@@ -16,6 +16,8 @@ export {
   isAvailable,
   getValue,
   setValue,
+  readJson,
+  writeJson,
   readWriteJsonProxy,
   parseEventData,
 };

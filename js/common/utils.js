@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.8.3';
+import * as debugLogger from '../common/debuglogger.js?ver=1.9.0';
 
 
 export {
@@ -17,7 +17,6 @@ export {
   getCssPropValue,
   matchesMedia,
   replaceClass,
-  getObjectFromKeyValue,
   snackbar,
 };
 
@@ -97,19 +96,6 @@ function replaceClass(element, removeClass, addClass)
   element.classList.add(addClass);
 }
 
-function getObjectFromKeyValue(object, key, value, defaultObject)
-{
-  const values = Object.values(object);
-
-  for (let i = 0; i < values.length; i++)
-  {
-    if (values[i][key] === value)
-      return values[i];
-  }
-
-  return defaultObject;
-}
-
 
 // ************************************************************************************************
 // Snackbar UI module
@@ -136,16 +122,17 @@ const snackbar = (() =>
     </div>
   `;
 
-  let elements             = { snackbar: null, actionButton: null };
-  let actionButtonCallback = null;
-  let visibleTimeoutId     = -1;
-  let fadeTimeoutId        = -1;
+  let elements            = { snackbar: null, actionButton: null };
+  let actionClickCallback = null;
+  let afterCloseCallback  = null;
+  let visibleTimeoutId    = -1;
+  let fadeTimeoutId       = -1;
   
   return {
     show,
   };
   
-  function show(message, timeout = 5, actionText = null, actionClickCallback = null)
+  function show(message, timeout = 5, actionText = null, actionClickCallbackFunc = null, afterCloseCallbackFunc = null)
   {
     debug.log(`snackbar.show(): ${message} (${timeout} sec)`);
   
@@ -162,10 +149,11 @@ const snackbar = (() =>
       elements.snackbar.querySelector(`.${config.id}-message`).innerHTML = message;
       elements.snackbar.classList.add('fadein');
       elements.actionButton.style.display = 'none';
+      afterCloseCallback = afterCloseCallbackFunc;
   
-      if ((actionText !== null) && (actionClickCallback !== null))
+      if ((actionText !== null) && (actionClickCallbackFunc !== null))
       {
-        actionButtonCallback = actionClickCallback;
+        actionClickCallback = actionClickCallbackFunc;
         elements.actionButton.style.display = 'block';
         elements.actionButton.textContent   = actionText;
         elements.actionButton.addEventListener('click', actionButtonClick);
@@ -176,7 +164,15 @@ const snackbar = (() =>
         visibleTimeoutId = setTimeout(() =>
         {
           elements.snackbar.classList.add('fadeout');
-          fadeTimeoutId = setTimeout(() => { elements.snackbar.classList.value = ''; }, 450);
+          fadeTimeoutId = setTimeout(() =>
+          {
+            elements.snackbar.classList.value = '';
+
+            if (afterCloseCallback !== null)
+            {
+              afterCloseCallback();
+            }
+          }, 450);
         },
         (timeout * 1000));
       }
@@ -185,7 +181,7 @@ const snackbar = (() =>
 
   function actionButtonClick()
   {
-    actionButtonCallback();
+    actionClickCallback();
     reset(true);
   }
 
@@ -200,7 +196,14 @@ const snackbar = (() =>
         afterElement.insertAdjacentHTML('afterend', html);
         elements.snackbar     = document.getElementById(config.id);
         elements.actionButton = elements.snackbar.querySelector(`.${config.id}-action-button`);
-        elements.snackbar.querySelector(`.${config.id}-close-button`).addEventListener('click', () => reset(true));
+        
+        elements.snackbar.querySelector(`.${config.id}-close-button`).addEventListener('click', () =>
+        {
+          if (afterCloseCallback !== null)
+            afterCloseCallback();
+            
+          reset(true);
+        });
       }
       else
       {

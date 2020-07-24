@@ -1,0 +1,216 @@
+/*
+ * Settings UI layout CSS
+ *
+ */
+
+.site-theme-light {
+  --settings-row-odd-color: #eee;
+  --settings-row-hover-color: #bbb;
+}
+
+.site-theme-dark {
+  --settings-row-odd-color: #333;
+  --settings-row-hover-color: #666;
+}
+
+#settings-container {
+  width: 100%;
+}
+
+#settings-container table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  user-select: none;
+}
+
+#settings-container table tr:nth-child(odd) {
+  background: var(--settings-row-odd-color);
+}
+
+@media all and (pointer: fine) {
+ 
+  #settings-container table tr:hover {
+    background: var(--settings-row-hover-color);
+    cursor: pointer;
+  }
+
+}
+
+@media not all and (pointer: fine) {
+
+  #settings-container table tr:nth-child(odd) {
+    background: var(--settings-row-odd-color);
+    transition: background 0.15s 0s ease-in;
+  }
+
+  #settings-container table tr:nth-child(even) {
+    transition: background 0.15s 0s ease-in;
+  }
+
+  #settings-container table tr:active {
+    background: var(--settings-row-hover-color);
+    transition: background 0s;
+  }
+
+}
+
+#settings-container table td {
+  padding: 10px 15px;
+}
+
+#settings-container table td.description {
+  white-space: nowrap;
+}
+
+#settings-container table td.value-string {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 700;
+  text-align: end;
+}
+
+.entry-content .settings-clear {
+  clear: both;
+  margin: 100px auto 100px auto;
+  padding: 12px 30px;
+  color: var(--button-text-color);
+  background-color: var(--button-background-color);
+  max-width: 225px;
+  text-align: center;
+}
+
+#settings-save-reset {
+  clear: both;
+  margin: 100px 0 50px 0;
+  overflow: hidden;
+}
+
+#settings-save-reset .settings-save,
+#settings-save-reset .settings-reset {
+  float: left;
+  color: var(--button-text-color);
+  background-color: var(--button-background-color);
+  padding: 12px 30px;
+}
+
+#settings-save-reset .settings-reset {
+  float: right;
+}
+
+@media all and (pointer: fine) {
+ 
+  .entry-content .settings-clear:hover,
+  #settings-save-reset .settings-save:hover,
+  #settings-save-reset .settings-reset:hover {
+    background: var(--button-background-hover-rgba);
+    cursor: pointer;
+  }
+  
+}
+
+@media not all and (pointer: fine) {
+
+  .entry-content .settings-clear,
+  #settings-save-reset .settings-save,
+  #settings-save-reset .settings-reset {
+    background-color: var(--button-background-color);
+    transition: background 0.15s 0s ease-in;
+  }
+
+  .entry-content .settings-clear:active,
+  #settings-save-reset .settings-save:active,
+  #settings-save-reset .settings-reset:active {
+    background: var(--button-background-hover-rgba);
+    transition: background 0s;
+  }
+
+}
+
+
+/**************************************************************************************************
+* Responsive
+***************************************************************************************************/
+
+@media screen and (max-width: 1350px) {
+  
+  #settings-container {
+    width: calc(100% - (75px + 75px));
+  }
+
+  #settings-container table,
+  #settings-save-reset {
+    margin-left: 75px;
+    margin-right: 75px;
+  }
+  
+}
+
+@media screen and (max-width: 900px) {
+  
+  #settings-container {
+    width: calc(100% - (50px + 50px));
+  }
+
+  #settings-container table,
+  #settings-save-reset  {
+    margin-left: 50px;
+    margin-right: 50px;
+  }
+
+}
+
+@media screen and (max-width: 768px) {
+  
+  #settings-container {
+    width: calc(100% - (25px + 25px));
+  }
+
+  #settings-container table,
+  #settings-save-reset  {
+    margin-left: 25px;
+    margin-right: 25px;
+  }
+
+}
+
+@media screen and (max-width: 500px) {
+  
+  .entry-content .settings-clear {
+    max-width: 125px;
+    margin: 50px auto 50px auto;
+  }
+
+  #settings-container {
+    width: calc(100% - (20px + 20px));
+  }
+
+  #settings-container table,
+  #settings-save-reset  {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+
+  #settings-container table td {
+    padding: 12px 15px;
+  }
+
+  #settings-container table td.description {
+    padding-right: 0px;
+  }
+
+  #settings-save-reset {
+    margin-top: 60px;
+    margin-bottom: 50px;
+  }
+  
+}
+
+@media screen and (max-width: 400px) {
+  
+  #settings-container table td.description {
+    white-space: initial;
+  }
+
+}

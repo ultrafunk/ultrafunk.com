@@ -13,27 +13,46 @@
   --site-header-500px: 0px;
   --site-header-no-playback-500px: 0px;
 
-  --branding-logo-filter: unset;
+  --link-hover-color: #dd0000;
+
+  --site-theme-color: #0a1428;
+  --site-theme-font-color: #efefef;
+  --site-theme-icon-color: #fff;
+
   --body-background-focus: #fff;
   --body-background-blurred: #ddd;
-  --dark-font-color: #333;
-  --light-font-color: #eee;
-  --link-hover-color: #dd0000;
-  --site-theme-color: #0a1428;
-  --site-theme-font-color: #eee;
+  --branding-logo-filter: unset;
+
+  --primary-font-color: #111;
+  --primary-icon-color: #000;
+
+  --control-hover-opacity: 0.66;
+  --control-disabled-opacity: 0.15;
+  --control-content-disabled-opacity: 0.2;
+  --control-disabled-background-rgba: rgba(127, 127, 127, 0.26);
+
+  --button-text-color: #fff;
+  --button-background-color: #777;
+  --button-background-hover-rgba: rgba(0, 0, 0, 0.75);
+
   --intro-banner-background: #505050;
   --intro-banner-button-background: #323232;
-  --header-gradient-bg-blur: linear-gradient(0deg, rgba(230, 230, 230, 0.80) 0%, rgba(255, 255, 255, 0.80) 100%);
-  --header-gradient-no-blur: linear-gradient(0deg, rgba(230, 230, 230, 0.95) 0%, rgba(255, 255, 255, 0.95) 100%);
+
   --form-search-field-background: #fff;
   --form-search-field-outline: none !important;
   --form-search-field-border: 1px solid #bbb;
   --form-search-field-border-focus: 2px solid #666;
   --form-input-autofill-box-shadow: 0 0 0 50px #fff inset;
+
   --date-page-border-color: #888;
+
+  /*
+  --header-gradient-bg-blur: linear-gradient(0deg, rgba(230, 230, 230, 0.80) 0%, rgba(255, 255, 255, 0.80) 100%);
+  */
+  --header-gradient-bg-blur: linear-gradient(0deg, rgba(230, 230, 230, 0.95) 0%, rgba(255, 255, 255, 0.95) 100%);
+  --header-gradient-no-blur: linear-gradient(0deg, rgba(230, 230, 230, 0.95) 0%, rgba(255, 255, 255, 0.95) 100%);
 }
 
 #site-header {
   position: relative;
 }
-

@@ -5,9 +5,10 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.8.3';
-import * as storage     from './common/storage.js?ver=1.8.3';
-import * as utils       from './common/utils.js?ver=1.8.3';
+import * as debugLogger from './common/debuglogger.js?ver=1.9.0';
+import * as storage     from './common/storage.js?ver=1.9.0';
+import { siteSettings } from './common/settings.js?ver=1.9.0';
+import * as utils       from './common/utils.js?ver=1.9.0';
 
 
 const debug  = debugLogger.getInstance('index');
@@ -16,27 +17,7 @@ let settings = {};
 // Shared config for all, submodules can have local const config = {...}
 const moduleConfig = {
   smoothScrolling:      false,
-  siteThemeDefaultId:   'auto',
-  trackLayoutDefaultId: '3-column',
-};
-
-const defaultSettings = {
-  // Incremental version to check for new properties
-  version:           4,
-  storageChangeSync: false,
-  // User (public) settings
-  user: {
-    siteTheme:   moduleConfig.siteThemeDefaultId,
-    trackLayout: moduleConfig.trackLayoutDefaultId,
-  },
-  // Priv (private / internal) settings
-  priv: {
-    banners: {
-      showFrontpageIntro: true,
-      showPremiumIntro:   true,
-      showPromoIntro:     true,
-    },
-  },
+  settingsUpdatedEvent: 'settingsUpdated',
 };
 
 // Shared DOM elements for all, submodules can have local const elements = {...}
@@ -69,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () =>
   }
 
   resize.setTopMargin();
-//resize.setLastInnerWidth(window.innerWidth);
+  resize.setLastInnerWidth(window.innerWidth);
 });
 
 document.addEventListener('keydown', (event) =>
@@ -99,6 +80,13 @@ document.addEventListener('keydown', (event) =>
   }
 });
 
+document.addEventListener(moduleConfig.settingsUpdatedEvent, () =>
+{
+  readSettings();
+  siteTheme.setCurrent();
+  trackLayout.setCurrent();
+});
+
 window.addEventListener('load', () => resize.setTopMargin());
 window.addEventListener('storage', windowEventStorage);
 
@@ -110,7 +98,7 @@ window.addEventListener('storage', windowEventStorage);
 function readSettings()
 {
   debug.log('readSettings()');
-  settings = storage.readWriteJsonProxy(storage.KEY.UF_SITE_SETTINGS, defaultSettings);
+  settings = storage.readWriteJsonProxy(storage.KEY.UF_SITE_SETTINGS, siteSettings);
   debug.log(settings);
 }
 
@@ -123,7 +111,7 @@ function initIndex()
   moduleElements.siteContent       = document.getElementById('site-content');
   moduleElements.siteContentSearch = document.querySelector('#site-content form input.search-field');
 
-//resize.addEventListener();
+  resize.addEventListener();
   scroll.addEventListener();
 
   navSearch.init();
@@ -152,15 +140,10 @@ function windowEventStorage(event)
   
       // Check what has changed (old settings vs. new settings) and update data / UI where needed
       if (settings.user.siteTheme !== oldSettings.user.siteTheme)
-      {
         siteTheme.setCurrent();
-      }
   
       if (settings.user.trackLayout !== oldSettings.user.trackLayout)
-      {
         trackLayout.setCurrent();
-        trackLayout.updateDOM();
-      }
     }
   }
 }
@@ -187,6 +170,19 @@ function showIntroBanner()
   }
 }
 
+function getObjectFromKeyValue(object, key, value, defaultObject)
+{
+  const values = Object.values(object);
+
+  for (let i = 0; i < values.length; i++)
+  {
+    if (values[i][key] === value)
+      return values[i];
+  }
+
+  return defaultObject;
+}
+
 
 // ************************************************************************************************
 // Site theme handling
@@ -203,9 +199,9 @@ const siteTheme = (() =>
   };
   
   const themes = {
-    light: { id: 'light',                         text: 'light', class: 'site-theme-light' },
-    dark:  { id: 'dark',                          text: 'dark',  class: 'site-theme-dark'  },
-    auto:  { id: moduleConfig.siteThemeDefaultId, text: 'auto'                             }, // This has no CSS class since auto is always light or dark
+    light: { id: 'light', text: 'light', class: 'site-theme-light' },
+    dark:  { id: 'dark',  text: 'dark',  class: 'site-theme-dark'  },
+    auto:  { id: 'auto',  text: 'auto'                             }, // This has no CSS class since auto is always light or dark
   };
 
   return {
@@ -224,7 +220,7 @@ const siteTheme = (() =>
   
   function setCurrent()
   {
-    currentTheme = utils.getObjectFromKeyValue(themes, 'id', settings.user.siteTheme, themes.auto);
+    currentTheme = getObjectFromKeyValue(themes, 'id', settings.user.siteTheme, themes.auto);
     updateData();
   }
   
@@ -270,10 +266,16 @@ const siteTheme = (() =>
   
   function updateDOM(newTheme)
   {
-    debug.log(`updateDOM() - newSiteTheme: ${newTheme.id}`);
-  
-    document.documentElement.classList.remove(themes.light.class, themes.dark.class);
-    document.documentElement.classList.add(newTheme.class);
+    // Only update DOM if something has actually changed...
+    if (document.documentElement.classList.contains(newTheme.class) === false)
+    {
+      debug.log(`updateDOM() - newSiteTheme: ${newTheme.id}`);
+    
+      document.documentElement.classList.remove(themes.light.class, themes.dark.class);
+      document.documentElement.classList.add(newTheme.class);
+    }
+
+    // Always update this because AUTO is not a separate class (only DARK + LIGHT are classes)
     elements.toggle.querySelector('span').textContent = currentTheme.text;
   }
 })();
@@ -294,15 +296,14 @@ const trackLayout = (() =>
   };
 
   const layouts = {
-    list:        { id: 'list',                            text: 'list',         class: 'track-layout-list'     },
-    twoColumn:   { id: '2-column',                        text: '2 column',     class: 'track-layout-2-column' },
-    threeColumn: { id: moduleConfig.trackLayoutDefaultId, text: '3 / 4 column', class: 'track-layout-3-column' },
+    list:        { id: 'list',     text: 'list',         class: 'track-layout-list'     },
+    twoColumn:   { id: '2-column', text: '2 column',     class: 'track-layout-2-column' },
+    threeColumn: { id: '3-column', text: '3 / 4 column', class: 'track-layout-3-column' },
   };
 
   return {
     init,
     setCurrent,
-    updateDOM,
   };
 
   function init()
@@ -316,8 +317,9 @@ const trackLayout = (() =>
 
   function setCurrent()
   {
-    currentLayout = utils.getObjectFromKeyValue(layouts, 'id', settings.user.trackLayout, layouts.threeColumn);
+    currentLayout = getObjectFromKeyValue(layouts, 'id', settings.user.trackLayout, layouts.threeColumn);
     elements.toggle.querySelector('span').textContent = currentLayout.text;
+    updateData();
   }
   
   function matchMediaMinWidth(event)
@@ -360,14 +362,18 @@ const trackLayout = (() =>
   
   function updateDOM()
   {
-    debug.log(`updateDOM() - newTrackLayout: ${currentLayout.id}`);
+    // Only update DOM if something has actually changed...
+    if (document.documentElement.classList.contains(currentLayout.class) === false)
+    {
+      debug.log(`updateDOM() - newTrackLayout: ${currentLayout.id}`);
+    
+      document.documentElement.classList.remove(layouts.list.class, layouts.twoColumn.class, layouts.threeColumn.class);
   
-    document.documentElement.classList.remove(layouts.list.class, layouts.twoColumn.class, layouts.threeColumn.class);
-  
-    if (window.matchMedia(config.minWidth).matches === false)
-      document.documentElement.classList.add(currentLayout.class);
-  
-    elements.toggle.querySelector('span').textContent = currentLayout.text;
+      if (window.matchMedia(config.minWidth).matches === false)
+        document.documentElement.classList.add(currentLayout.class);
+    
+      elements.toggle.querySelector('span').textContent = currentLayout.text;
+    }
   }
 })();
 
@@ -564,23 +570,21 @@ const navSearch = (() =>
 const resize = (() =>
 {
   let headerHeight   = 0;
-//let lastInnerWidth = 0;
+  let lastInnerWidth = 0;
 
   return {
     getHeaderHeight()             { return headerHeight;         },
-  //setLastInnerWidth(innerWidth) { lastInnerWidth = innerWidth; },
-  //addEventListener,
+    setLastInnerWidth(innerWidth) { lastInnerWidth = innerWidth; },
+    addEventListener,
     setTopMargin,
   };
 
-  /*
   function addEventListener()
   {
     window.addEventListener('resize', () =>
     {
       const innerWidth = window.innerWidth;
   
-      // "Fix" for strange Chrome mobile resize events that are not supposed to happen...
       if (lastInnerWidth !== innerWidth)
       {
         setTopMargin();
@@ -588,7 +592,6 @@ const resize = (() =>
       }
     });
   }
-  */
   
   function setTopMargin()
   {

@@ -38,6 +38,7 @@
   margin: 0 25px;
   padding: 15px 22px 15px 30px;
   max-width: 700px;
+  min-width: 400px;
   background-color: var(--snackbar-background-color);
   color: var(--snackbar-text-color);
   font-size: 20px;
@@ -52,6 +53,7 @@
 
 #snackbar .snackbar-message {
   float: left;
+  width: 100%;
 }
 
 #snackbar .snackbar-action-button {
@@ -61,7 +63,7 @@
   color: var(--snackbar-action-button-color);
   text-decoration: none;
   text-transform: uppercase;
-  margin-left: 22px;
+  margin-left: 30px;
 }
 
 #snackbar .snackbar-action-button:hover {
@@ -80,11 +82,11 @@
 
 #snackbar .snackbar-close-button .material-icons {
   font-size: 40px;
+  cursor: pointer;
 }
 
 #snackbar .snackbar-close-button:hover {
   color: var(--snackbar-close-button-hover-color);
-  cursor: pointer;
 }
 
 #snackbar.fadein {
@@ -128,6 +130,7 @@
     font-size: 15px;
     line-height: 22px;
     max-width: 100%;
+    min-width: unset;
     width: 100%;
   }
 
@@ -138,7 +141,7 @@
   #snackbar .snackbar-action-button {
     font-size: 18px;
     margin-left: auto;
-    padding-left: 12px;
+    padding-left: 18px;
   }
   
   #snackbar .snackbar-close-button {
