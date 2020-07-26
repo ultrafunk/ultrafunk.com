@@ -5,8 +5,8 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.9.0';
-import { replaceClass } from '../common/utils.js?ver=1.9.0';
+import * as debugLogger from '../common/debuglogger.js?ver=1.9.1';
+import { replaceClass } from '../common/utils.js?ver=1.9.1';
 
 
 export {
@@ -341,7 +341,7 @@ function updateAutoPlayState()
 {
   if ((isPlaying() === false) && (controls.timer.positionSeconds > 0))
   {
-    setTimerText(controls.timer.positionElement, (settings.autoPlay === true) ? controls.timer.positionSeconds : (controls.timer.durationSeconds - controls.timer.positionSeconds));
+    setTimerText(controls.timer.positionElement, settings.autoPlay ? controls.timer.positionSeconds : (controls.timer.durationSeconds - controls.timer.positionSeconds));
     setTimerText(controls.timer.durationElement, controls.timer.durationSeconds);
   }
 

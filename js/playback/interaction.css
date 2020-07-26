@@ -63,7 +63,9 @@
   color: var(--snackbar-action-button-color);
   text-decoration: none;
   text-transform: uppercase;
-  margin-left: 30px;
+  margin-left: 20px;
+  padding: 5px 10px;
+  white-space: nowrap;
 }
 
 #snackbar .snackbar-action-button:hover {
@@ -74,7 +76,7 @@
 #snackbar .snackbar-close-button {
   color: var(--snackbar-close-button-color);
   float: right;
-  padding: 0px 0px 0px 22px;
+  padding: 0px 0px 0px 12px;
   width: 40px;
   height: 40px;
   user-select: none;
@@ -140,12 +142,11 @@
 
   #snackbar .snackbar-action-button {
     font-size: 18px;
-    margin-left: auto;
-    padding-left: 18px;
+    margin-left: 8px;
   }
   
   #snackbar .snackbar-close-button {
-    padding: 0px 0px 0px 12px;
+    padding: 0px 0px 0px 2px;
     width: 32px;
     height: 32px;
   }

@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.9.0';
-import * as storage     from './common/storage.js?ver=1.9.0';
-import { siteSettings } from './common/settings.js?ver=1.9.0';
-import * as utils       from './common/utils.js?ver=1.9.0';
+import * as debugLogger from './common/debuglogger.js?ver=1.9.1';
+import * as storage     from './common/storage.js?ver=1.9.1';
+import { siteSettings } from './common/settings.js?ver=1.9.1';
+import * as utils       from './common/utils.js?ver=1.9.1';
 
 
 const debug  = debugLogger.getInstance('index');
@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () =>
 
   resize.setTopMargin();
   resize.setLastInnerWidth(window.innerWidth);
+  setPreviousPageTitle();
 });
 
 document.addEventListener('keydown', (event) =>
@@ -167,6 +168,40 @@ function showIntroBanner()
         });
       }
     }
+  }
+}
+
+function setPreviousPageTitle()
+{
+  const element = document.querySelector('.sub-navigation-details .previous-page-title');
+  
+  if (element !== null)
+  {
+    let pathString = '';
+
+    if (document.referrer.length === 0)
+    {
+      pathString = 'Previous Page';
+    }
+    else
+    {
+      const referrerUrlParts = new URL(decodeURIComponent(document.referrer));
+
+      if (referrerUrlParts.search.length !== 0)
+      {
+        pathString = 'Search Results';
+      }
+      else if (referrerUrlParts.pathname.length > 1)
+      {
+        const pathRegEx = /-/gi;
+        const pathParts = referrerUrlParts.pathname.slice(1, referrerUrlParts.pathname.length - 1).replace(pathRegEx, ' ').split('/');
+
+        pathParts.forEach((part, index) => pathString += ((index + 1) < pathParts.length) ? part + ' / ' : part);
+      }
+    }
+
+    element.textContent = (pathString.length > 0) ? pathString : 'Ultrafunk (home)';
+    document.querySelector('.sub-navigation-details .go-back-previous').style.opacity = 1;
   }
 }
 

@@ -241,7 +241,7 @@ function nav_title()
   }
   else if (is_page())
   {
-    $prefix     = '<b>Go Back: </b> Previous page';
+    $prefix     = '<span class="go-back-previous"><b>Go Back: </b><span class="previous-page-title"></span></span>';
     $title      = '';
     $pagination = '';
   }

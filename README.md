@@ -20,7 +20,7 @@ PHP version 7.3 or greater
 [WP Extended Search](https://wordpress.org/plugins/wp-extended-search/) (WordPress Plugin)  
 [WP Fastest Cache](https://wordpress.org/plugins/wp-fastest-cache/) (WordPress Plugin)
 
-# Screenshots (might be outdated...)
+# Screenshots (probably outdated...)
 
 ![ultrafunk-screenshot-01](https://ultrafunk.com/wp-content/uploads/screenshots/screenshot_mobile_11.png)
 

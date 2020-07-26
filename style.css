@@ -4,7 +4,7 @@ Theme URI: https://github.com/ultrafunk/ultrafunk.com
 Author: Ultrafunk
 Author URI: https://ultrafunk.com
 Description: ultrafunk.com WordPress theme
-Version: 1.9.0
+Version: 1.9.1
 License: Apache License 2.0
 License URI: https://www.apache.org/licenses/LICENSE-2.0
 Text Domain: ultrafunk
@@ -367,6 +367,15 @@ i.material-icons.sub-pagination-next.disbled {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+}
+
+.sub-navigation-details .go-back-previous {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.sub-navigation-details .previous-page-title {
+  text-transform: capitalize;
 }
 
 .sub-navigation-nav-items {
@@ -942,6 +951,10 @@ aside.widget-area ul {
 }
 
 .sticky-nav-down #site-navigation {
+  display: none;
+}
+
+body.no-playback-controls #site-header.sticky-nav-down {
   display: none;
 }
 
