@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.9.1';
+import * as debugLogger from '../common/debuglogger.js?ver=1.9.2';
 
 
 export {

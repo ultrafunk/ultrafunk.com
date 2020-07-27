@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger             from '../common/debuglogger.js?ver=1.9.1';
-import { snackbar }                 from '../common/utils.js?ver=1.9.1';
-import { KEY, readJson, writeJson } from '../common/storage.js?ver=1.9.1';
-import * as settings                from '../common/settings.js?ver=1.9.1';
+import * as debugLogger             from '../common/debuglogger.js?ver=1.9.2';
+import { snackbar }                 from '../common/utils.js?ver=1.9.2';
+import { KEY, readJson, writeJson } from '../common/storage.js?ver=1.9.2';
+import * as settings                from '../common/settings.js?ver=1.9.2';
 
 
 const debug          = debugLogger.getInstance('settings');
@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () =>
     setCurrentValues(siteSettings.user, settings.siteSettingsSchema);
 
     insertSettingsHtmlTable();
+    moduleElements.settingsContainer.style.opacity = 1;
 
     document.querySelector(`#${moduleConfig.settingsSaveResetId} .settings-save`).addEventListener('click', settingsSaveClick);
     document.querySelector(`#${moduleConfig.settingsSaveResetId} .settings-reset`).addEventListener('click', settingsResetClick);

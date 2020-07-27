@@ -5,8 +5,8 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.9.1';
-import { replaceClass } from '../common/utils.js?ver=1.9.1';
+import * as debugLogger from '../common/debuglogger.js?ver=1.9.2';
+import { replaceClass } from '../common/utils.js?ver=1.9.2';
 
 
 export {
@@ -115,6 +115,9 @@ function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks)
   setState(controls.details, STATE.ENABLED);
   setState(controls.thumbnail, STATE.ENABLED);
   setState(controls.timer, STATE.ENABLED);
+
+  if (settings.showTimerOnMobile)
+    controls.timer.element.classList.add('show-on-mobile');
 
   setState(controls.prevTrack, STATE.DISABLED);
   controls.prevTrack.element.addEventListener('click', prevClick);

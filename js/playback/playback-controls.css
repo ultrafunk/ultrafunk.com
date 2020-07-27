@@ -321,19 +321,19 @@ body.single #playback-controls .thumbnail-control {
   }
 
   #playback-controls .thumbnail-control {
-    display: none !important;
+    display: none;
   }
 
   #playback-controls .timer-control {
-    display: none !important;
+    display: none;
   }
 
   #playback-controls .shuffle-control {
-    display: none !important;
+    display: none;
   }
 
   #playback-controls .mute-control {
-    display: none !important;
+    display: none;
   }
  
 }
@@ -345,7 +345,7 @@ body.single #playback-controls .thumbnail-control {
   }
 
   #playback-controls .details-control {
-    display: none !important;
+    display: none;
   }
 
 }
@@ -367,19 +367,17 @@ body.single #playback-controls .thumbnail-control {
   #playback-controls .details-control {
     font-size: 13px;
     line-height: 18px;
-    display: inline-block !important;
+    display: inline-block;
     padding-right: 0;
     padding-left: 0;
     margin-right: 5px
   }
 
-  #playback-controls .details-control.no-autoplay {
-    margin-right: 14px
-  }
-
+  #playback-controls .timer-control.show-on-mobile,
   #playback-controls .timer-control.no-autoplay {
-    display: inline-block !important;
+    display: inline-block;
     margin-right: 4px;
+    margin-left: 9px;
   }
   
 }

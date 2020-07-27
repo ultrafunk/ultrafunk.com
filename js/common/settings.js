@@ -25,6 +25,7 @@ const playbackSettingsSchema = {
   autoScroll:            { description: 'Autoscroll to next track',        values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
   smoothScrolling:       { description: 'Smooth Scrolling to next track',  values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
   animateNowPlayingIcon: { description: 'Animate Playing Track Icon',      values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
+  showTimerOnMobile:     { description: 'Show Track Times on mobile',      values: [true, false],           default: false, valueStrings: ['ON', 'OFF'] },
   autoExitFullscreen:    { description: 'Exit Fullscreen on next track',   values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
   masterVolume:          { description: 'Master Volume',                   values: [0, 25, 50, 75, 100],    default: 100,   valueStrings: ['0%', '25%', '50%', '75%', '100%'] },
   masterMute:            { description: 'Master Mute',                     values: [true, false],           default: false, valueStrings: ['ON', 'OFF'] },
@@ -38,7 +39,7 @@ const playbackSettingsSchema = {
 
 const playbackSettings = {
   // Incremental version to check for new properties
-  version:           14,
+  version:           17,
   storageChangeSync: false,
   // User (public) settings
   user: {
@@ -49,6 +50,7 @@ const playbackSettings = {
     autoScroll:            playbackSettingsSchema.autoScroll.default,
     smoothScrolling:       playbackSettingsSchema.smoothScrolling.default,
     animateNowPlayingIcon: playbackSettingsSchema.animateNowPlayingIcon.default,
+    showTimerOnMobile:     playbackSettingsSchema.showTimerOnMobile.default,
     autoExitFullscreen:    playbackSettingsSchema.autoExitFullscreen.default,
     masterVolume:          playbackSettingsSchema.masterVolume.default,
     masterMute:            playbackSettingsSchema.masterMute.default,
