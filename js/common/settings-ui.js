@@ -5,15 +5,15 @@
 //
 
 
-import * as debugLogger             from '../common/debuglogger.js?ver=1.9.2';
-import { snackbar }                 from '../common/utils.js?ver=1.9.2';
-import { KEY, readJson, writeJson } from '../common/storage.js?ver=1.9.2';
-import * as settings                from '../common/settings.js?ver=1.9.2';
+import * as debugLogger             from '../common/debuglogger.js?ver=1.9.3';
+import { snackbar }                 from '../common/utils.js?ver=1.9.3';
+import { KEY, readJson, writeJson } from '../common/storage.js?ver=1.9.3';
+import * as settings                from '../common/settings.js?ver=1.9.3';
 
 
 const debug          = debugLogger.getInstance('settings');
-let playbackSettings = {};
-let siteSettings     = {};
+let playbackSettings = null;
+let siteSettings     = null;
 
 const moduleConfig = {
   settingsContainerId:  'settings-container',
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () =>
     setCurrentValues(playbackSettings.user, settings.playbackSettingsSchema);
     setCurrentValues(siteSettings.user, settings.siteSettingsSchema);
 
-    insertSettingsHtmlTable();
+    insertSettingsHtml();
     moduleElements.settingsContainer.style.opacity = 1;
 
     document.querySelector(`#${moduleConfig.settingsSaveResetId} .settings-save`).addEventListener('click', settingsSaveClick);
@@ -72,9 +72,10 @@ function readSettingsError()
 
   if (moduleElements.settingsContainer !== null)
   {
-    moduleElements.settingsContainer.insertAdjacentHTML('beforebegin', html);
+    moduleElements.settingsContainer.insertAdjacentHTML('afterbegin', html);
+    moduleElements.settingsContainer.style.opacity = 1;
 
-    document.querySelector('.entry-content .settings-clear').addEventListener('click', () =>
+    document.querySelector(`#${moduleConfig.settingsContainerId} .settings-clear`).addEventListener('click', () =>
     {
       localStorage.removeItem(KEY.UF_PLAYBACK_SETTINGS);
       localStorage.removeItem(KEY.UF_SITE_SETTINGS);
@@ -152,7 +153,7 @@ function getValueStringsIndex(schemaEntry, findValue)
 //
 // ************************************************************************************************
 
-function insertSettingsHtmlTable()
+function insertSettingsHtml()
 {
   let html = `\n<h3>Playback</h3>\n<table class="playback-settings">\n<tbody>`;
   Object.entries(settings.playbackSettingsSchema).forEach(entry => html += addTableRow(entry));

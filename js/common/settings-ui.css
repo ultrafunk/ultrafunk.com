@@ -15,7 +15,7 @@
 
 #settings-container {
   width: 100%;
-  min-height: 100vh;
+  min-height: 450px;
   opacity: 0;
   transition: opacity 0.25s;
 }
@@ -74,7 +74,7 @@
   text-align: end;
 }
 
-.entry-content .settings-clear {
+#settings-container .settings-clear {
   clear: both;
   margin: 100px auto 100px auto;
   padding: 12px 30px;
@@ -104,7 +104,7 @@
 
 @media all and (pointer: fine) {
  
-  .entry-content .settings-clear:hover,
+  #settings-container .settings-clear:hover,
   #settings-save-reset .settings-save:hover,
   #settings-save-reset .settings-reset:hover {
     background: var(--button-background-hover-rgba);
@@ -115,14 +115,14 @@
 
 @media not all and (pointer: fine) {
 
-  .entry-content .settings-clear,
+  #settings-container .settings-clear,
   #settings-save-reset .settings-save,
   #settings-save-reset .settings-reset {
     background-color: var(--button-background-color);
     transition: background 0.15s 0s ease-in;
   }
 
-  .entry-content .settings-clear:active,
+  #settings-container .settings-clear:active,
   #settings-save-reset .settings-save:active,
   #settings-save-reset .settings-reset:active {
     background: var(--button-background-hover-rgba);
@@ -138,62 +138,58 @@
 
 @media screen and (max-width: 1350px) {
   
-  #settings-container {
+  #settings-container table {
     width: calc(100% - (75px + 75px));
+    margin-left: auto;
+    margin-right: auto;
   }
-
-  #settings-container table,
+  
   #settings-save-reset {
     margin-left: 75px;
     margin-right: 75px;
-  }
-  
+  }  
 }
 
 @media screen and (max-width: 900px) {
   
-  #settings-container {
+  #settings-container table {
     width: calc(100% - (50px + 50px));
   }
 
-  #settings-container table,
-  #settings-save-reset  {
+  #settings-save-reset {
     margin-left: 50px;
     margin-right: 50px;
-  }
+  }  
 
 }
 
 @media screen and (max-width: 768px) {
   
-  #settings-container {
+  #settings-container table {
     width: calc(100% - (25px + 25px));
   }
 
-  #settings-container table,
-  #settings-save-reset  {
+  #settings-save-reset {
     margin-left: 25px;
     margin-right: 25px;
-  }
+  }  
 
 }
 
 @media screen and (max-width: 500px) {
   
-  .entry-content .settings-clear {
+  #settings-container table {
+    width: calc(100% - (20px + 20px));
+  }
+
+  #settings-container .settings-clear {
     max-width: 125px;
     margin: 50px auto 50px auto;
   }
 
-  #settings-container {
-    width: calc(100% - (20px + 20px));
-  }
-
-  #settings-container table,
-  #settings-save-reset  {
-    margin-left: 20px;
-    margin-right: 20px;
-  }
+  #settings-save-reset {
+    margin: 60px 20px 80px 20px
+  }  
 
   #settings-container table td {
     padding: 12px 15px;
@@ -203,11 +199,6 @@
     padding-right: 0px;
   }
 
-  #settings-save-reset {
-    margin-top: 60px;
-    margin-bottom: 50px;
-  }
-  
 }
 
 @media screen and (max-width: 400px) {

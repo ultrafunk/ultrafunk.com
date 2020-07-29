@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.9.2';
-import * as storage     from './common/storage.js?ver=1.9.2';
-import { siteSettings } from './common/settings.js?ver=1.9.2';
-import * as utils       from './common/utils.js?ver=1.9.2';
+import * as debugLogger from './common/debuglogger.js?ver=1.9.3';
+import * as storage     from './common/storage.js?ver=1.9.3';
+import { siteSettings } from './common/settings.js?ver=1.9.3';
+import * as utils       from './common/utils.js?ver=1.9.3';
 
 
 const debug  = debugLogger.getInstance('index');
@@ -193,9 +193,7 @@ function setPreviousPageTitle()
       }
       else if (referrerUrlParts.pathname.length > 1)
       {
-        const pathRegEx = /-/gi;
-        const pathParts = referrerUrlParts.pathname.slice(1, referrerUrlParts.pathname.length - 1).replace(pathRegEx, ' ').split('/');
-
+        const pathParts = referrerUrlParts.pathname.slice(1, referrerUrlParts.pathname.length - 1).replace(/-/gi, ' ').split('/');
         pathParts.forEach((part, index) => pathString += ((index + 1) < pathParts.length) ? part + ' / ' : part);
       }
     }
@@ -681,7 +679,7 @@ const scroll = (() =>
       const scrollTop          = window.pageYOffset;
       const scrollDownMenuHide = Math.round((resize.getHeaderHeight() > 150) ? (resize.getHeaderHeight() / 2) : (resize.getHeaderHeight() / 3));
     
-      if (scrollTop === 0)
+      if (scrollTop < 1)
         scrolledTop();
       else if ((scrollTop > scrollDownMenuHide) && (scrollTop > lastScrollTop))
         scrolledDown();
