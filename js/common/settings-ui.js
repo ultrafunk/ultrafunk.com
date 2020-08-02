@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger             from '../common/debuglogger.js?ver=1.9.3';
-import { snackbar }                 from '../common/utils.js?ver=1.9.3';
-import { KEY, readJson, writeJson } from '../common/storage.js?ver=1.9.3';
-import * as settings                from '../common/settings.js?ver=1.9.3';
+import * as debugLogger             from '../common/debuglogger.js?ver=1.9.4';
+import { snackbar }                 from '../common/utils.js?ver=1.9.4';
+import { KEY, readJson, writeJson } from '../common/storage.js?ver=1.9.4';
+import * as settings                from '../common/settings.js?ver=1.9.4';
 
 
 const debug          = debugLogger.getInstance('settings');
@@ -36,29 +36,34 @@ document.addEventListener('DOMContentLoaded', () =>
 
   moduleElements.settingsContainer = document.getElementById(moduleConfig.settingsContainerId);
 
-  readSettings();
-
-  if ((playbackSettings !== null) && (siteSettings !== null))
+  if (moduleElements.settingsContainer !== null)
   {
-    setCurrentValues(playbackSettings.user, settings.playbackSettingsSchema);
-    setCurrentValues(siteSettings.user, settings.siteSettingsSchema);
+    readSettings();
 
-    insertSettingsHtml();
-    moduleElements.settingsContainer.style.opacity = 1;
-
-    document.querySelector(`#${moduleConfig.settingsSaveResetId} .settings-save`).addEventListener('click', settingsSaveClick);
-    document.querySelector(`#${moduleConfig.settingsSaveResetId} .settings-reset`).addEventListener('click', settingsResetClick);
+    if ((playbackSettings !== null) && (siteSettings !== null))
+    {
+      setCurrentValues(playbackSettings.user, settings.playbackSettingsSchema);
+      setCurrentValues(siteSettings.user, settings.siteSettingsSchema);
+  
+      insertSettingsHtml();
+      moduleElements.settingsContainer.style.opacity = 1;
+  
+      document.querySelector(`#${moduleConfig.settingsSaveResetId} .settings-save`).addEventListener('click', settingsSaveClick);
+      document.querySelector(`#${moduleConfig.settingsSaveResetId} .settings-reset`).addEventListener('click', settingsResetClick);
+    }
+    else
+    {
+      readSettingsError();
+    }
   }
   else
   {
-    readSettingsError();
+    debug.error(`Unable to getElementById() for '#${moduleConfig.settingsContainerId}'`);
   }
 });
 
 function readSettingsError()
 {
-  debug.error(`Unable to read / parse Playback: ${KEY.UF_PLAYBACK_SETTINGS} and Site: ${KEY.UF_SITE_SETTINGS} settings JSON data`);
-
   document.getElementById(`${moduleConfig.settingsSaveResetId}`).style.display = 'none';
 
   const html = `<h3>An error occurred while reading Playback and Site settings</h3>
@@ -70,24 +75,21 @@ function readSettingsError()
                 <a href="https://support.google.com/accounts/answer/32050">Chrome</a> and
                 <a href="https://support.mozilla.org/en-US/kb/clear-cookies-and-site-data-firefox">Firefox</a>.</p>`;
 
-  if (moduleElements.settingsContainer !== null)
+  moduleElements.settingsContainer.insertAdjacentHTML('afterbegin', html);
+  moduleElements.settingsContainer.style.opacity = 1;
+
+  document.querySelector(`#${moduleConfig.settingsContainerId} .settings-clear`).addEventListener('click', () =>
   {
-    moduleElements.settingsContainer.insertAdjacentHTML('afterbegin', html);
-    moduleElements.settingsContainer.style.opacity = 1;
+    localStorage.removeItem(KEY.UF_PLAYBACK_SETTINGS);
+    localStorage.removeItem(KEY.UF_SITE_SETTINGS);
 
-    document.querySelector(`#${moduleConfig.settingsContainerId} .settings-clear`).addEventListener('click', () =>
-    {
-      localStorage.removeItem(KEY.UF_PLAYBACK_SETTINGS);
-      localStorage.removeItem(KEY.UF_SITE_SETTINGS);
+    readSettings();
 
-      readSettings();
-
-      if ((playbackSettings !== null) && (siteSettings !== null))
-        snackbar.show('All settings have been cleared', 5, 'Reload', () => location.reload(true), () => location.reload(true));
-      else
-        snackbar.show('Sorry, unable to clear all settings', 5);
-    });
-  }
+    if ((playbackSettings !== null) && (siteSettings !== null))
+      snackbar.show('All settings have been cleared', 5, 'Reload', () => location.reload(true), () => location.reload(true));
+    else
+      snackbar.show('Sorry, unable to clear all settings', 5);
+  });
 }
 
 // ************************************************************************************************
@@ -163,12 +165,9 @@ function insertSettingsHtml()
 
   html += `\n</tbody>\n</table>\n`;
 
-  if (moduleElements.settingsContainer !== null)
-  {
-    moduleElements.settingsContainer.insertAdjacentHTML('afterbegin', html);
-    Object.keys(settings.playbackSettingsSchema).forEach(key => document.getElementById(key).addEventListener('click', playbackSettingsClick));
-    Object.keys(settings.siteSettingsSchema).forEach(key => document.getElementById(key).addEventListener('click', siteSettingsClick));
-  }
+  moduleElements.settingsContainer.insertAdjacentHTML('afterbegin', html);
+  Object.keys(settings.playbackSettingsSchema).forEach(key => document.getElementById(key).addEventListener('click', playbackSettingsClick));
+  Object.keys(settings.siteSettingsSchema).forEach(key => document.getElementById(key).addEventListener('click', siteSettingsClick));
 }
 
 function addTableRow(entry)

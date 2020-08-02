@@ -5,8 +5,9 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.9.3';
-import { replaceClass } from '../common/utils.js?ver=1.9.3';
+import * as debugLogger        from '../common/debuglogger.js?ver=1.9.4';
+import { addSettingsObserver } from '../common/storage.js?ver=1.9.4';
+import { replaceClass }        from '../common/utils.js?ver=1.9.4';
 
 
 export {
@@ -22,12 +23,10 @@ export {
   updatePauseState,
   blinkPlayPause,
   updateNextState,
-  updateMuteState,
-  updateAutoPlayState,
 };
 
 
-const debug  = debugLogger.getInstance('playback-controls');
+const debug  = debugLogger.getInstance('playback-ctrls');
 let config   = {};
 let settings = {};
 
@@ -136,6 +135,9 @@ function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks)
 
   if (controls.trackCrossfade.elements.length > 1)
     controls.trackCrossfade.elements.forEach((element) => element.addEventListener('click', trackCrossfadeClick));
+
+  addSettingsObserver(updateAutoPlayState, 'autoPlay');
+  addSettingsObserver(updateMuteState,     'masterMute');
 }
 
 function setState(control, state = STATE.DISABLED)

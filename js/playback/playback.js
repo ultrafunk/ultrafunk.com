@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger  from '../common/debuglogger.js?ver=1.9.3';
-import * as mediaPlayers from './mediaplayers.js?ver=1.9.3';
-import * as controls     from './playback-controls.js?ver=1.9.3';
-import * as eventLogger  from './eventlogger.js?ver=1.9.3';
+import * as debugLogger  from '../common/debuglogger.js?ver=1.9.4';
+import * as mediaPlayers from './mediaplayers.js?ver=1.9.4';
+import * as controls     from './playback-controls.js?ver=1.9.4';
+import * as eventLogger  from './eventlogger.js?ver=1.9.4';
 
 
 export {
@@ -180,7 +180,7 @@ function updateMediaPlayersReady()
 
   if (playersReadyCount >= players.getNumTracks())
   {
-    controls.ready(prevClick, togglePlayPause, nextClick, toggleMute, players.getNumTracks(), settings.masterMute);
+    controls.ready(prevClick, togglePlayPause, nextClick, toggleMute, players.getNumTracks());
     callEventHandler(EVENT.READY);
     callEventHandler(EVENT.RESUME_AUTOPLAY);
   }
@@ -273,7 +273,6 @@ function toggleMute()
 {
   settings.masterMute = (settings.masterMute === true) ? false : true;
   players.mute();
-  controls.updateMuteState();
 }
   
 function trackCrossfadeClick(fadeInIframeId)

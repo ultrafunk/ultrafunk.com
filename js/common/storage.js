@@ -6,7 +6,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.9.3';
+import * as debugLogger from '../common/debuglogger.js?ver=1.9.4';
 
 
 export {
@@ -18,12 +18,14 @@ export {
   setValue,
   readJson,
   writeJson,
-  readWriteJsonProxy,
+  readWriteSettingsProxy,
+  addSettingsObserver,
   parseEventData,
 };
 
 
-const debug = debugLogger.getInstance('storage');
+const debug     = debugLogger.getInstance('storage');
+const observers = [];
 
 const KEY = {
   UF_PLAYBACK_SETTINGS: 'UF_PLAYBACK_SETTINGS',
@@ -100,7 +102,55 @@ function setValue(keyName, keyValue)
 
 
 // ************************************************************************************************
-// Merge and cleanup storage objects on new version
+// Read (parse) and write (stringify) JSON data from local storage
+// ************************************************************************************************
+
+function readJson(keyName, defaultValue = null, setDefault = true)
+{
+  debug.log(`readJson(): ${keyName} - ${defaultValue} - ${setDefault}`);
+  
+  const keyValue     = localStorage.getItem(keyName);
+  let parsedKeyValue = null;
+
+  if (keyValue === null)
+  {
+    if (setDefault && (defaultValue !== null))
+      writeJson(keyName, defaultValue);
+
+    return defaultValue;
+  }
+  else
+  {
+    try
+    {
+      parsedKeyValue = JSON.parse(keyValue);
+    }
+    catch(exception)
+    {
+      debug.error(exception);
+    }
+  }
+
+  return parsedKeyValue;
+}
+
+function writeJson(keyName, keyData)
+{
+  debug.log(`writeJson(): ${keyName} - ${keyData}`);
+
+  try
+  {
+    localStorage.setItem(keyName, JSON.stringify(keyData));
+  }
+  catch(exception)
+  {
+    debug.error(exception);
+  }
+}
+
+
+// ************************************************************************************************
+// Merge and cleanup settings objects on new version
 // ************************************************************************************************
 
 function mergeObjectProps(oldObject, newObject, keyName)
@@ -153,47 +203,52 @@ function removeOrphanedObjectProps(oldObject, newObject, keyName)
 
 
 // ************************************************************************************************
-// Read and write localStorage JSON data
+// Read and write settings proxy
 // ************************************************************************************************
 
-function readWriteJsonProxy(keyName, defaultValue = null, setDefault = true)
+function readWriteSettingsProxy(settingsKey, defaultSettings = null, setDefault = true)
 {
-  const parsedJson = readJson(keyName, defaultValue, setDefault);
+  const parsedJson = readJson(settingsKey, defaultSettings, setDefault);
 
-  if ((parsedJson !== null) && (defaultValue !== null))
+  if ((parsedJson !== null) && (defaultSettings !== null))
   {
-    let onChangeObject = null;
+    let settingsObject = null;
     
     // If version is new, perform object merge and cleanup
-    if (parsedJson.version < defaultValue.version)
+    if (parsedJson.version < defaultSettings.version)
     {
       debug.log(parsedJson);
-      onChangeObject = mergeObjectProps(parsedJson, defaultValue, keyName);
-      removeOrphanedObjectProps(onChangeObject, defaultValue, keyName);
-      debug.log(onChangeObject);
+      settingsObject = mergeObjectProps(parsedJson, defaultSettings, settingsKey);
+      removeOrphanedObjectProps(settingsObject, defaultSettings, settingsKey);
+      debug.log(settingsObject);
 
-      writeJson(keyName, onChangeObject);
+      writeJson(settingsKey, settingsObject);
     }
     else
     {
-      onChangeObject = parsedJson;
+      settingsObject = parsedJson;
     }
 
-    return onChangeWrite(onChangeObject, keyName);
+    return onSettingsChange(settingsKey, settingsObject);
   }
 
-  debug.error(`readWriteJsonProxy() failed for: ${keyName}`);
+  debug.error(`readWriteSettingsProxy() failed for: ${settingsKey}`);
 
   return null;
 }
 
-const onChangeWrite = (onChangeObject, writeKeyName) =>
+
+// ************************************************************************************************
+// Proxy traps (handlers) for settings get and set
+// ************************************************************************************************
+
+const onSettingsChange = (settingsKey, settingsObject) =>
 { 
   const handler =
   {
     get(target, property, receiver)
     {
-    //debug.log(`onChangeWrite(): Get property: ${property}`);
+    //debug.log(`onSettingsChange(): Get property: ${property}`);
       
       if (property in target)
       {      
@@ -205,12 +260,12 @@ const onChangeWrite = (onChangeObject, writeKeyName) =>
         return value;
       }
 
-      debug.error(`onChangeWrite(): Get unknown property: ${property}`);
+      debug.error(`onSettingsChange(): Get unknown property: ${property}`);
     },
     
     set(target, property, newValue, receiver)
     {
-    //debug.log(`onChangeWrite(): Set property: ${property}`);
+    //debug.log(`onSettingsChange(): Set property: ${property}`);
 
       if (property in target)
       {
@@ -220,61 +275,42 @@ const onChangeWrite = (onChangeObject, writeKeyName) =>
         if (newValue !== oldValue)
         {
           Reflect.set(target, property, newValue);
-          writeJson(writeKeyName, onChangeObject);
+          writeJson(settingsKey, settingsObject);
+          callSettingsObservers(property, oldValue, newValue);
         }
 
         return true;
       }
 
-      debug.error(`onChangeWrite(): Set unknown property: ${property}`);
+      debug.error(`onSettingsChange(): Set unknown property: ${property}`);
       return true;
     },
   };
 
-  return new Proxy(onChangeObject, handler);
+  return new Proxy(settingsObject, handler);
 };
 
-function readJson(keyName, defaultValue = null, setDefault = true)
+
+// ************************************************************************************************
+// Add and call settings observers on changes
+// ************************************************************************************************
+
+function addSettingsObserver(observer, property)
 {
-  debug.log(`readJson(): ${keyName} - ${defaultValue} - ${setDefault}`);
-  
-  const keyValue     = localStorage.getItem(keyName);
-  let parsedKeyValue = null;
-
-  if (keyValue === null)
-  {
-    if (setDefault && (defaultValue !== null))
-      writeJson(keyName, defaultValue);
-
-    return defaultValue;
-  }
-  else
-  {
-    try
-    {
-      parsedKeyValue = JSON.parse(keyValue);
-    }
-    catch(exception)
-    {
-      debug.error(exception);
-    }
-  }
-
-  return parsedKeyValue;
+  debug.log(`addSettingsObserver() for property: ${property}`);
+  observers.push({ observer: observer, property: property });
 }
 
-function writeJson(keyName, keyData)
+function callSettingsObservers(property, oldValue, newValue)
 {
-  debug.log(`writeJson(): ${keyName} - ${keyData}`);
-
-  try
+  observers.forEach(entry =>
   {
-    localStorage.setItem(keyName, JSON.stringify(keyData));
-  }
-  catch(exception)
-  {
-    debug.error(exception);
-  }
+    if (entry.property === property)
+    {
+      debug.log(`callSettingsObserver() for property: ${property} - oldValue: ${oldValue} - newValue: ${newValue}`);
+      entry.observer(oldValue, newValue);
+    }
+  });
 }
 
 

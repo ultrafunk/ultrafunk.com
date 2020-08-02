@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.9.3';
-import * as storage     from './common/storage.js?ver=1.9.3';
-import { siteSettings } from './common/settings.js?ver=1.9.3';
-import * as utils       from './common/utils.js?ver=1.9.3';
+import * as debugLogger from './common/debuglogger.js?ver=1.9.4';
+import * as storage     from './common/storage.js?ver=1.9.4';
+import { siteSettings } from './common/settings.js?ver=1.9.4';
+import * as utils       from './common/utils.js?ver=1.9.4';
 
 
 const debug  = debugLogger.getInstance('index');
@@ -99,7 +99,7 @@ window.addEventListener('storage', windowEventStorage);
 function readSettings()
 {
   debug.log('readSettings()');
-  settings = storage.readWriteJsonProxy(storage.KEY.UF_SITE_SETTINGS, siteSettings);
+  settings = storage.readWriteSettingsProxy(storage.KEY.UF_SITE_SETTINGS, siteSettings);
   debug.log(settings);
 }
 
@@ -203,17 +203,22 @@ function setPreviousPageTitle()
   }
 }
 
-function getObjectFromKeyValue(object, key, value, defaultObject)
+
+// ************************************************************************************************
+// Site theme and layout settings helpers
+// ************************************************************************************************
+
+function getCurrentSetting(settings, currentId, defaultSetting)
 {
-  const values = Object.values(object);
+  const setting = Object.values(settings).find(value => value.id === currentId);
+  return ((setting !== undefined) ? setting : defaultSetting);
+}
 
-  for (let i = 0; i < values.length; i++)
-  {
-    if (values[i][key] === value)
-      return values[i];
-  }
-
-  return defaultObject;
+function getNextSetting(settings, currentSetting)
+{
+  const index = Object.values(settings).findIndex(value => value.id === currentSetting.id);
+  const keys  = Object.keys(settings);
+  return (((index + 1) < keys.length) ? settings[keys[index + 1]] : settings[keys[0]]);
 }
 
 
@@ -253,7 +258,7 @@ const siteTheme = (() =>
   
   function setCurrent()
   {
-    currentTheme = getObjectFromKeyValue(themes, 'id', settings.user.siteTheme, themes.auto);
+    currentTheme = getCurrentSetting(themes, settings.user.siteTheme, themes.auto);
     updateData();
   }
   
@@ -266,22 +271,7 @@ const siteTheme = (() =>
   function toggle(event)
   {
     event.preventDefault();
-  
-    switch (currentTheme.id)
-    {
-      case themes.light.id:
-        currentTheme = themes.dark;
-        break;
-  
-      case themes.dark.id:
-        currentTheme = themes.auto;
-        break;
-  
-      case themes.auto.id:
-        currentTheme = themes.light;
-        break;
-      }
-  
+    currentTheme = getNextSetting(themes, currentTheme);
     settings.user.siteTheme = currentTheme.id;
     updateData();  
   }
@@ -350,38 +340,20 @@ const trackLayout = (() =>
 
   function setCurrent()
   {
-    currentLayout = getObjectFromKeyValue(layouts, 'id', settings.user.trackLayout, layouts.threeColumn);
+    currentLayout = getCurrentSetting(layouts, settings.user.trackLayout, layouts.threeColumn);
     elements.toggle.querySelector('span').textContent = currentLayout.text;
     updateData();
   }
   
   function matchMediaMinWidth(event)
   {
-    if (event.matches)
-      document.documentElement.classList.remove(currentLayout.class);
-    else
-      document.documentElement.classList.add(currentLayout.class);
+    event.matches ? document.documentElement.classList.remove(currentLayout.class) : document.documentElement.classList.add(currentLayout.class);
   }
   
   function toggle(event)
   {
     event.preventDefault();
-  
-    switch (currentLayout.id)
-    {
-      case layouts.list.id:
-        currentLayout = layouts.twoColumn;
-        break;
-  
-      case layouts.twoColumn.id:
-        currentLayout = layouts.threeColumn;
-        break;
-  
-      case layouts.threeColumn.id:
-        currentLayout = layouts.list;
-        break;
-    }
-  
+    currentLayout = getNextSetting(layouts, currentLayout);
     settings.user.trackLayout = currentLayout.id;
     updateData();
     elements.toggle.scrollIntoView();
@@ -470,10 +442,7 @@ const navMenu = (() =>
   {
     if (moduleElements.siteHeader.classList.contains('sticky-nav-up'))
     {
-      if (isRevealed)
-        reveal('none', 'flex', false);
-      else
-        reveal('flex', 'none', true);
+      isRevealed ? reveal('none', 'flex', false) : reveal('flex', 'none', true);
     }
     else
     {

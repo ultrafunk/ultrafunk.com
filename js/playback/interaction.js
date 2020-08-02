@@ -5,16 +5,13 @@
 //
 
 
-import * as debugLogger     from '../common/debuglogger.js?ver=1.9.3';
-import * as storage         from '../common/storage.js?ver=1.9.3';
-import { playbackSettings } from '../common/settings.js?ver=1.9.3';
-import * as utils           from '../common/utils.js?ver=1.9.3';
-import * as eventLogger     from './eventlogger.js?ver=1.9.3';
-import * as playback        from './playback.js?ver=1.9.3';
-import {
-  updateProgressPercent,
-  updateAutoPlayState
-} from './playback-controls.js?ver=1.9.3';
+import * as debugLogger          from '../common/debuglogger.js?ver=1.9.4';
+import * as storage              from '../common/storage.js?ver=1.9.4';
+import { playbackSettings }      from '../common/settings.js?ver=1.9.4';
+import * as utils                from '../common/utils.js?ver=1.9.4';
+import * as eventLogger          from './eventlogger.js?ver=1.9.4';
+import * as playback             from './playback.js?ver=1.9.4';
+import { updateProgressPercent } from './playback-controls.js?ver=1.9.4';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -100,7 +97,7 @@ function hasEmbeddedPlayers()
 function readSettings()
 {
   debug.log('readSettings()');
-  settings = storage.readWriteJsonProxy(storage.KEY.UF_PLAYBACK_SETTINGS, playbackSettings);
+  settings = storage.readWriteSettingsProxy(storage.KEY.UF_PLAYBACK_SETTINGS, playbackSettings);
   debug.log(settings);
 }
 
@@ -658,7 +655,6 @@ function updateAutoPlayDOM(autoPlay)
 {
   debug.log(`updateAutoPlayDOM() - autoPlay: ${autoPlay}`);
 
-  updateAutoPlayState();  
   moduleElements.footerAutoPlayToggle.querySelector('.autoplay-on-off').textContent = autoPlay ? 'ON' : 'OFF';
   moduleElements.nowPlayingIcons.forEach(element => (autoPlay ? element.classList.remove('no-autoplay') : element.classList.add('no-autoplay')));
   autoPlay ? moduleElements.footerCrossfadeToggle.classList.remove('disabled') : moduleElements.footerCrossfadeToggle.classList.add('disabled');
