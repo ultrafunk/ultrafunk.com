@@ -48,7 +48,7 @@
   align-items: center;
   justify-content: space-between;
   box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.3);
-  border-radius: 5px;
+  border-radius: var(--button-border-radius);
 }
 
 #snackbar .snackbar-message {
@@ -128,7 +128,7 @@
   
   #snackbar .snackbar-wrapper {
     margin: 0px 10px;
-    padding: 6px 10px 6px 15px;
+    padding: 7px 10px 7px 15px;
     font-size: 15px;
     line-height: 22px;
     max-width: 100%;

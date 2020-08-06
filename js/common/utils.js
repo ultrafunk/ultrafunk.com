@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.9.4';
+import * as debugLogger from '../common/debuglogger.js?ver=1.9.5';
 
 
 export {
@@ -111,10 +111,8 @@ const snackbar = (() =>
   const html = `
     <div id="${config.id}">
       <div class="${config.id}-wrapper">
-        <div class="${config.id}-message">
-        </div>
-        <div class="${config.id}-action-button">
-        </div>
+        <div class="${config.id}-message"></div>
+        <div class="${config.id}-action-button"></div>
         <div class="${config.id}-close-button">
           <span class="material-icons" title="Dismiss">close</span>
         </div>
@@ -122,7 +120,7 @@ const snackbar = (() =>
     </div>
   `;
 
-  let elements            = { snackbar: null, actionButton: null };
+  let elements            = { snackbar: null, actionButton: null, closeButton: null };
   let actionClickCallback = null;
   let afterCloseCallback  = null;
   let visibleTimeoutId    = -1;
@@ -157,6 +155,11 @@ const snackbar = (() =>
         elements.actionButton.style.display = 'block';
         elements.actionButton.textContent   = actionText;
         elements.actionButton.addEventListener('click', actionButtonClick);
+      }
+      else
+      {
+        // Fix edge case when actionButton is hidden...
+        matchesMedia(MATCH.SITE_MAX_WIDTH_MOBILE) ? elements.closeButton.style.paddingLeft = '10px' : elements.closeButton.style.paddingLeft = '20px';
       }
       
       if (timeout !== 0)
@@ -196,8 +199,9 @@ const snackbar = (() =>
         afterElement.insertAdjacentHTML('afterend', html);
         elements.snackbar     = document.getElementById(config.id);
         elements.actionButton = elements.snackbar.querySelector(`.${config.id}-action-button`);
+        elements.closeButton  = elements.snackbar.querySelector(`.${config.id}-close-button`);
         
-        elements.snackbar.querySelector(`.${config.id}-close-button`).addEventListener('click', () =>
+        elements.closeButton.addEventListener('click', () =>
         {
           if (afterCloseCallback !== null)
             afterCloseCallback();

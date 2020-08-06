@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.9.4';
-import * as storage     from './common/storage.js?ver=1.9.4';
-import { siteSettings } from './common/settings.js?ver=1.9.4';
-import * as utils       from './common/utils.js?ver=1.9.4';
+import * as debugLogger from './common/debuglogger.js?ver=1.9.5';
+import * as storage     from './common/storage.js?ver=1.9.5';
+import { siteSettings } from './common/settings.js?ver=1.9.5';
+import * as utils       from './common/utils.js?ver=1.9.5';
 
 
 const debug  = debugLogger.getInstance('index');
@@ -413,14 +413,14 @@ const navMenu = (() =>
     observer.observe(elements.mainMenu);
   }
 
-  function isMobileMenuVisible()
+  function isMenuVisible()
   {
-    return ((elements.mainMenu.offsetHeight !== 0) && utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE));
+    return (elements.mainMenu.offsetHeight !== 0);
   }
   
   function documentEventClick(event)
   {
-    if (isMobileMenuVisible())
+    if (isMenuVisible())
     {
       if (event.target.closest('#site-header') === null)
         toggle();
@@ -429,7 +429,7 @@ const navMenu = (() =>
   
   function observerCallback()
   {
-    let pointerEvents = isMobileMenuVisible() ? 'none' : '';
+    let pointerEvents = isMenuVisible() ? 'none' : '';
   
     if (moduleElements.introBanner !== null)
       moduleElements.introBanner.style.pointerEvents = pointerEvents;
@@ -442,23 +442,19 @@ const navMenu = (() =>
   {
     if (moduleElements.siteHeader.classList.contains('sticky-nav-up'))
     {
-      isRevealed ? reveal('none', 'flex', false) : reveal('flex', 'none', true);
+      isRevealed ? reveal('none', false) : reveal('flex', true);
     }
     else
     {
       if (moduleElements.siteHeader.classList.contains('sticky-nav-down') === false)
-      {
         moduleElements.siteHeader.classList.toggle('hide-main-nav-menu');
-        resize.setTopMargin();
-      }
     }
   }
 
-  function reveal(mainDisplay, subDisplay, reveal)
+  function reveal(mainDisplay, reveal)
   {
     elements.mainMenu.style.display = mainDisplay;
-    elements.subMenu.style.display  = subDisplay;
-    isRevealed                      = reveal;
+    isRevealed = reveal;
   }
 })();
 
@@ -555,7 +551,7 @@ const navSearch = (() =>
     if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
       position = document.querySelector('div.site-branding').getBoundingClientRect();
     else
-      position = document.querySelector('div.site-branding-flex-container').getBoundingClientRect();
+      position = document.querySelector('div.site-branding-container').getBoundingClientRect();
   
     elements.searchContainer.style.top    = `${position.top}px`;
     elements.searchContainer.style.left   = `${position.left}px`;
@@ -597,31 +593,21 @@ const resize = (() =>
   
   function setTopMargin()
   {
-    const contentTopMarginPx       = utils.getCssPropValue('--site-content-top-margin');
-    const contentTopMarginMobilePx = utils.getCssPropValue('--site-content-top-margin-mobile');
-  
-    let topMargin = contentTopMarginPx;
+    let contentTopMargin = utils.getCssPropValue('--site-content-top-margin');
     
     if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
-    {
-      topMargin = contentTopMarginMobilePx;
-  
-      if (document.querySelector('#site-header.hide-main-nav-menu') === null)
-        headerHeight = moduleElements.siteHeader.offsetHeight;
-    }
-    else
-    {
-      headerHeight = moduleElements.siteHeader.offsetHeight;
-    }
-  
+      contentTopMargin = utils.getCssPropValue('--site-content-top-margin-mobile');
+
+    headerHeight = moduleElements.siteHeader.offsetHeight;
+
     if ((moduleElements.introBanner !== null) && (moduleElements.introBanner.style.display.length !== 0))
     {
       moduleElements.introBanner.style.marginTop = `${headerHeight}px`;
-      moduleElements.siteContent.style.marginTop = `${topMargin}px`;
+      moduleElements.siteContent.style.marginTop = `${contentTopMargin}px`;
     }
     else
     {
-      moduleElements.siteContent.style.marginTop = `${headerHeight + topMargin}px`;
+      moduleElements.siteContent.style.marginTop = `${headerHeight + contentTopMargin}px`;
     }
   }
 })();
@@ -664,12 +650,9 @@ const scroll = (() =>
 
   function scrolledTop()
   {
-    if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
-      moduleElements.siteHeader.classList.remove('sticky-nav-down', 'sticky-nav-up', 'hide-main-nav-menu');
-    else
-      moduleElements.siteHeader.classList.remove('sticky-nav-down', 'sticky-nav-up');
-
-    navMenu.reveal('', '', false);
+    moduleElements.siteHeader.classList.remove('sticky-nav-down', 'sticky-nav-up');
+    moduleElements.siteHeader.classList.add('hide-main-nav-menu');
+    navMenu.reveal('', false);
     resize.setTopMargin();
   }
 
@@ -691,6 +674,6 @@ const scroll = (() =>
     }
 
     if (navMenu.isRevealed() === true)
-      navMenu.reveal('none', 'flex', false);
+      navMenu.reveal('none', false);
   }
 })();

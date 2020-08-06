@@ -151,7 +151,7 @@ function nav_items($class)
 {
   ?>
   <div class="<?php echo $class; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>">
-    <div class="nav-menu-toggle" title="Toggle menu (c)"><i class="material-icons">menu</i></div>
+    <div class="nav-menu-toggle" title="Toggle Channel menu (c)"><i class="material-icons">menu</i></div>
     <div class="nav-search-toggle" title="Show / Hide search (s)"><i class="material-icons">search</i></div>
   </div>
   <?php
@@ -252,8 +252,9 @@ function nav_title()
   }
   else if (is_search())
   {
-    $prefix = '<b>Search: </b>';
-    $title  = get_search_query();
+    $prefix     = '<b>Search: </b>';
+    $title      = get_search_query();
+    $pagination = esc_html(get_search_hits());
   }
   else if (is_tag())
   {
@@ -263,6 +264,7 @@ function nav_title()
   echo $prefix . $title . $pagination; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }
 
+/*
 function index_title()
 {
   $prefix     = 'Channel:';
@@ -305,6 +307,7 @@ function index_title()
   <h1 class="content-header"><?php echo esc_html($prefix); ?> <span class="light-text"><?php echo esc_html($title); ?></span><span class="lightest-text"><?php echo esc_html($pagination); ?></span></h1>
   <?php
 }
+*/
 
 function footer_title()
 {
@@ -342,6 +345,7 @@ function entry_title()
     esc_html(the_title(sprintf('<h2 class="entry-title"><a href="%s" rel="bookmark">', esc_url(get_permalink())), '</a></h2>'));
 }
 
+/*
 function meta_date_author()
 {
   ?>
@@ -351,6 +355,7 @@ function meta_date_author()
   </div>
   <?php
 }
+*/
 
 function meta_controls()
 {

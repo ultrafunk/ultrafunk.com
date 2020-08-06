@@ -19,6 +19,8 @@
   --site-theme-font-color: #efefef;
   --site-theme-icon-color: #fff;
 
+  --button-border-radius: 6px;
+
   --body-background-focus: #fff;
   --body-background-blurred: #ddd;
   --branding-logo-filter: unset;
@@ -45,12 +47,16 @@
   --form-input-autofill-box-shadow: 0 0 0 50px #fff inset;
 
   --date-page-border-color: #888;
-
+  --page-numbers-background: rgba(127, 127, 127, 0.15);
+  --page-numbers-background-hover: rgba(127, 127, 127, 0.3);
+  
   /*
   --header-gradient-bg-blur: linear-gradient(0deg, rgba(230, 230, 230, 0.80) 0%, rgba(255, 255, 255, 0.80) 100%);
-  */
   --header-gradient-bg-blur: linear-gradient(0deg, rgba(230, 230, 230, 0.95) 0%, rgba(255, 255, 255, 0.95) 100%);
   --header-gradient-no-blur: linear-gradient(0deg, rgba(230, 230, 230, 0.95) 0%, rgba(255, 255, 255, 0.95) 100%);
+  */
+
+  --header-gradient-no-blur: linear-gradient(0deg, rgba(230, 230, 230, 1) 0%, rgba(255, 255, 255, 1) 100%);
 }
 
 #site-header {

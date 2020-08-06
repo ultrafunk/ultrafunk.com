@@ -8,7 +8,9 @@ if (!defined('ABSPATH')) exit;
 
 get_header();
 
+/*
 \Ultrafunk\ThemeTags\index_title();
+*/
 
 if (have_posts())
 {

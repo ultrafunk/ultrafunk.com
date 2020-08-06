@@ -5,9 +5,9 @@
 //
 
 
-import * as debugLogger        from '../common/debuglogger.js?ver=1.9.4';
-import { addSettingsObserver } from '../common/storage.js?ver=1.9.4';
-import { replaceClass }        from '../common/utils.js?ver=1.9.4';
+import * as debugLogger        from '../common/debuglogger.js?ver=1.9.5';
+import { addSettingsObserver } from '../common/storage.js?ver=1.9.5';
+import { replaceClass }        from '../common/utils.js?ver=1.9.5';
 
 
 export {
@@ -103,6 +103,8 @@ function init(playbackConfig, playbackSettings, seekClickCallback, crossfadeClic
 
   if (controls.trackCrossfade.elements.length !== 0)
     controls.trackCrossfade.clickCallback = crossfadeClickCallback;
+
+  updateAutoPlayState();
 }
 
 function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks)
