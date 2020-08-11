@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.9.5';
+import * as debugLogger from '../common/debuglogger.js?ver=1.10.0';
 
 
 export {
@@ -120,7 +120,7 @@ const snackbar = (() =>
     </div>
   `;
 
-  let elements            = { snackbar: null, actionButton: null, closeButton: null };
+  const elements          = { snackbar: null, actionButton: null, closeButton: null };
   let actionClickCallback = null;
   let afterCloseCallback  = null;
   let visibleTimeoutId    = -1;

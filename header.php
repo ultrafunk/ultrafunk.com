@@ -25,27 +25,23 @@ use \Ultrafunk\ThemeTags as ultrafunk;
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 <a class="skip-link screen-reader-text" href="#site-content"><?php esc_html_e('Skip to content', 'ultrafunk'); ?></a>
-<header id="site-header" class="hide-main-nav-menu">
+<header id="site-header" class="hide-nav-menu">
   <?php ultrafunk\nav_progress_controls(); ?>
   <div class="site-header-container">
     <?php ultrafunk\nav_search(); ?>
     <div class="site-branding-container">
       <div class="site-branding">
+        <div class="nav-menu-toggle" title="Toggle Channel menu (c)"><i class="material-icons">menu</i></div>
         <a href="<?php echo esc_url(home_url('/')); ?>" aria-label="Home"><?php ultrafunk\header_logo(); ?></a>
+        <div class="nav-search-toggle" title="Show / Hide search (s)"><i class="material-icons">search</i></div>
       </div>
       <?php ultrafunk\nav_playback_controls(); ?>
     </div>
     <nav id="site-navigation" class="main-navigation">
       <button class="menu-toggle" aria-controls="primary-menu" aria-expanded="false"><?php esc_html_e('Primary Menu', 'ultrafunk'); ?></button>
-      <div class="sub-navigation-menu-outer">
-        <?php ultrafunk\nav_pagination(); ?>
-        <div class="sub-navigation-details">
-          <?php ultrafunk\nav_title(); ?>
-        </div>
-        <?php ultrafunk\nav_items('sub-navigation-nav-items'); ?>
-      </div>
-      <div class="main-navigation-menu-outer">
-        <div class="main-navigation-menu-inner">
+      <?php ultrafunk\nav_bar() ?>
+      <div class="nav-menu-outer">
+        <div class="nav-menu-inner">
           <?php wp_nav_menu(array('theme_location' => 'primary-menu')); ?>
         </div>
       </div>

@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.9.5';
-import * as storage     from './common/storage.js?ver=1.9.5';
-import { siteSettings } from './common/settings.js?ver=1.9.5';
-import * as utils       from './common/utils.js?ver=1.9.5';
+import * as debugLogger from './common/debuglogger.js?ver=1.10.0';
+import * as storage     from './common/storage.js?ver=1.10.0';
+import { siteSettings } from './common/settings.js?ver=1.10.0';
+import * as utils       from './common/utils.js?ver=1.10.0';
 
 
 const debug  = debugLogger.getInstance('index');
@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () =>
 
   resize.setTopMargin();
   resize.setLastInnerWidth(window.innerWidth);
+  
   setPreviousPageTitle();
 });
 
@@ -72,6 +73,14 @@ document.addEventListener('keydown', (event) =>
       case 'c':
       case 'C':
         if ((navSearch.isVisible() === false) && (moduleElements.siteContentSearch !== document.activeElement))
+        {
+          event.preventDefault();
+          navMenu.toggle();
+        }
+        break;
+
+      case 'Escape':
+        if (navMenu.isVisible())
         {
           event.preventDefault();
           navMenu.toggle();
@@ -160,7 +169,7 @@ function showIntroBanner()
       {
         moduleElements.introBanner.style.display = 'block';
   
-        utils.addEventListeners('#intro-banner .intro-banner-close-button-container', 'click', () =>
+        utils.addEventListeners('#intro-banner .intro-banner-close-button', 'click', () =>
         {
           moduleElements.introBanner.style.display = '';
           resize.setTopMargin();
@@ -173,9 +182,7 @@ function showIntroBanner()
 
 function setPreviousPageTitle()
 {
-  const element = document.querySelector('.sub-navigation-details .previous-page-title');
-  
-  if (element !== null)
+  if (document.querySelector('.nav-bar-title .go-back-to') !== null)
   {
     let pathString = '';
 
@@ -198,8 +205,11 @@ function setPreviousPageTitle()
       }
     }
 
-    element.textContent = (pathString.length > 0) ? pathString : 'Ultrafunk (home)';
-    document.querySelector('.sub-navigation-details .go-back-previous').style.opacity = 1;
+    document.querySelectorAll('#site-navigation .nav-bar-title').forEach(element =>
+    {
+      element.querySelector('.go-back-title').textContent = (pathString.length > 0) ? pathString : 'Ultrafunk (home)';
+      element.querySelector('.go-back-to').style.opacity  = 1;
+    });
   }
 }
 
@@ -229,7 +239,7 @@ function getNextSetting(settings, currentSetting)
 const siteTheme = (() =>
 {
   let currentTheme = {};
-  let elements     = { toggle: null };
+  const elements   = { toggle: null };
 
   const config = {
     toggleId:       '#footer-site-theme-toggle',
@@ -311,7 +321,7 @@ const siteTheme = (() =>
 const trackLayout = (() =>
 {
   let currentLayout = {};
-  let elements      = { toggle: null };
+  const elements    = { toggle: null };
 
   const config = {
     toggleId: '#footer-track-layout-toggle',
@@ -390,11 +400,12 @@ const trackLayout = (() =>
 const navMenu = (() =>
 {
   const observer = new IntersectionObserver(observerCallback);
-  let elements   = { mainMenu: null, subMenu: null, footer: null };
+  const elements = { navMenu: null, modalOverlay: null };
   let isRevealed = false;
 
   return {
     isRevealed() { return isRevealed; },
+    isVisible,
     init,
     toggle,
     reveal,
@@ -402,40 +413,37 @@ const navMenu = (() =>
 
   function init()
   {
-    elements.mainMenu = document.querySelector('#site-navigation .main-navigation-menu-outer');
-    elements.subMenu  = document.querySelector('#site-navigation .sub-navigation-menu-outer');
-    elements.footer   = document.getElementById('site-footer');
+    elements.navMenu      = document.querySelector('#site-navigation .nav-menu-outer');
+    elements.modalOverlay = document.getElementById('modal-overlay');
 
     utils.addEventListeners('.nav-menu-toggle', 'click', toggle);
-    // Close nav main menu if user clicked outside its rectangle
-    document.addEventListener('click', documentEventClick);
-    // Used to toggle CSS pointer-events on element resize
-    observer.observe(elements.mainMenu);
+    elements.modalOverlay.addEventListener('click', toggle);
+    elements.modalOverlay.addEventListener('transitionend', transitionEnd);
+    observer.observe(elements.navMenu.querySelector('.menu-primary-menu-container'));
   }
 
-  function isMenuVisible()
+  function isVisible()
   {
-    return (elements.mainMenu.offsetHeight !== 0);
+    return (elements.navMenu.offsetHeight !== 0);
   }
-  
-  function documentEventClick(event)
-  {
-    if (isMenuVisible())
-    {
-      if (event.target.closest('#site-header') === null)
-        toggle();
-    }
-  }
-  
+
   function observerCallback()
   {
-    let pointerEvents = isMenuVisible() ? 'none' : '';
-  
-    if (moduleElements.introBanner !== null)
-      moduleElements.introBanner.style.pointerEvents = pointerEvents;
+    if (isVisible())
+    {
+      elements.modalOverlay.classList.value = '';
+      elements.modalOverlay.classList.add('show');
+      setTimeout(() => elements.modalOverlay.classList.add('fadein'), 50);
+    }
+    else
+    {
+      elements.modalOverlay.classList.add('fadeout');
+    }
+  }
 
-    moduleElements.siteContent.style.pointerEvents = pointerEvents;
-    elements.footer.style.pointerEvents            = pointerEvents;
+  function transitionEnd()
+  {
+    (isVisible() === false) ? elements.modalOverlay.classList.value = '' : '';
   }
 
   function toggle()
@@ -447,13 +455,13 @@ const navMenu = (() =>
     else
     {
       if (moduleElements.siteHeader.classList.contains('sticky-nav-down') === false)
-        moduleElements.siteHeader.classList.toggle('hide-main-nav-menu');
+        moduleElements.siteHeader.classList.toggle('hide-nav-menu');
     }
   }
 
-  function reveal(mainDisplay, reveal)
+  function reveal(navMenuDisplay, reveal)
   {
-    elements.mainMenu.style.display = mainDisplay;
+    elements.navMenu.style.display = navMenuDisplay;
     isRevealed = reveal;
   }
 })();
@@ -467,8 +475,8 @@ const navSearch = (() =>
 {
   const allowKeyboardShortcuts = new Event('allowKeyboardShortcuts');
   const denyKeyboardShortcuts  = new Event('denyKeyboardShortcuts');
-  let elements  = { searchContainer: null, searchField: null };
-  let isVisible = false;
+  const elements = { searchContainer: null, searchField: null };
+  let isVisible  = false;
 
   return {
     isVisible() { return isVisible; },
@@ -480,15 +488,20 @@ const navSearch = (() =>
   function init()
   {
     elements.searchContainer = document.getElementById('search-container');
-    elements.searchField     = document.querySelector('#search-container .search-field');
+    elements.searchField     = elements.searchContainer.querySelector('.search-field');
 
     utils.addEventListeners('.nav-search-toggle', 'click', toggle);
     // To prevent extra 'blur' event before 'click' event
     utils.addEventListeners('.nav-search-toggle', 'mousedown', (event) => event.preventDefault());
     // Hide nav search bar on focus loss
     elements.searchField.addEventListener('blur', hide);
+    
     // Hide nav search bar on ESC
-    elements.searchField.addEventListener('keydown', (event) => { if (event.key === 'Escape') hide(); });
+    elements.searchField.addEventListener('keydown', (event) =>
+    {
+      event.stopPropagation();
+      if (event.key === 'Escape') hide();
+    });
   }
 
   function toggle()
@@ -546,12 +559,19 @@ const navSearch = (() =>
   
   function setPosSize()
   {
-    let position = 0;
+    let position = DOMRect;
   
     if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
-      position = document.querySelector('div.site-branding').getBoundingClientRect();
+    {
+      position.top    = document.body.classList.contains('no-playback') ? 16 : 21;
+      position.left   = 68;
+      position.right  = document.body.clientWidth - 65;
+      position.height = 30;
+    }
     else
+    {
       position = document.querySelector('div.site-branding-container').getBoundingClientRect();
+    }
   
     elements.searchContainer.style.top    = `${position.top}px`;
     elements.searchContainer.style.left   = `${position.left}px`;
@@ -598,7 +618,8 @@ const resize = (() =>
     if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
       contentTopMargin = utils.getCssPropValue('--site-content-top-margin-mobile');
 
-    headerHeight = moduleElements.siteHeader.offsetHeight;
+    if (moduleElements.siteHeader.classList.contains('hide-nav-menu'))
+      headerHeight = moduleElements.siteHeader.offsetHeight;
 
     if ((moduleElements.introBanner !== null) && (moduleElements.introBanner.style.display.length !== 0))
     {
@@ -651,7 +672,7 @@ const scroll = (() =>
   function scrolledTop()
   {
     moduleElements.siteHeader.classList.remove('sticky-nav-down', 'sticky-nav-up');
-    moduleElements.siteHeader.classList.add('hide-main-nav-menu');
+    moduleElements.siteHeader.classList.add('hide-nav-menu');
     navMenu.reveal('', false);
     resize.setTopMargin();
   }

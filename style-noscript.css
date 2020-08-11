@@ -5,13 +5,9 @@
 
 :root {
   --site-header-full: 0px;
-  --site-header-1350px: 0px;
-  --site-header-1200px: 0px;
-  --site-header-1100px: 0px;
-  --site-header-900px: 0px;
-  --site-header-768px: 0px;
-  --site-header-500px: 0px;
-  --site-header-no-playback-500px: 0px;
+  --site-header-full-no-playback: 0px;
+  --site-header-mobile: 0px;
+  --site-header-mobile-no-playback: 0px;
 
   --link-hover-color: #dd0000;
 
@@ -40,10 +36,11 @@
   --intro-banner-background: #505050;
   --intro-banner-button-background: #323232;
 
-  --form-search-field-background: #fff;
+  --form-search-field-background: #eee;
+  --form-search-field-background-focus: #fff;
   --form-search-field-outline: none !important;
-  --form-search-field-border: 1px solid #bbb;
-  --form-search-field-border-focus: 2px solid #666;
+  --form-search-field-border: 2px solid #ddd;
+  --form-search-field-border-focus: 2px solid #bbb;
   --form-input-autofill-box-shadow: 0 0 0 50px #fff inset;
 
   --date-page-border-color: #888;

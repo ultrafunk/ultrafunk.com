@@ -5,9 +5,9 @@
 //
 
 
-import * as debugLogger        from '../common/debuglogger.js?ver=1.9.5';
-import { addSettingsObserver } from '../common/storage.js?ver=1.9.5';
-import { replaceClass }        from '../common/utils.js?ver=1.9.5';
+import * as debugLogger        from '../common/debuglogger.js?ver=1.10.0';
+import { addSettingsObserver } from '../common/storage.js?ver=1.10.0';
+import { replaceClass }        from '../common/utils.js?ver=1.10.0';
 
 
 export {
@@ -60,6 +60,9 @@ function init(playbackConfig, playbackSettings, seekClickCallback, crossfadeClic
 {
   config   = playbackConfig;
   settings = playbackSettings;
+
+  // Quick'n'dirty preload of this single CSS background image...
+  new Image().src = "/wp-content/themes/ultrafunk/img/play_pause_bg_filler.png";
 
   const playbackProgress = document.getElementById(config.progressControlsId);
 
@@ -117,7 +120,10 @@ function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks)
   setState(controls.thumbnail, STATE.ENABLED);
   setState(controls.timer, STATE.ENABLED);
 
-  if (settings.showTimerOnMobile)
+  if (settings.trackThumbnailOnMobile)
+    controls.thumbnail.element.classList.add('show-on-mobile');
+
+  if (settings.trackTimesOnMobile)
     controls.timer.element.classList.add('show-on-mobile');
 
   setState(controls.prevTrack, STATE.DISABLED);

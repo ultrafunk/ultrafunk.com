@@ -5,13 +5,13 @@
 //
 
 
-import * as debugLogger          from '../common/debuglogger.js?ver=1.9.5';
-import * as storage              from '../common/storage.js?ver=1.9.5';
-import { playbackSettings }      from '../common/settings.js?ver=1.9.5';
-import * as utils                from '../common/utils.js?ver=1.9.5';
-import * as eventLogger          from './eventlogger.js?ver=1.9.5';
-import * as playback             from './playback.js?ver=1.9.5';
-import { updateProgressPercent } from './playback-controls.js?ver=1.9.5';
+import * as debugLogger          from '../common/debuglogger.js?ver=1.10.0';
+import * as storage              from '../common/storage.js?ver=1.10.0';
+import { playbackSettings }      from '../common/settings.js?ver=1.10.0';
+import * as utils                from '../common/utils.js?ver=1.10.0';
+import * as eventLogger          from './eventlogger.js?ver=1.10.0';
+import * as playback             from './playback.js?ver=1.10.0';
+import { updateProgressPercent } from './playback-controls.js?ver=1.10.0';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -25,7 +25,7 @@ const moduleConfig = {
   soundCloudIframeIdRegEx:     /soundcloud-uid/i,
   nowPlayingIconsSelector:     'h2.entry-title',
   autoPlayToggleId:            'footer-autoplay-toggle',
-  footerCrossfadeToggleId:     'footer-crossfade-toggle',
+  crossfadeToggleId:           'footer-crossfade-toggle',
   keyboardShortcuts:           true,
   allowKeyboardShortcutsEvent: 'allowKeyboardShortcuts',
   denyKeyboardShortcutsEvent:  'denyKeyboardShortcuts',
@@ -34,11 +34,11 @@ const moduleConfig = {
 
 // Shared DOM elements for all, submodules can have local const elements = {...}
 const moduleElements = {
-  playbackControls:       { details: null, thumbnail: null },
-  fullscreenChangeTarget: null,
-  nowPlayingIcons:        null,
-  footerAutoPlayToggle:   null,
-  footerCrossfadeToggle:  null,
+  playbackControls: { details: null, thumbnail: null },
+  fullscreenTarget: null,
+  nowPlayingIcons:  null,
+  autoPlayToggle:   null,
+  crossfadeToggle:  null,
 };
 
 
@@ -109,8 +109,8 @@ function initInteraction()
   moduleElements.playbackControls.details   = document.getElementById('playback-controls').querySelector('.details-control');
   moduleElements.playbackControls.thumbnail = document.getElementById('playback-controls').querySelector('.thumbnail-control');
   moduleElements.nowPlayingIcons            = document.querySelectorAll(moduleConfig.nowPlayingIconsSelector);
-  moduleElements.footerAutoPlayToggle       = document.getElementById(moduleConfig.autoPlayToggleId);
-  moduleElements.footerCrossfadeToggle      = document.getElementById(moduleConfig.footerCrossfadeToggleId);
+  moduleElements.autoPlayToggle             = document.getElementById(moduleConfig.autoPlayToggleId);
+  moduleElements.crossfadeToggle            = document.getElementById(moduleConfig.crossfadeToggleId);
 
   window.addEventListener('blur',    windowEventBlur);
   window.addEventListener('focus',   windowEventFocus);
@@ -119,8 +119,8 @@ function initInteraction()
   document.addEventListener('fullscreenchange',       documentEventFullscreenChange);
   document.addEventListener('webkitfullscreenchange', documentEventFullscreenChange);
   
-  utils.addEventListeners('i.sub-pagination-prev', 'click', subPaginationClick, navigationVars.prevUrl); // eslint-disable-line no-undef
-  utils.addEventListeners('i.sub-pagination-next', 'click', subPaginationClick, navigationVars.nextUrl); // eslint-disable-line no-undef
+  utils.addEventListeners('i.nav-bar-arrow-back', 'click', subPaginationClick, navigationVars.prevUrl); // eslint-disable-line no-undef
+  utils.addEventListeners('i.nav-bar-arrow-fwd', 'click', subPaginationClick, navigationVars.nextUrl); // eslint-disable-line no-undef
 }
 
 
@@ -173,8 +173,8 @@ const playbackEvents = (() =>
     updateProgressPercent(0);
     moduleElements.playbackControls.details.addEventListener('click', playbackDetailsClick);
     moduleElements.playbackControls.thumbnail.addEventListener('click', playbackDetailsClick);
-    moduleElements.footerAutoPlayToggle.addEventListener('click', autoPlayToggle);
-    moduleElements.footerCrossfadeToggle.addEventListener('click', crossfadeToggle);
+    moduleElements.autoPlayToggle.addEventListener('click', autoPlayToggle);
+    moduleElements.crossfadeToggle.addEventListener('click', crossfadeToggle);
   }
   
   function mediaPlaying(playbackEvent, eventData)
@@ -419,7 +419,7 @@ function windowEventStorage(event)
 
 function documentEventFullscreenChange()
 {
-  moduleElements.fullscreenChangeTarget = (document.fullscreenElement !== null) ? document.fullscreenElement.id : null;
+  moduleElements.fullscreenTarget = (document.fullscreenElement !== null) ? document.fullscreenElement.id : null;
 }
 
 
@@ -465,10 +465,10 @@ function enterFullscreenTrack()
 
 function exitFullscreenTrack()
 {
-  if (moduleElements.fullscreenChangeTarget !== null)
+  if (moduleElements.fullscreenTarget !== null)
   {
     document.exitFullscreen();
-    moduleElements.fullscreenChangeTarget = null;
+    moduleElements.fullscreenTarget = null;
   }
 }
 
@@ -502,7 +502,10 @@ document.addEventListener('keydown', (event) =>
 
       case 'x':
       case 'X':
+        if (moduleElements.crossfadeToggle.classList.contains('disabled') === false)
+        {
           crossfadeToggle(event);
+        }
         break;
 
       case 'ArrowLeft':
@@ -536,7 +539,7 @@ function fullscreenToggle(event)
 {
   event.preventDefault();
 
-  if (moduleElements.fullscreenChangeTarget === null)
+  if (moduleElements.fullscreenTarget === null)
     enterFullscreenTrack();
   else
     exitFullscreenTrack();
@@ -655,9 +658,9 @@ function updateAutoPlayDOM(autoPlay)
 {
   debug.log(`updateAutoPlayDOM() - autoPlay: ${autoPlay}`);
 
-  moduleElements.footerAutoPlayToggle.querySelector('.autoplay-on-off').textContent = autoPlay ? 'ON' : 'OFF';
+  moduleElements.autoPlayToggle.querySelector('.autoplay-on-off').textContent = autoPlay ? 'ON' : 'OFF';
   moduleElements.nowPlayingIcons.forEach(element => (autoPlay ? element.classList.remove('no-autoplay') : element.classList.add('no-autoplay')));
-  autoPlay ? moduleElements.footerCrossfadeToggle.classList.remove('disabled') : moduleElements.footerCrossfadeToggle.classList.add('disabled');
+  autoPlay ? moduleElements.crossfadeToggle.classList.remove('disabled') : moduleElements.crossfadeToggle.classList.add('disabled');
 
   if (autoPlay)
   {
@@ -686,7 +689,7 @@ function crossfadeToggle(event)
 function updateCrossfadeDOM(autoCrossfade)
 {
   debug.log(`updateCrossfadeDOM() - autoCrossfade: ${autoCrossfade}`);
-  moduleElements.footerCrossfadeToggle.querySelector('.crossfade-on-off').textContent = autoCrossfade ? 'ON' : 'OFF';
+  moduleElements.crossfadeToggle.querySelector('.crossfade-on-off').textContent = autoCrossfade ? 'ON' : 'OFF';
 }
 
 

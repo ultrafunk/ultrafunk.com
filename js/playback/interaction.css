@@ -28,7 +28,7 @@
   box-sizing: border-box;
   width: 100%;
   position: fixed;
-  z-index: 999;
+  z-index: 800;
   bottom: 25px;
   display: flex;
   justify-content: center;

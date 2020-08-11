@@ -147,7 +147,7 @@ function nav_search()
   <?php
 }
 
-function nav_items($class)
+function nav_bar_icons($class)
 {
   ?>
   <div class="<?php echo $class; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>">
@@ -157,43 +157,50 @@ function nav_items($class)
   <?php
 }
 
-function nav_pagination()
+function nav_bar_arrows()
 {
   $prev_next_urls = get_prev_next_urls();
+  $nav_arrows     = array();
   
   if (array_filter($prev_next_urls))
   {
-    ?><div class="sub-navigation-pagination"><?php
-    
     if (!empty($prev_next_urls['prevUrl']))
-    {
-      ?><a href="<?php echo $prev_next_urls['prevUrl']; ?>" class="prev-link"><i class="material-icons sub-pagination-prev" title="Previous track / page (shift + arrow left)">arrow_backward</i></a><?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-    }
+      $nav_arrows['back'] = '<a href="' . $prev_next_urls['prevUrl'] . '" class="prev-link"><i class="material-icons nav-bar-arrow-back" title="Previous track / page (shift + arrow left)">arrow_backward</i></a>';
     else
-    {
-      ?><i class="material-icons sub-pagination-prev disbled">arrow_backward</i><?php
-    }
-    
-    if (!empty($prev_next_urls['nextUrl']))
-    {
-      ?><a href="<?php echo $prev_next_urls['nextUrl']; ?>" class="next-link"><i class="material-icons sub-pagination-next" title="Next track / page (shift + arrow right)">arrow_forward</i></a><?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-    }
-    else
-    {
-      ?><i class="material-icons sub-pagination-next disbled">arrow_forward</i><?php
-    }
+      $nav_arrows['back'] = '<i class="material-icons nav-bar-arrow-back disbled">arrow_backward</i>';
 
-    ?></div><?php
+    if (!empty($prev_next_urls['nextUrl']))
+      $nav_arrows['fwd'] = '<a href="' . $prev_next_urls['nextUrl'] . '" class="next-link"><i class="material-icons nav-bar-arrow-fwd" title="Next track / page (shift + arrow right)">arrow_forward</i></a>';
+    else
+      $nav_arrows['fwd'] = '<i class="material-icons nav-bar-arrow-fwd disbled">arrow_forward</i>';
   }
   else
   {
-    ?>
-    <div class="sub-navigation-pagination">
-      <a href="" title="Go back" onclick="javascript:history.back();return false;" class="prev-link"><i class="material-icons sub-pagination-prev">arrow_backward</i></a>
-      <i class="material-icons sub-pagination-next disbled">arrow_forward</i>
-    </div>
-    <?php
+    $nav_arrows['back'] = '<a href="" title="Go back" onclick="javascript:history.back();return false;" class="prev-link"><i class="material-icons nav-bar-arrow-back">arrow_backward</i></a>';
+    $nav_arrows['fwd']  = '<i class="material-icons nav-bar-arrow-fwd disbled">arrow_forward</i>';
   }
+
+  return $nav_arrows;
+}
+
+function nav_bar()
+{
+  $nav_arrows = nav_bar_arrows();
+
+  ?>
+  <div class="nav-bar-container">
+    <div class="nav-bar-arrows"><?php echo $nav_arrows['back']; echo $nav_arrows['fwd']; ?></div>
+    <?php
+    nav_bar_title();
+    nav_bar_icons('nav-bar-icons');
+    ?>
+  </div>
+  <div class="nav-bar-container-mobile">
+    <div class="nav-bar-single-arrow-back"><?php echo $nav_arrows['back']; ?></div>
+    <?php nav_bar_title(); ?>
+    <div class="nav-bar-single-arrow-fwd"><?php echo $nav_arrows['fwd']; ?></div>
+  </div>
+  <?php
 }
 
 function get_pagednum()
@@ -227,7 +234,7 @@ function get_search_hits()
   return '';
 }
 
-function nav_title()
+function nav_bar_title()
 {
   $prefix     = is_shuffle() ? '<b>Shuffle: </b>' : '<b>Channel: </b>';
   $title      = esc_html(get_title());
@@ -241,7 +248,7 @@ function nav_title()
   }
   else if (is_page())
   {
-    $prefix     = '<span class="go-back-previous"><b>Go Back: </b><span class="previous-page-title"></span></span>';
+    $prefix     = '<span class="go-back-to"><b>Go Back: </b><span class="go-back-title"></span></span>';
     $title      = '';
     $pagination = '';
   }
@@ -261,7 +268,7 @@ function nav_title()
     $prefix = '<b>Artist: </b>';
   }
 
-  echo $prefix . $title . $pagination; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+  echo '<div class="nav-bar-title">' . $prefix . $title . $pagination . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }
 
 /*
@@ -403,12 +410,10 @@ function intro_banner()
     <script>var bannerProperty = '<?php echo $property; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>';</script>
     <div id="intro-banner">
       <div class="intro-banner-container">
-      <?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-      <div class="intro-banner-close-button">
-        <div class="intro-banner-close-button-container">
-        Close <span class="light-text">(and don't show again)</span>
+        <?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+        <div class="intro-banner-close-button">
+          Close <span class="light-text">(and don't show again)</span>
         </div>
-      </div>
       </div>
     </div>
     <?php

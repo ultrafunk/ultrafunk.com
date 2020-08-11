@@ -36,6 +36,8 @@
 
 <?php wp_footer(); ?>
 
+<div id="modal-overlay"></div>
+
 </body>
 </html>
 

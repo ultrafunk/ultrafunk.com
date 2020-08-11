@@ -10,7 +10,7 @@ namespace Ultrafunk\Globals;
 
 class Globals
 {
-  public $version = '1.9.5';
+  public $version = '1.10.0';
 
   public $shuffle_params = array(
     'is_shuffle' => false,
