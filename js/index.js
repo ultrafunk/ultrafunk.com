@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.10.0';
-import * as storage     from './common/storage.js?ver=1.10.0';
-import { siteSettings } from './common/settings.js?ver=1.10.0';
-import * as utils       from './common/utils.js?ver=1.10.0';
+import * as debugLogger from './common/debuglogger.js?ver=1.10.1';
+import * as storage     from './common/storage.js?ver=1.10.1';
+import { siteSettings } from './common/settings.js?ver=1.10.1';
+import * as utils       from './common/utils.js?ver=1.10.1';
 
 
 const debug  = debugLogger.getInstance('index');
@@ -399,16 +399,15 @@ const trackLayout = (() =>
 
 const navMenu = (() =>
 {
-  const observer = new IntersectionObserver(observerCallback);
-  const elements = { navMenu: null, modalOverlay: null };
-  let isRevealed = false;
+  const observer  = new ResizeObserver(observerCallback);
+  const elements  = { navMenu: null, modalOverlay: null };
+  let isVisible   = false;
 
   return {
-    isRevealed() { return isRevealed; },
-    isVisible,
+    isVisible()   { return isVisible;                    },
+    scrolledTop() { elements.navMenu.style.display = ''; },
     init,
     toggle,
-    reveal,
   };
 
   function init()
@@ -422,14 +421,24 @@ const navMenu = (() =>
     observer.observe(elements.navMenu.querySelector('.menu-primary-menu-container'));
   }
 
-  function isVisible()
+  function toggle()
   {
-    return (elements.navMenu.offsetHeight !== 0);
+    if (moduleElements.siteHeader.classList.contains('sticky-nav-up'))
+    {
+      isVisible ? elements.navMenu.style.display = 'none' : elements.navMenu.style.display = 'flex';
+    }
+    else
+    {
+      if (moduleElements.siteHeader.classList.contains('sticky-nav-down') === false)
+        moduleElements.siteHeader.classList.toggle('hide-nav-menu');
+    }
   }
 
-  function observerCallback()
+  function observerCallback(entries)
   {
-    if (isVisible())
+    isVisible = (entries[0].contentRect.height !== 0) ? true : false;
+
+    if (isVisible)
     {
       elements.modalOverlay.classList.value = '';
       elements.modalOverlay.classList.add('show');
@@ -443,26 +452,7 @@ const navMenu = (() =>
 
   function transitionEnd()
   {
-    (isVisible() === false) ? elements.modalOverlay.classList.value = '' : '';
-  }
-
-  function toggle()
-  {
-    if (moduleElements.siteHeader.classList.contains('sticky-nav-up'))
-    {
-      isRevealed ? reveal('none', false) : reveal('flex', true);
-    }
-    else
-    {
-      if (moduleElements.siteHeader.classList.contains('sticky-nav-down') === false)
-        moduleElements.siteHeader.classList.toggle('hide-nav-menu');
-    }
-  }
-
-  function reveal(navMenuDisplay, reveal)
-  {
-    elements.navMenu.style.display = navMenuDisplay;
-    isRevealed = reveal;
+    (isVisible === false) ? elements.modalOverlay.classList.value = '' : '';
   }
 })();
 
@@ -673,7 +663,7 @@ const scroll = (() =>
   {
     moduleElements.siteHeader.classList.remove('sticky-nav-down', 'sticky-nav-up');
     moduleElements.siteHeader.classList.add('hide-nav-menu');
-    navMenu.reveal('', false);
+    navMenu.scrolledTop();
     resize.setTopMargin();
   }
 
@@ -694,7 +684,7 @@ const scroll = (() =>
       utils.replaceClass(moduleElements.siteHeader, 'sticky-nav-down', 'sticky-nav-up');
     }
 
-    if (navMenu.isRevealed() === true)
-      navMenu.reveal('none', false);
+    if (navMenu.isVisible())
+      navMenu.toggle();
   }
 })();

@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.10.0';
+import * as debugLogger from '../common/debuglogger.js?ver=1.10.1';
 
 
 export {
@@ -119,17 +119,21 @@ class YouTube extends MediaPlayer
 
   play(errorHandler)
   {
-    debug.log(`YouTube.play() - current playerState: ${this.embeddedPlayer.getPlayerState()} - previous playerState: ${this.previousPlayerState} - playable: ${this.playable}`);
-
-    if ((this.embeddedPlayer.getPlayerState() === -1) && (this.previousPlayerState === -1) && (this.playable === true))
+    // This code is in a separate block for clarity...
+    // ToDo: Create separate function for this or remove if no longer needed
     {
-      console.log(`MediaPlayer.YouTube.play(): Unable to play track '${this.getTitle()}' with videoId: ${this.embeddedPlayer.getVideoData().video_id} -- no YouTube API error given, setting playable = false`);
-      this.playable = false;
-      errorHandler(this, this.embeddedPlayer.getVideoUrl());
-      return;
-    }
+      debug.log(`YouTube.play() - current playerState: ${this.embeddedPlayer.getPlayerState()} - previous playerState: ${this.previousPlayerState} - playable: ${this.playable}`);
 
-    this.previousPlayerState = this.embeddedPlayer.getPlayerState();
+      if ((this.embeddedPlayer.getPlayerState() === -1) && (this.previousPlayerState === -1) && (this.playable === true))
+      {
+        console.log(`MediaPlayer.YouTube.play(): Unable to play track '${this.getTitle()}' with videoId: ${this.embeddedPlayer.getVideoData().video_id} -- no YouTube API error given, setting playable = false`);
+        this.playable = false;
+        errorHandler(this, this.embeddedPlayer.getVideoUrl());
+        return;
+      }
+  
+      this.previousPlayerState = this.embeddedPlayer.getPlayerState();
+    }
 
     if (this.playable === true)
       this.embeddedPlayer.playVideo();

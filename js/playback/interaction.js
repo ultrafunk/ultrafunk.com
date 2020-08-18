@@ -5,13 +5,13 @@
 //
 
 
-import * as debugLogger          from '../common/debuglogger.js?ver=1.10.0';
-import * as storage              from '../common/storage.js?ver=1.10.0';
-import { playbackSettings }      from '../common/settings.js?ver=1.10.0';
-import * as utils                from '../common/utils.js?ver=1.10.0';
-import * as eventLogger          from './eventlogger.js?ver=1.10.0';
-import * as playback             from './playback.js?ver=1.10.0';
-import { updateProgressPercent } from './playback-controls.js?ver=1.10.0';
+import * as debugLogger          from '../common/debuglogger.js?ver=1.10.1';
+import * as storage              from '../common/storage.js?ver=1.10.1';
+import { playbackSettings }      from '../common/settings.js?ver=1.10.1';
+import * as utils                from '../common/utils.js?ver=1.10.1';
+import * as eventLogger          from './eventlogger.js?ver=1.10.1';
+import * as playback             from './playback.js?ver=1.10.1';
+import { updateProgressPercent } from './playback-controls.js?ver=1.10.1';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -34,7 +34,7 @@ const moduleConfig = {
 
 // Shared DOM elements for all, submodules can have local const elements = {...}
 const moduleElements = {
-  playbackControls: { details: null, thumbnail: null },
+  playbackControls: { details: null, thumbnail: null, statePlaying: false },
   fullscreenTarget: null,
   nowPlayingIcons:  null,
   autoPlayToggle:   null,
@@ -175,6 +175,7 @@ const playbackEvents = (() =>
     moduleElements.playbackControls.thumbnail.addEventListener('click', playbackDetailsClick);
     moduleElements.autoPlayToggle.addEventListener('click', autoPlayToggle);
     moduleElements.crossfadeToggle.addEventListener('click', crossfadeToggle);
+    document.addEventListener('visibilitychange', documentEventVisibilityChange);
   }
   
   function mediaPlaying(playbackEvent, eventData)
@@ -188,6 +189,9 @@ const playbackEvents = (() =>
 
     if (settings.user.animateNowPlayingIcon)
       nowPlayingIcon.classList.add('playing-animate');
+
+    if (settings.user.keepMobileScreenOn)
+      screenWakeLock.enable();
   }
   
   function mediaPaused(playbackEvent, eventData)
@@ -195,6 +199,9 @@ const playbackEvents = (() =>
     debugEvent(playbackEvent, eventData);
   
     document.querySelector(`#${eventData.postId} ${moduleConfig.nowPlayingIconsSelector}`).classList.add('playing-paused');
+
+    if (settings.user.keepMobileScreenOn)
+      screenWakeLock.disable();
   }
 
   function mediaEnded(playbackEvent)
@@ -349,6 +356,90 @@ const playbackEvents = (() =>
 
 
 // ************************************************************************************************
+//  Experimental Screen Wake Lock API support: https://web.dev/wakelock/
+// ************************************************************************************************
+
+const screenWakeLock = (() =>
+{
+  let wakeLock = null;
+
+  return {
+    enable,
+    disable,
+    stateVisible,
+  };
+
+  function isSupported()
+  {
+    return (('wakeLock' in navigator) && ('request' in navigator.wakeLock));
+  }
+ 
+  async function enable()
+  {
+    if (isSupported())
+    {
+      if (document.visibilityState === 'visible')
+      {
+        if (wakeLock !== null)
+          wakeLock.release();
+
+        if (await request() !== true)
+        {
+          debug.log('screenWakeLock.enable(): Screen Wake Lock request failed');
+          utils.snackbar.show('Keep Screen On failed', 3);
+        }
+      }
+    }
+    else
+    {
+      debug.log('screenWakeLock.enable(): Screen Wake Lock is not supported');
+      utils.snackbar.show('Keep Screen On is not supported', 5, 'Turn Off', () => settings.user.keepMobileScreenOn = false);
+    }
+  }
+
+  function disable()
+  {
+    debug.log('screenWakeLock.disable()');
+
+    if (wakeLock !== null)
+      wakeLock.release();
+  }
+
+  function stateVisible()
+  {
+    debug.log('screenWakeLock.stateVisible()');
+
+    if (isSupported() && (wakeLock === null))
+      request();
+  }
+
+  async function request()
+  {
+    try
+    {
+      wakeLock = await navigator.wakeLock.request('screen');
+
+      debug.log('screenWakeLock.request(): Screen Wake Lock is Enabled');
+
+      wakeLock.addEventListener('release', () =>
+      {
+        debug.log('screenWakeLock.request(): Screen Wake Lock was Released');
+        wakeLock = null;
+      });
+
+      return true;
+    }
+    catch (exception)
+    {
+      debug.error(`screenWakeLock.request(): ${exception.name} - ${exception.message}`);
+    }
+
+    return false;
+  }
+})();
+
+
+// ************************************************************************************************
 //  Window and document event handlers
 // ************************************************************************************************
 
@@ -420,6 +511,32 @@ function windowEventStorage(event)
 function documentEventFullscreenChange()
 {
   moduleElements.fullscreenTarget = (document.fullscreenElement !== null) ? document.fullscreenElement.id : null;
+}
+
+function documentEventVisibilityChange()
+{
+  debug.log(`documentEventVisibilityChange() - visibilityState: ${document.visibilityState}`);
+
+  if (document.visibilityState === 'visible')
+  {
+    if (settings.user.autoResumePlayback && moduleElements.playbackControls.statePlaying)
+    {
+      if (playback.getStatus().isPlaying === false)
+        playback.togglePlayPause();
+    }
+
+    if (settings.user.keepMobileScreenOn && moduleElements.playbackControls.statePlaying)
+      screenWakeLock.stateVisible();
+  }
+  else if (document.visibilityState === 'hidden')
+  {
+    if (settings.user.autoResumePlayback && playback.getStatus().isPlaying)
+      moduleElements.playbackControls.statePlaying = true;
+    else
+      moduleElements.playbackControls.statePlaying = false;
+
+    debug.log('documentEventVisibilityChange() - statePlaying: ' + moduleElements.playbackControls.statePlaying);
+  }
 }
 
 

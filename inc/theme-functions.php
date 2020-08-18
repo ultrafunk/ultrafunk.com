@@ -174,7 +174,7 @@ function add_body_class($classes)
   }
   
   if (false === $has_posts)
-    $classes[] = 'no-playback';    
+    $classes[] = 'no-playback';
   
   return $classes;
 }

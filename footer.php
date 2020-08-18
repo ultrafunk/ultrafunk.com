@@ -29,7 +29,7 @@
       </div>
     </div>
     <div class="site-info-2">
-      <a href="<?php echo esc_url(home_url('/')); ?>" aria-label="Home"><?php \Ultrafunk\ThemeTags\footer_logo(); ?></a>
+      <a href="<?php echo esc_url(home_url('/')); ?>" aria-label="Home"><img src="<?php echo esc_url(get_theme_mod('ultrafunk_footer_logo')); ?>" alt=""></a>
     </div>
   </div><!-- .site-footer-container -->
 </footer><!-- #site-footer -->

@@ -4,7 +4,9 @@ Theme URI: https://github.com/ultrafunk/ultrafunk.com
 Author: Ultrafunk
 Author URI: https://ultrafunk.com
 Description: ultrafunk.com WordPress theme
-Version: 1.10.0
+Version: 1.10.1
+Tested up to: 5.5
+Requires PHP: 7.3
 License: Apache License 2.0
 License URI: https://www.apache.org/licenses/LICENSE-2.0
 Text Domain: ultrafunk
@@ -379,8 +381,8 @@ ul#menu-primary-menu {
   margin-right: 5px;
 }
 
-i.material-icons.nav-bar-arrow-back.disbled,
-i.material-icons.nav-bar-arrow-fwd.disbled {
+.nav-bar-arrow-back.disbled,
+.nav-bar-arrow-fwd.disbled {
   opacity: var(--control-disabled-opacity);
   pointer-events: none;
 }
@@ -401,14 +403,13 @@ i.material-icons.nav-bar-arrow-fwd.disbled {
 }
 
 .nav-bar-icons {
-  float: right;
+  padding-left: 10px;
   margin-right: -5px;
-  min-width: 115px;
+  display: inline-flex;
 }
 
-.nav-bar-icons .nav-menu-toggle,
 .nav-bar-icons .nav-search-toggle {
-  float: right;
+  margin-right: 5px;
 }
 
 #intro-banner {
@@ -991,6 +992,17 @@ aside.widget-area ul {
   text-decoration: underline;
 }
 
+/*
+.wp-caption,
+.wp-caption-text,
+.gallery-caption,
+.bypostauthor,
+.alignright,
+.alignleft,
+.aligncenter {
+}
+*/
+
 
 /**************************************************************************************************
 * Sticky navigation menu
@@ -1477,7 +1489,6 @@ body.no-playback #site-header.sticky-nav-down {
   }
  
   .nav-bar-icons {
-    min-width: 80px;
     margin-right: -4px;
   }
 

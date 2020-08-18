@@ -23,6 +23,9 @@ remove_action('wp_head', 'wp_oembed_add_host_js');
 // Remove wlwmanifest.xml (needed to support windows live writer)
 remove_action('wp_head', 'wlwmanifest_link');
 
+// Remove built in XML sitemaps
+// add_filter( 'wp_sitemaps_enabled', '__return_false' );
+
 //
 // Theme setup
 //
@@ -41,7 +44,7 @@ add_action('after_setup_theme', 'ultrafunk_theme_setup');
 // Add custom footer logo
 function ultrafunk_customizer_setting($wp_customize)
 {
-  $wp_customize->add_setting('ultrafunk_footer_logo');
+  $wp_customize->add_setting('ultrafunk_footer_logo', array('sanitize_callback' => 'esc_url_raw'));
 
   $customize_options = array(
     'label'    => 'Footer Logo',

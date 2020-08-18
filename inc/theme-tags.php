@@ -100,21 +100,7 @@ function head()
   }
 }
 
-function header_logo()
-{
-  ?>
-  <img src="<?php echo wp_get_attachment_image_src(get_theme_mod('custom_logo'), 'full')[0]; ?>" alt="">
-  <?php
-}
-
-function footer_logo()
-{
-  ?>
-  <img src="<?php echo get_theme_mod('ultrafunk_footer_logo'); ?>" alt="">
-  <?php
-}
-
-function nav_progress_controls()
+function header_progress_controls()
 {
   ?>
   <div id="progress-controls">
@@ -124,7 +110,20 @@ function nav_progress_controls()
   <?php
 }
 
-function nav_playback_controls()
+function header_site_branding()
+{
+  $nav_icons = get_nav_bar_icons();
+
+  ?>
+  <div class="site-branding">
+    <?php echo $nav_icons['menu']; ?>
+    <a href="<?php echo esc_url(home_url('/')); ?>" aria-label="Home"><img src="<?php echo wp_get_attachment_image_src(get_theme_mod('custom_logo'), 'full')[0]; ?>" alt=""></a>
+    <?php echo $nav_icons['search']; ?>
+  </div>
+  <?php
+}
+
+function header_playback_controls()
 {
   ?>
   <div id="playback-controls">
@@ -140,27 +139,17 @@ function nav_playback_controls()
   <?php
 }
 
-function nav_search()
+function get_nav_bar_icons()
 {
-  ?>
-  <div id="search-container"><?php get_search_form(); ?></div>
-  <?php
+  $nav_icons['search'] = '<div class="nav-search-toggle" title="Show / Hide search (s)"><i class="material-icons">search</i></div>';
+  $nav_icons['menu']   = '<div class="nav-menu-toggle" title="Toggle Channel menu (c)"><i class="material-icons">menu</i></div>';
+
+  return $nav_icons;
 }
 
-function nav_bar_icons($class)
-{
-  ?>
-  <div class="<?php echo $class; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>">
-    <div class="nav-menu-toggle" title="Toggle Channel menu (c)"><i class="material-icons">menu</i></div>
-    <div class="nav-search-toggle" title="Show / Hide search (s)"><i class="material-icons">search</i></div>
-  </div>
-  <?php
-}
-
-function nav_bar_arrows()
+function get_nav_bar_arrows()
 {
   $prev_next_urls = get_prev_next_urls();
-  $nav_arrows     = array();
   
   if (array_filter($prev_next_urls))
   {
@@ -183,17 +172,16 @@ function nav_bar_arrows()
   return $nav_arrows;
 }
 
-function nav_bar()
+function header_nav_bars()
 {
-  $nav_arrows = nav_bar_arrows();
+  $nav_icons  = get_nav_bar_icons();
+  $nav_arrows = get_nav_bar_arrows();
 
   ?>
   <div class="nav-bar-container">
-    <div class="nav-bar-arrows"><?php echo $nav_arrows['back']; echo $nav_arrows['fwd']; ?></div>
-    <?php
-    nav_bar_title();
-    nav_bar_icons('nav-bar-icons');
-    ?>
+    <div class="nav-bar-arrows"><?php echo $nav_arrows['back'] . $nav_arrows['fwd']; ?></div>
+    <?php nav_bar_title(); ?>
+    <div class="nav-bar-icons"><?php echo $nav_icons['search'] . $nav_icons['menu']; ?></div>
   </div>
   <div class="nav-bar-container-mobile">
     <div class="nav-bar-single-arrow-back"><?php echo $nav_arrows['back']; ?></div>
