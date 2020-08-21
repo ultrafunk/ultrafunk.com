@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger             from '../common/debuglogger.js?ver=1.10.1';
-import { snackbar }                 from '../common/utils.js?ver=1.10.1';
-import { KEY, readJson, writeJson } from '../common/storage.js?ver=1.10.1';
-import * as settings                from '../common/settings.js?ver=1.10.1';
+import * as debugLogger             from '../common/debuglogger.js?ver=1.10.2';
+import { snackbar }                 from '../common/utils.js?ver=1.10.2';
+import { KEY, readJson, writeJson } from '../common/storage.js?ver=1.10.2';
+import * as settings                from '../common/settings.js?ver=1.10.2';
 
 
 const debug          = debugLogger.getInstance('settings');
@@ -38,6 +38,13 @@ document.addEventListener('DOMContentLoaded', () =>
 
   if (moduleElements.settingsContainer !== null)
   {
+    // For quick access to the Clear All Settings page...
+    if (document.URL.includes('?clear=true'))
+    {
+      readSettingsError();
+      return;
+    }
+
     readSettings();
 
     if ((playbackSettings !== null) && (siteSettings !== null))
@@ -86,7 +93,7 @@ function readSettingsError()
     readSettings();
 
     if ((playbackSettings !== null) && (siteSettings !== null))
-      snackbar.show('All settings have been cleared', 5, 'Reload', () => location.reload(true), () => location.reload(true));
+      snackbar.show('All settings have been cleared', 5, 'Reload', () => { window.location.href = '/settings/'; }, () => { window.location.href = '/settings/'; });
     else
       snackbar.show('Sorry, unable to clear all settings', 5);
   });

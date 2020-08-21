@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.10.1';
-import * as storage     from './common/storage.js?ver=1.10.1';
-import { siteSettings } from './common/settings.js?ver=1.10.1';
-import * as utils       from './common/utils.js?ver=1.10.1';
+import * as debugLogger from './common/debuglogger.js?ver=1.10.2';
+import * as storage     from './common/storage.js?ver=1.10.2';
+import { siteSettings } from './common/settings.js?ver=1.10.2';
+import * as utils       from './common/utils.js?ver=1.10.2';
 
 
 const debug  = debugLogger.getInstance('index');
@@ -200,7 +200,8 @@ function setPreviousPageTitle()
       }
       else if (referrerUrlParts.pathname.length > 1)
       {
-        const pathParts = referrerUrlParts.pathname.slice(1, referrerUrlParts.pathname.length - 1).replace(/-/gi, ' ').split('/');
+        const endSlash  = (referrerUrlParts.pathname.slice(-1) === '/') ? 1 : 0;
+        const pathParts = referrerUrlParts.pathname.slice(1, referrerUrlParts.pathname.length - endSlash).replace(/-/gi, ' ').split('/');
         pathParts.forEach((part, index) => pathString += ((index + 1) < pathParts.length) ? part + ' / ' : part);
       }
     }

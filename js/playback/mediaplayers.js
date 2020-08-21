@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.10.1';
+import * as debugLogger from '../common/debuglogger.js?ver=1.10.2';
 
 
 export {
@@ -117,28 +117,39 @@ class YouTube extends MediaPlayer
   pause() { this.embeddedPlayer.pauseVideo(); }
   stop()  { this.embeddedPlayer.stopVideo();  }
 
-  play(errorHandler)
+  // ToDo: Remove if no longer needed??
+  // Handles YouTube iframe API edge case that causes embedded playback errors that only happen on Firefox...
+  playbackError(errorHandler)
   {
-    // This code is in a separate block for clarity...
-    // ToDo: Create separate function for this or remove if no longer needed
-    {
-      debug.log(`YouTube.play() - current playerState: ${this.embeddedPlayer.getPlayerState()} - previous playerState: ${this.previousPlayerState} - playable: ${this.playable}`);
+    debug.log(`YouTube.play() - current playerState: ${this.embeddedPlayer.getPlayerState()} - previous playerState: ${this.previousPlayerState} - playable: ${this.playable}`);
 
-      if ((this.embeddedPlayer.getPlayerState() === -1) && (this.previousPlayerState === -1) && (this.playable === true))
-      {
-        console.log(`MediaPlayer.YouTube.play(): Unable to play track '${this.getTitle()}' with videoId: ${this.embeddedPlayer.getVideoData().video_id} -- no YouTube API error given, setting playable = false`);
-        this.playable = false;
-        errorHandler(this, this.embeddedPlayer.getVideoUrl());
-        return;
-      }
-  
-      this.previousPlayerState = this.embeddedPlayer.getPlayerState();
+    if ((this.embeddedPlayer.getPlayerState() === -1) && (this.previousPlayerState === -1) && (this.playable === true))
+    {
+      debug.warn(`YouTube.play() - Unable to play track: ${this.getArtist()} - "${this.getTitle()}" with videoId: ${this.embeddedPlayer.getVideoData().video_id} -- No YouTube API error given!`);
+
+    //const errorData = { mediaUrl: this.embeddedPlayer.getVideoUrl(), mediaTitle: `${this.getArtist()} - ${this.getTitle()}` };
+    //debugLogger.logErrorOnServer('ERROR_MEDIA_UNPLAYABLE', errorData);
+
+      this.playable = false;
+      errorHandler(this, this.embeddedPlayer.getVideoUrl());
+
+      return true;
     }
 
-    if (this.playable === true)
-      this.embeddedPlayer.playVideo();
-    else
-      errorHandler(this, this.embeddedPlayer.getVideoUrl());
+    this.previousPlayerState = this.embeddedPlayer.getPlayerState();
+
+    return false;
+  }
+
+  play(errorHandler)
+  {
+    if (this.playbackError(errorHandler) === false)
+    {
+      if (this.playable === true)
+        this.embeddedPlayer.playVideo();
+      else
+        errorHandler(this, this.embeddedPlayer.getVideoUrl());
+    }
   }
 
   getVolume(callback)

@@ -5,13 +5,13 @@
 //
 
 
-import * as debugLogger          from '../common/debuglogger.js?ver=1.10.1';
-import * as storage              from '../common/storage.js?ver=1.10.1';
-import { playbackSettings }      from '../common/settings.js?ver=1.10.1';
-import * as utils                from '../common/utils.js?ver=1.10.1';
-import * as eventLogger          from './eventlogger.js?ver=1.10.1';
-import * as playback             from './playback.js?ver=1.10.1';
-import { updateProgressPercent } from './playback-controls.js?ver=1.10.1';
+import * as debugLogger          from '../common/debuglogger.js?ver=1.10.2';
+import * as storage              from '../common/storage.js?ver=1.10.2';
+import { playbackSettings }      from '../common/settings.js?ver=1.10.2';
+import * as utils                from '../common/utils.js?ver=1.10.2';
+import * as eventLogger          from './eventlogger.js?ver=1.10.2';
+import * as playback             from './playback.js?ver=1.10.2';
+import { updateProgressPercent } from './playback-controls.js?ver=1.10.2';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -283,7 +283,7 @@ const playbackEvents = (() =>
     else
     {
       utils.snackbar.show('Unable to play track, skipping to next...', 5);
-      logClientErrorOnServer('EVENT_MEDIA_UNAVAILABLE', eventData);
+      debugLogger.logErrorOnServer('EVENT_MEDIA_UNAVAILABLE', eventData);
       playbackEventErrorTryNext(eventData, 5);
     }
   }
@@ -328,19 +328,6 @@ const playbackEvents = (() =>
           navigateTo(navigationVars.nextUrl, true); // eslint-disable-line no-undef
       }
     }, ((timeout * 1000) + 250));
-  }
-  
-  function logClientErrorOnServer(eventCategory, eventData)
-  {
-    const eventAction = eventData.mediaUrl + ' | ' + eventData.mediaTitle;
-    
-    debug.log(`logClientErrorOnServer(): ${eventCategory} - ${eventAction}`);
-    
-    gtag('event', eventAction, // eslint-disable-line no-undef
-    {
-      event_category: eventCategory,
-      event_label:    'Ultrafunk Client Error',
-    });
   }
   
   function isPremiumTrack(postId)
@@ -550,9 +537,9 @@ function playbackDetailsClick(event)
   eventLog.add(eventLogger.SOURCE.MOUSE, Date.now(), eventLogger.EVENT.MOUSE_CLICK, null);
 
   if (event.target.tagName.toLowerCase() === 'img')
-    showInteractionHint('showTrackImageHint', '<b>Tip:</b> Double click or double tap on the Track Image for full screen track');
+    showInteractionHint('showTrackImageHint', '<b>Tip:</b> Double click or double tap on the Track Thumbnail for full screen');
   else
-    showInteractionHint('showDetailsHint', '<b>Tip:</b> Double click or double tap on Artist &amp; Title for full screen track');
+    showInteractionHint('showDetailsHint', '<b>Tip:</b> Double click or double tap on Artist &amp; Title for full screen');
 
   if (eventLog.doubleClicked(eventLogger.SOURCE.MOUSE, eventLogger.EVENT.MOUSE_CLICK, moduleConfig.doubleClickDelay))
     enterFullscreenTrack();

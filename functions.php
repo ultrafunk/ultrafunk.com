@@ -4,10 +4,8 @@
  *
  */
 
-// START: Minimal global stuff for the theme
+// Minimal global stuff for the theme
 require get_template_directory() . '/inc/globals.php';
-$ultrafunk_globals = new \Ultrafunk\Globals\Globals;
-// END: Minimal global stuff for the theme
 
 // Remove WP-Emoji for visitors
 remove_action('wp_head', 'print_emoji_detection_script', 7);
@@ -141,4 +139,3 @@ require get_template_directory() . '/inc/request.php';
 require get_template_directory() . '/inc/theme-functions.php';
 require get_template_directory() . '/inc/theme-tags.php';
 require get_template_directory() . '/inc/theme-widgets.php';
-

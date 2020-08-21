@@ -5,7 +5,7 @@
 //
 
 
-export { getInstance };
+export { getInstance, logErrorOnServer };
 
 
 const DEBUG = false;
@@ -95,4 +95,17 @@ function padString(string, maxLength, padChar)
     return string.slice(0, maxLength);
   else
     return string.padEnd(maxLength, padChar);
+}
+
+function logErrorOnServer(errorCategory, errorData)
+{
+  const eventAction = errorData.mediaUrl + ' | ' + errorData.mediaTitle;
+  
+  console.log(`DEBUGLOGGER....: logErrorOnServer(): ${errorCategory} - ${eventAction}`);
+  
+  gtag('event', eventAction, // eslint-disable-line no-undef
+  {
+    event_category: errorCategory,
+    event_label:    'Ultrafunk Client Error',
+  });
 }
