@@ -42,7 +42,7 @@ class Request
   {
     if (isset($_SERVER['REQUEST_URI']))
     {
-      $request_url = trim(esc_url_raw($_SERVER['REQUEST_URI']), '/'); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+      $request_url = trim(esc_url_raw($_SERVER['REQUEST_URI']), '/');
       
       if (!empty($request_url))
       {
@@ -208,7 +208,7 @@ function get_posts_args($request)
 {
   $args = array(
     'fields'         => 'ids',
-    'posts_per_page' => -1, // phpcs:ignore WPThemeReview.CoreFunctionality.PostsPerPage.posts_per_page_posts_per_page
+    'posts_per_page' => -1,
   );
   
   if (true === $request->shuffle_slug)

@@ -16,6 +16,7 @@ use function Ultrafunk\Globals\ {
   get_shuffle_params,
   get_cached_title,
   set_cached_title,
+  get_dev_prod_const,
 };
 
 
@@ -195,14 +196,13 @@ add_action('wp_body_open', '\Ultrafunk\ThemeFunctions\webfonts_script');
 //
 // Add uniqid and other custom options for SoundCloud and YouTube iframe embeds
 //
-function embed_iframe_setparams($cached_html, $url, $attr, $post_id)
+function embed_iframe_setparams($cached_html)
 {
   if (false !== stripos($cached_html, 'youtube.com/'))
   {
-    $origin      = (true === WP_DEBUG) ? 'https://wordpress.ultrafunk.com' : 'https://ultrafunk.com';
     $cached_html = str_ireplace('<iframe', sprintf('<iframe id="youtube-uid-%s"', uniqid()), $cached_html);
   //$cached_html = str_ireplace('www.youtube.com', 'www.youtube-nocookie.com', $cached_html);
-    $cached_html = str_ireplace('?feature=oembed', sprintf('?feature=oembed&enablejsapi=1&origin=%s', $origin), $cached_html);
+    $cached_html = str_ireplace('?feature=oembed', sprintf('?feature=oembed&enablejsapi=1&origin=%s', get_dev_prod_const('iframe_origin')), $cached_html);
   }
   else if (false !== stripos($cached_html, 'soundcloud.com/'))
   {
@@ -212,7 +212,7 @@ function embed_iframe_setparams($cached_html, $url, $attr, $post_id)
   
   return $cached_html;
 }
-add_filter('embed_oembed_html', '\Ultrafunk\ThemeFunctions\embed_iframe_setparams', 10, 4);
+add_filter('embed_oembed_html', '\Ultrafunk\ThemeFunctions\embed_iframe_setparams', 10, 1);
 
 //
 // Customize the default WordPress search form
@@ -277,13 +277,13 @@ function setup_nav_menu_item($menu_item)
   if (is_admin())
     return $menu_item;
 
-  if (is_front_page() && !is_shuffle() && ('menu-item-all' === $menu_item->post_name))
+  if (is_front_page() && !is_shuffle() && (get_dev_prod_const('menu_item_all') === $menu_item->ID))
     $menu_item->classes[] = 'current-menu-item';
   
-  if (!is_404() && is_shuffle() && ('menu-item-shuffle' === $menu_item->post_name))
+  if (!is_404() && is_shuffle() && (get_dev_prod_const('menu_item_shuffle') === $menu_item->ID))
     $menu_item->classes[] = 'current-menu-item';
 
-  if ('menu-item-shuffle' === $menu_item->post_name)
+  if (get_dev_prod_const('menu_item_shuffle') === $menu_item->ID)
   {
     $menu_item->url        = esc_url(get_shuffle_menu_item_url());
     $menu_item->attr_title = esc_attr(get_shuffle_menu_item_title());

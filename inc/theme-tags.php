@@ -8,7 +8,12 @@
 namespace Ultrafunk\ThemeTags;
 
 
-use function Ultrafunk\Globals\ { get_version, is_shuffle, get_perf_data };
+use function Ultrafunk\Globals\ {
+  get_version,
+  is_shuffle,
+  get_dev_prod_const,
+  get_perf_data
+};
 use function Ultrafunk\ThemeFunctions\ {
   get_prev_next_urls,
   get_title,
@@ -256,7 +261,7 @@ function nav_bar_title()
     $prefix = '<b>Artist: </b>';
   }
 
-  echo '<div class="nav-bar-title">' . $prefix . $title . $pagination . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+  echo '<div class="nav-bar-title">' . $prefix . $title . $pagination . '</div>';
 }
 
 /*
@@ -285,11 +290,11 @@ function index_title()
     $prefix = 'Shuffle: ';
     $title  = get_title();
   }
-  else if (is_date() && $show_title) // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
+  else if (is_date() && $show_title)
   {
     // Do nothing on purpose!
   }
-  else if ($show_title && is_category($channels)) // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
+  else if ($show_title && is_category($channels))
   {
     // Do nothing on purpose!
   }
@@ -329,7 +334,7 @@ function footer_title()
   
   $title_pagination = str_ireplace('<h2 class="screen-reader-text">', sprintf('<h2 class="screen-reader-text">%s<span class="light-text">%s</span>', $prefix, $title), $title_pagination);
   
-  echo $title_pagination; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+  echo $title_pagination;
 }
 
 function entry_title()
@@ -373,32 +378,32 @@ function intro_banner()
   if (is_front_page() && !is_paged() && !is_shuffle())
   {
     $property = 'showFrontpageIntro';
-    $post     = get_post((true === WP_DEBUG) ? 808 : 808);
-    $content  = apply_filters('the_content', wp_kses_post($post->post_content)); // phpcs:ignore WPThemeReview.CoreFunctionality.PrefixAllGlobals.NonPrefixedHooknameFound
+    $post     = get_post(get_dev_prod_const('frontpage_intro'));
+    $content  = apply_filters('the_content', wp_kses_post($post->post_content));
     $display  = true;
   }
   else if (is_category('premium') && have_posts() && !is_paged())
   {
     $property = 'showPremiumIntro';
-    $post     = get_post((true === WP_DEBUG) ? 1500 : 1500);
-    $content  = apply_filters('the_content', wp_kses_post($post->post_content)); // phpcs:ignore WPThemeReview.CoreFunctionality.PrefixAllGlobals.NonPrefixedHooknameFound
+    $post     = get_post(get_dev_prod_const('premium_intro'));
+    $content  = apply_filters('the_content', wp_kses_post($post->post_content));
     $display  = true;
   }
   else if (is_category('promo') && have_posts() && !is_paged())
   {
     $property = 'showPromoIntro';
-    $post     = get_post((true === WP_DEBUG) ? 2385 : 2717);
-    $content  = apply_filters('the_content', wp_kses_post($post->post_content)); // phpcs:ignore WPThemeReview.CoreFunctionality.PrefixAllGlobals.NonPrefixedHooknameFound
+    $post     = get_post(get_dev_prod_const('promo_intro'));
+    $content  = apply_filters('the_content', wp_kses_post($post->post_content));
     $display  = true;
   }
 
   if (true === $display)
   {
     ?>
-    <script>var bannerProperty = '<?php echo $property; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>';</script>
+    <script>var bannerProperty = '<?php echo $property; ?>';</script>
     <div id="intro-banner">
       <div class="intro-banner-container">
-        <?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+        <?php echo $content; ?>
         <div class="intro-banner-close-button">
           Close <span class="light-text">(and don't show again)</span>
         </div>

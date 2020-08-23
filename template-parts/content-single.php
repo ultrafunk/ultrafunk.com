@@ -12,8 +12,8 @@
     <div class="entry-meta">
       <?php // \Ultrafunk\ThemeTags\meta_date_author(); ?>
       <?php
-      echo '<div class="entry-meta-channels"><b>Channels:</b> ' . get_the_category_list(', ') . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-      echo get_the_tag_list('<div class="entry-meta-artists"><b>Artists:</b> ', ', ', '</div>');          // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+      echo '<div class="entry-meta-channels"><b>Channels:</b> ' . get_the_category_list(', ') . '</div>';
+      echo get_the_tag_list('<div class="entry-meta-artists"><b>Artists:</b> ', ', ', '</div>');
       ?>
     </div><!-- .entry-meta -->
   </header><!-- .entry-header -->

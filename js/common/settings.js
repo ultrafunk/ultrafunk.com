@@ -21,7 +21,7 @@ const playbackSettingsSchema = {
   masterVolume:           { description: 'Master Volume',                      values: [0, 25, 50, 75, 100],    default: 100,   valueStrings: ['0%', '25%', '50%', '75%', '100%'] },
   masterMute:             { description: 'Master Mute',                        values: [true, false],           default: false, valueStrings: ['ON', 'OFF'] },
   autoPlay:               { description: 'Autoplay next track',                values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
-  autoCrossfade:          { description: 'Auto Crossfade to next track',       values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
+  autoCrossfade:          { description: 'Auto Crossfade to next track',       values: [true, false],           default: false, valueStrings: ['ON', 'OFF'] },
   autoCrossfadeLength:    { description: 'Auto Crossfade Length',              values: [5, 10, 15, 20, 25, 30], default: 20,    valueStrings: ['5 sec', '10 sec', '15 sec', '20 sec', '25 sec', '30 sec'] },
   autoCrossfadeCurve:     { description: 'Auto Crossfade Curve',               values: [0, 1],                  default: 1,     valueStrings: ['EQUAL POWER', 'LINEAR'] },
   autoScroll:             { description: 'Autoscroll to next track',           values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },

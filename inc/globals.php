@@ -10,7 +10,16 @@ namespace Ultrafunk\Globals;
 
 class Globals
 {
-  public static $version = '1.10.2';
+  public static $version = '1.10.3';
+
+  public static $dev_prod_consts = array(
+    'menu_item_all'     => (true === WP_DEBUG) ?  115 :  115,
+    'menu_item_shuffle' => (true === WP_DEBUG) ? 2251 : 2251,
+    'frontpage_intro'   => (true === WP_DEBUG) ?  808 :  808,
+    'premium_intro'     => (true === WP_DEBUG) ? 1500 : 1500,
+    'promo_intro'       => (true === WP_DEBUG) ? 2385 : 2717,
+    'iframe_origin'     => (true === WP_DEBUG) ? 'https://wordpress.ultrafunk.com' : 'https://ultrafunk.com',
+  );
 
   public static $shuffle_params = array(
     'is_shuffle' => false,
@@ -36,6 +45,8 @@ function console_log($output)
 }
 
 function get_version()            { return Globals::$version;                      }
+
+function get_dev_prod_const($key) { return Globals::$dev_prod_consts[$key];        }
 
 function is_shuffle()             { return Globals::$shuffle_params['is_shuffle']; }
 
