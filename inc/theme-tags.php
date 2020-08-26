@@ -74,7 +74,7 @@ function head()
   }
 
   ?>
-  <noscript><link rel="stylesheet" href="<?php echo esc_url(get_template_directory_uri()); ?>/style-noscript.css" media="all" /></noscript>
+  <noscript><link rel="stylesheet" href="<?php echo esc_url(get_template_directory_uri()); ?>/inc/css/style-noscript.css" media="all" /></noscript>
   <?php
 
   if (true === WP_DEBUG)
@@ -159,18 +159,18 @@ function get_nav_bar_arrows()
   if (array_filter($prev_next_urls))
   {
     if (!empty($prev_next_urls['prevUrl']))
-      $nav_arrows['back'] = '<a href="' . $prev_next_urls['prevUrl'] . '" class="prev-link"><i class="material-icons nav-bar-arrow-back" title="Previous track / page (shift + arrow left)">arrow_backward</i></a>';
+      $nav_arrows['back'] = '<a href="' . $prev_next_urls['prevUrl'] . '" class="nav-bar-prev-link"><i class="material-icons nav-bar-arrow-back" title="Previous track / page (shift + arrow left)">arrow_backward</i></a>';
     else
       $nav_arrows['back'] = '<i class="material-icons nav-bar-arrow-back disbled">arrow_backward</i>';
 
     if (!empty($prev_next_urls['nextUrl']))
-      $nav_arrows['fwd'] = '<a href="' . $prev_next_urls['nextUrl'] . '" class="next-link"><i class="material-icons nav-bar-arrow-fwd" title="Next track / page (shift + arrow right)">arrow_forward</i></a>';
+      $nav_arrows['fwd'] = '<a href="' . $prev_next_urls['nextUrl'] . '" class="nav-bar-next-link"><i class="material-icons nav-bar-arrow-fwd" title="Next track / page (shift + arrow right)">arrow_forward</i></a>';
     else
       $nav_arrows['fwd'] = '<i class="material-icons nav-bar-arrow-fwd disbled">arrow_forward</i>';
   }
   else
   {
-    $nav_arrows['back'] = '<a href="" title="Go back" onclick="javascript:history.back();return false;" class="prev-link"><i class="material-icons nav-bar-arrow-back">arrow_backward</i></a>';
+    $nav_arrows['back'] = '<a href="" title="Go back" onclick="javascript:history.back();return false;" class="nav-bar-prev-link"><i class="material-icons nav-bar-arrow-back">arrow_backward</i></a>';
     $nav_arrows['fwd']  = '<i class="material-icons nav-bar-arrow-fwd disbled">arrow_forward</i>';
   }
 
@@ -188,10 +188,21 @@ function header_nav_bars()
     <?php nav_bar_title(); ?>
     <div class="nav-bar-icons"><?php echo $nav_icons['search'] . $nav_icons['menu']; ?></div>
   </div>
-  <div class="nav-bar-container-mobile">
-    <div class="nav-bar-single-arrow-back"><?php echo $nav_arrows['back']; ?></div>
+  <div class="nav-bar-container-mobile-top">
+    <div class="nav-bar-arrow-single back"><?php echo $nav_arrows['back']; ?></div>
     <?php nav_bar_title(); ?>
-    <div class="nav-bar-single-arrow-fwd"><?php echo $nav_arrows['fwd']; ?></div>
+    <div class="nav-bar-arrow-single fwd"><?php echo $nav_arrows['fwd']; ?></div>
+  </div>
+  <div class="nav-bar-container-mobile-up">
+    <div class="nav-bar-up-left">
+      <?php echo $nav_icons['menu'] ?>
+      <div class="nav-bar-arrow-single"><?php echo $nav_arrows['back']; ?></div>
+    </div>
+    <?php nav_bar_title(); ?>
+    <div class="nav-bar-up-right">
+      <div class="nav-bar-arrow-single"><?php echo $nav_arrows['fwd']; ?></div>
+      <?php echo $nav_icons['search'] ?>
+    </div>
   </div>
   <?php
 }
@@ -216,7 +227,7 @@ function get_search_hits()
 {
   global $wp_query;
     
-  if ($wp_query->found_posts > 1)
+  if (isset($wp_query) && ($wp_query->found_posts > 1))
   {
     if ($wp_query->max_num_pages <= 1)
       return ' (' . $wp_query->found_posts . ' hits)';
@@ -309,7 +320,7 @@ function index_title()
 }
 */
 
-function footer_title()
+function content_nav_title()
 {
   $prefix = is_shuffle() ? '<b>Shuffle: </b>' : '<b>Channel: </b>';
   $title  = esc_html(get_title());
@@ -361,11 +372,16 @@ function meta_controls()
 {
   if (!is_404() && !is_singular() && ('post' === get_post_type()))
   {
-    ?>
-    <div class="entry-meta-controls">
-      <div class="crossfade-control state-disabled"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/img/crossfade_icon_01.png" alt="" title="Crossfade to this track"></div>
-    </div>
-    <?php
+    global $wp_query;
+
+    if (isset($wp_query) && ($wp_query->found_posts > 1))
+    {
+      ?>
+      <div class="entry-meta-controls">
+        <div class="crossfade-control state-disabled"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/img/crossfade_icon_01.png" alt="" title="Crossfade to this track"></div>
+      </div>
+      <?php
+    }
   }
 }
 

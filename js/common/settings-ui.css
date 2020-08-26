@@ -17,7 +17,7 @@
   width: 100%;
   min-height: 450px;
   opacity: 0;
-  transition: opacity 0.25s;
+  transition: opacity 250ms;
 }
 
 #settings-container table {
@@ -44,11 +44,11 @@
 
   #settings-container table tr:nth-child(odd) {
     background: var(--settings-row-odd-color);
-    transition: background 0.15s 0s ease-in;
+    transition: background 150ms 0s ease-in;
   }
 
   #settings-container table tr:nth-child(even) {
-    transition: background 0.15s 0s ease-in;
+    transition: background 150ms 0s ease-in;
   }
 
   #settings-container table tr:active {
@@ -125,7 +125,7 @@
   #settings-save-reset .settings-save,
   #settings-save-reset .settings-reset {
     background-color: var(--button-background-color);
-    transition: background 0.15s 0s ease-in;
+    transition: background 150ms 0s ease-in;
   }
 
   #settings-container .settings-clear:active,

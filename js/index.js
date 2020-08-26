@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.10.3';
-import * as storage     from './common/storage.js?ver=1.10.3';
-import { siteSettings } from './common/settings.js?ver=1.10.3';
-import * as utils       from './common/utils.js?ver=1.10.3';
+import * as debugLogger from './common/debuglogger.js?ver=1.10.4';
+import * as storage     from './common/storage.js?ver=1.10.4';
+import { siteSettings } from './common/settings.js?ver=1.10.4';
+import * as utils       from './common/utils.js?ver=1.10.4';
 
 
 const debug  = debugLogger.getInstance('index');
@@ -558,7 +558,7 @@ const navSearch = (() =>
   
     if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
     {
-      position.top    = document.body.classList.contains('no-playback') ? 16 : 21;
+      position.top    = document.body.classList.contains('no-playback') ? 15 : 21;
       position.left   = 68;
       position.right  = document.body.clientWidth - 65;
       position.height = 30;

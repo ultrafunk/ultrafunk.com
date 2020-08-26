@@ -30,7 +30,7 @@ function enqueue_style_track_layout($version)
     global $wp_query;
 
     if (isset($wp_query) && ($wp_query->found_posts >= 3))
-      wp_enqueue_style('ultrafunk-style-track-layout', get_theme_file_uri('style-track-layout.css'), array(), $version);
+      wp_enqueue_style('ultrafunk-style-track-layout', get_theme_file_uri('/inc/css/style-track-layout.css'), array(), $version);
   }
 }
 
@@ -162,7 +162,7 @@ function add_body_class($classes)
   $has_posts = false;
   
   // 404 never has any playback-controls
-  if ($wp_query->have_posts() && !is_404())
+  if (isset($wp_query) && $wp_query->have_posts() && !is_404())
   {
     foreach ($wp_query->posts as $post)
     {

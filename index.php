@@ -28,7 +28,7 @@ if (have_posts())
 
   ?></div><!-- #track-layout --><?php
   
-  \Ultrafunk\ThemeTags\footer_title();
+  \Ultrafunk\ThemeTags\content_nav_title();
 }
 else
 {

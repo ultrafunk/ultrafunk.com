@@ -5,9 +5,9 @@
 //
 
 
-import * as debugLogger        from '../common/debuglogger.js?ver=1.10.3';
-import { addSettingsObserver } from '../common/storage.js?ver=1.10.3';
-import { replaceClass }        from '../common/utils.js?ver=1.10.3';
+import * as debugLogger        from '../common/debuglogger.js?ver=1.10.4';
+import { addSettingsObserver } from '../common/storage.js?ver=1.10.4';
+import { replaceClass }        from '../common/utils.js?ver=1.10.4';
 
 
 export {

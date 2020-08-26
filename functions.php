@@ -21,6 +21,12 @@ remove_action('wp_head', 'wp_oembed_add_host_js');
 // Remove wlwmanifest.xml (needed to support windows live writer)
 remove_action('wp_head', 'wlwmanifest_link');
 
+// Remove Gutenberg CSS for visitors
+remove_action('wp_enqueue_scripts', 'wp_common_block_scripts_and_styles');
+
+// Remove Gutenberg CSS for admins
+// remove_action('admin_enqueue_scripts', 'wp_common_block_scripts_and_styles');
+
 // Remove built in XML sitemaps
 // add_filter( 'wp_sitemaps_enabled', '__return_false' );
 
