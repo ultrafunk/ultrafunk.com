@@ -1,6 +1,6 @@
 <?php
 /*
- * The page template file.
+ * The (single) page template file.
  *
  */
 

@@ -4,7 +4,7 @@ Theme URI:    https://github.com/ultrafunk/ultrafunk.com
 Author:       Ultrafunk
 Author URI:   https://ultrafunk.com
 Description:  ultrafunk.com WordPress theme
-Version:      1.10.4
+Version:      1.10.5
 Tested up to: 5.5
 Requires PHP: 7.4
 License:      Apache License 2.0
@@ -942,6 +942,20 @@ strong {
   line-height: 37px;
 }
 
+.entry-content a.read-more {
+  padding: 10px 22px;
+  color: var(--primary-font-color);
+  text-decoration: none;
+  border-radius: var(--button-border-radius);
+  background-color: var(--page-numbers-background);
+}
+
+.entry-content a.read-more:hover {
+  color: var(--link-hover-color);
+  background-color: var(--page-numbers-background-hover);
+  text-decoration: none;
+}
+
 .wp-block-embed__wrapper {
   position: relative;
   padding-top: 56.25%;
@@ -1150,7 +1164,7 @@ body.no-playback #site-header.sticky-nav-down {
 
 
 /**************************************************************************************************
-* Responsive
+* Responsive: min-width: 1351px (wide screens)
 ***************************************************************************************************/
 
 @media screen and (min-width: 1351px) {
@@ -1168,6 +1182,11 @@ body.no-playback #site-header.sticky-nav-down {
   }
 
 }
+
+
+/**************************************************************************************************
+* Responsive: max-width: 1350px
+***************************************************************************************************/
 
 @media screen and (max-width: 1350px) {
   
@@ -1202,6 +1221,11 @@ body.no-playback #site-header.sticky-nav-down {
   
 }
 
+
+/**************************************************************************************************
+* Responsive: max-width: 1200px
+***************************************************************************************************/
+
 @media screen and (max-width: 1200px) {
 
   #site-content {
@@ -1213,6 +1237,11 @@ body.no-playback #site-header.sticky-nav-down {
   }
   
 }
+
+
+/**************************************************************************************************
+* Responsive: max-width: 1100px
+***************************************************************************************************/
 
 @media screen and (max-width: 1100px) {
   
@@ -1271,6 +1300,11 @@ body.no-playback #site-header.sticky-nav-down {
   }
   
 }
+
+
+/**************************************************************************************************
+* Responsive: max-width: 900px
+***************************************************************************************************/
 
 @media screen and (max-width: 900px) {
   
@@ -1346,6 +1380,11 @@ body.no-playback #site-header.sticky-nav-down {
   }
 
 }
+
+
+/**************************************************************************************************
+* Responsive: max-width: 768px
+***************************************************************************************************/
 
 @media screen and (max-width: 768px) {
   
@@ -1450,6 +1489,11 @@ body.no-playback #site-header.sticky-nav-down {
   
 }
 
+
+/**************************************************************************************************
+* Responsive: max-width: 650px
+***************************************************************************************************/
+
 @media screen and (max-width: 650px) {
   
   .site-branding {
@@ -1462,6 +1506,11 @@ body.no-playback #site-header.sticky-nav-down {
   }
 
 }
+
+
+/**************************************************************************************************
+* Responsive: max-width: 500px (mobile max width)
+***************************************************************************************************/
 
 @media screen and (max-width: 500px) {
 
@@ -1710,6 +1759,11 @@ body.no-playback #site-header.sticky-nav-down {
     margin-left: 20px;
   }
   
+  .entry-content a.read-more {
+    display: block;
+    text-align: center;
+  }
+
   form.search-form {
     padding-top: 50px;
     padding-bottom: 75px;
@@ -1720,6 +1774,11 @@ body.no-playback #site-header.sticky-nav-down {
   }
 
 }
+
+
+/**************************************************************************************************
+* Responsive: max-width: 400px (small mobile max width)
+***************************************************************************************************/
 
 @media screen and (max-width: 400px) {
 

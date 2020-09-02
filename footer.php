@@ -19,7 +19,7 @@
       <a href="https://github.com/ultrafunk/">GitHub</a><br>
       <a href="mailto:contact@ultrafunk.com">Contact</a>
       <div class="footer-settings-block">
-        <a href="<?php echo esc_url(home_url()); ?>/settings/"><b>SETTINGS</b></a>
+        <a href="<?php echo esc_url(home_url()); ?>/settings/"><b><u>SETTINGS</u></b></a>
         <div class="footer-toggles">
           <a href="#" id="footer-autoplay-toggle" title="Toggle Autoplay On / Off (shift + F12)">Autoplay = <span class="autoplay-on-off">On</span></a>
           <a href="#" id="footer-crossfade-toggle" title="Toggle Auto Crossfade On / Off (x)">Auto Crossfade = <span class="crossfade-on-off">Off</span></a>

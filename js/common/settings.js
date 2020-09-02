@@ -84,18 +84,20 @@ const playbackSettings = {
 // ************************************************************************************************
 
 const siteSettingsSchema = {
-  siteTheme:   { description: 'Theme',        values: ['light', 'dark', 'auto'],        default: 'auto',     valueStrings: ['LIGHT', 'DARK', 'AUTO / SYSTEM']   },
-  trackLayout: { description: 'Track Layout', values: ['list', '2-column', '3-column'], default: '3-column', valueStrings: ['LIST', '2 COLUMN', '3 / 4 COLUMN'] },
+  siteTheme:     { description: 'Theme',                                    values: ['light', 'dark', 'auto'],             default: 'auto',     valueStrings: ['LIGHT', 'DARK', 'AUTO / SYSTEM']         },
+  trackLayout:   { description: 'Track Layout',                             values: ['list', '2-column', '3-column'],      default: '3-column', valueStrings: ['LIST', '2 COLUMN', '3 / 4 COLUMN']       },
+  tracksPerPage: { description: 'Tracks Per Page for Search &amp; Shuffle', values: [...Array(22).keys()].map(i => i + 3), default: 12,         valueStrings: [...Array(22).keys()].map(i => `${i + 3}`) },
 };
 
 const siteSettings = {
   // Incremental version to check for new properties
-  version:           4,
+  version:           5,
   storageChangeSync: false,
   // User (public) settings
   user: {
-    siteTheme:   siteSettingsSchema.siteTheme.default,
-    trackLayout: siteSettingsSchema.trackLayout.default,
+    siteTheme:     siteSettingsSchema.siteTheme.default,
+    trackLayout:   siteSettingsSchema.trackLayout.default,
+    tracksPerPage: siteSettingsSchema.tracksPerPage.default,
   },
   // Priv (private / internal) settings
   priv: {

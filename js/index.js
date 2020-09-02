@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.10.4';
-import * as storage     from './common/storage.js?ver=1.10.4';
-import { siteSettings } from './common/settings.js?ver=1.10.4';
-import * as utils       from './common/utils.js?ver=1.10.4';
+import * as debugLogger from './common/debuglogger.js?ver=1.10.5';
+import * as storage     from './common/storage.js?ver=1.10.5';
+import { siteSettings } from './common/settings.js?ver=1.10.5';
+import * as utils       from './common/utils.js?ver=1.10.5';
 
 
 const debug  = debugLogger.getInstance('index');
@@ -95,6 +95,7 @@ document.addEventListener(moduleConfig.settingsUpdatedEvent, () =>
   readSettings();
   siteTheme.setCurrent();
   trackLayout.setCurrent();
+  storage.setCookie(storage.KEY.UF_TRACKS_PER_PAGE, settings.user.tracksPerPage, (60 * 60 * 24 * 365 * 5));
 });
 
 window.addEventListener('load', () => resize.setTopMargin());

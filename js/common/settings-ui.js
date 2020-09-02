@@ -5,10 +5,15 @@
 //
 
 
-import * as debugLogger             from '../common/debuglogger.js?ver=1.10.4';
-import { snackbar }                 from '../common/utils.js?ver=1.10.4';
-import { KEY, readJson, writeJson } from '../common/storage.js?ver=1.10.4';
-import * as settings                from '../common/settings.js?ver=1.10.4';
+import * as debugLogger from '../common/debuglogger.js?ver=1.10.5';
+import { snackbar }     from '../common/utils.js?ver=1.10.5';
+import * as settings    from '../common/settings.js?ver=1.10.5';
+import {
+  KEY,
+  deleteCookie,
+  readJson,
+  writeJson,
+} from '../common/storage.js?ver=1.10.5';
 
 
 const debug          = debugLogger.getInstance('settings');
@@ -24,6 +29,15 @@ const moduleConfig = {
 const moduleElements = {
   settingsContainer: null,
 };
+
+const readSettingsErrorHtml = `<h3>An error occurred while reading Playback and Site settings</h3>
+  <p>This can be caused by several issues, but most likely it happened because of corrupt or malformed JSON data in the browsers Local Storage.</p>
+  <p>Clearing all settings stored locally in the browser will probably fix the problem, click on the button below to do that.
+  <b>Note:</b> All Playback and Site settings will be reset to default values.</p>
+  <div class="settings-clear"><b>Clear All Settings</b></div>
+  <p>If that does not work, another possible fix is to clear all cached data stored in the browser, the following links contain more information about how to do that for
+  <a href="https://support.google.com/accounts/answer/32050">Chrome</a> and
+  <a href="https://support.mozilla.org/en-US/kb/clear-cookies-and-site-data-firefox">Firefox</a>.</p>`;
 
 
 // ************************************************************************************************
@@ -73,22 +87,14 @@ function readSettingsError()
 {
   document.getElementById(`${moduleConfig.settingsSaveResetId}`).style.display = 'none';
 
-  const html = `<h3>An error occurred while reading Playback and Site settings</h3>
-                <p>This can be caused by several issues, but most likely it happened because of corrupt or malformed JSON data in the browsers Local Storage.</p>
-                <p>Clearing all settings stored locally in the browser will probably fix the problem, click on the button below to do that.
-                <b>Note:</b> All Playback and Site settings will be reset to default values.</p>
-                <div class="settings-clear"><b>Clear All Settings</b></div>
-                <p>If that does not work, another possible fix is to clear all cached data stored in the browser, the following links contain more information about how to do that for
-                <a href="https://support.google.com/accounts/answer/32050">Chrome</a> and
-                <a href="https://support.mozilla.org/en-US/kb/clear-cookies-and-site-data-firefox">Firefox</a>.</p>`;
-
-  moduleElements.settingsContainer.insertAdjacentHTML('afterbegin', html);
+  moduleElements.settingsContainer.insertAdjacentHTML('afterbegin', readSettingsErrorHtml);
   moduleElements.settingsContainer.style.opacity = 1;
 
   document.querySelector(`#${moduleConfig.settingsContainerId} .settings-clear`).addEventListener('click', () =>
   {
     localStorage.removeItem(KEY.UF_PLAYBACK_SETTINGS);
     localStorage.removeItem(KEY.UF_SITE_SETTINGS);
+    deleteCookie(KEY.UF_TRACKS_PER_PAGE);
 
     readSettings();
 

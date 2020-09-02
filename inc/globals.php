@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /*
  * Minimal global variables & functions for the theme, not the best solution, but it will have to do for now...
  *
@@ -10,15 +10,16 @@ namespace Ultrafunk\Globals;
 
 class Globals
 {
-  public static $version = '1.10.4';
+  public static $version = '1.10.5';
 
   public static $dev_prod_consts = array(
-    'menu_item_all'     => (true === WP_DEBUG) ?  115 :  115,
-    'menu_item_shuffle' => (true === WP_DEBUG) ? 2251 : 2251,
-    'frontpage_intro'   => (true === WP_DEBUG) ?  808 :  808,
-    'premium_intro'     => (true === WP_DEBUG) ? 1500 : 1500,
-    'promo_intro'       => (true === WP_DEBUG) ? 2385 : 2717,
-    'iframe_origin'     => (true === WP_DEBUG) ? 'https://wordpress.ultrafunk.com' : 'https://ultrafunk.com',
+    'menu_item_all_id'         => WP_DEBUG ?  115 :  115,
+    'menu_item_shuffle_id'     => WP_DEBUG ? 2251 : 2251,
+    'block_frontpage_intro_id' => WP_DEBUG ?  808 :  808,
+    'block_premium_intro_id'   => WP_DEBUG ? 1500 : 1500,
+    'block_promo_intro_id'     => WP_DEBUG ? 2385 : 2717,
+    'page_about_id'            => WP_DEBUG ?  806 :  806,
+    'iframe_origin'            => WP_DEBUG ? 'https://wordpress.ultrafunk.com' : 'https://ultrafunk.com',
   );
 
   public static $shuffle_params = array(
@@ -40,7 +41,7 @@ class Globals
 
 function console_log($output)
 {
-  if (true === WP_DEBUG)
+  if (WP_DEBUG)
     echo '<script>console.log(' . json_encode($output, JSON_HEX_TAG) . ');</script>';
 }
 

@@ -5,13 +5,13 @@
 //
 
 
-import * as debugLogger          from '../common/debuglogger.js?ver=1.10.4';
-import * as storage              from '../common/storage.js?ver=1.10.4';
-import { playbackSettings }      from '../common/settings.js?ver=1.10.4';
-import * as utils                from '../common/utils.js?ver=1.10.4';
-import * as eventLogger          from './eventlogger.js?ver=1.10.4';
-import * as playback             from './playback.js?ver=1.10.4';
-import { updateProgressPercent } from './playback-controls.js?ver=1.10.4';
+import * as debugLogger          from '../common/debuglogger.js?ver=1.10.5';
+import * as storage              from '../common/storage.js?ver=1.10.5';
+import { playbackSettings }      from '../common/settings.js?ver=1.10.5';
+import * as utils                from '../common/utils.js?ver=1.10.5';
+import * as eventLogger          from './eventlogger.js?ver=1.10.5';
+import * as playback             from './playback.js?ver=1.10.5';
+import { updateProgressPercent } from './playback-controls.js?ver=1.10.5';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -176,6 +176,9 @@ const playbackEvents = (() =>
     moduleElements.autoPlayToggle.addEventListener('click', autoPlayToggle);
     moduleElements.crossfadeToggle.addEventListener('click', crossfadeToggle);
     document.addEventListener('visibilitychange', documentEventVisibilityChange);
+
+    if (settings.user.keepMobileScreenOn)
+      screenWakeLock.enable();
   }
   
   function mediaPlaying(playbackEvent, eventData)
@@ -190,8 +193,10 @@ const playbackEvents = (() =>
     if (settings.user.animateNowPlayingIcon)
       nowPlayingIcon.classList.add('playing-animate');
 
+    /*
     if (settings.user.keepMobileScreenOn)
       screenWakeLock.enable();
+    */
   }
   
   function mediaPaused(playbackEvent, eventData)
@@ -200,8 +205,10 @@ const playbackEvents = (() =>
   
     document.querySelector(`#${eventData.postId} ${moduleConfig.nowPlayingIconsSelector}`).classList.add('playing-paused');
 
+    /*
     if (settings.user.keepMobileScreenOn)
       screenWakeLock.disable();
+    */
   }
 
   function mediaEnded(playbackEvent)
@@ -277,7 +284,7 @@ const playbackEvents = (() =>
   
     if (isPremiumTrack(eventData.postId))
     {
-      utils.snackbar.show('YouTube Premium track, skipping...', 6, 'help',  () => { window.location.href = '/channel/premium/'; });
+      utils.snackbar.show('YouTube Premium track, skipping...', 5, 'help',  () => { window.location.href = '/channel/premium/'; });
       playbackEventErrorTryNext(eventData, 5);
     }
     else
@@ -352,7 +359,7 @@ const screenWakeLock = (() =>
 
   return {
     enable,
-    disable,
+  //disable,
     stateVisible,
   };
 
@@ -367,13 +374,15 @@ const screenWakeLock = (() =>
     {
       if (document.visibilityState === 'visible')
       {
+        /*
         if (wakeLock !== null)
           wakeLock.release();
+        */
 
         if (await request() !== true)
         {
           debug.log('screenWakeLock.enable(): Screen Wake Lock request failed');
-          utils.snackbar.show('Keep Screen On failed', 3);
+        //utils.snackbar.show('Keep Screen On failed', 3);
         }
       }
     }
@@ -384,6 +393,7 @@ const screenWakeLock = (() =>
     }
   }
 
+  /*
   function disable()
   {
     debug.log('screenWakeLock.disable()');
@@ -391,6 +401,7 @@ const screenWakeLock = (() =>
     if (wakeLock !== null)
       wakeLock.release();
   }
+  */
 
   function stateVisible()
   {
@@ -407,10 +418,12 @@ const screenWakeLock = (() =>
       wakeLock = await navigator.wakeLock.request('screen');
 
       debug.log('screenWakeLock.request(): Screen Wake Lock is Enabled');
+    //utils.snackbar.show('Keep Screen On success', 3);
 
       wakeLock.addEventListener('release', () =>
       {
         debug.log('screenWakeLock.request(): Screen Wake Lock was Released');
+      //utils.snackbar.show('Keep Screen On was released', 3);
         wakeLock = null;
       });
 
@@ -512,7 +525,12 @@ function documentEventVisibilityChange()
         playback.togglePlayPause();
     }
 
+    /*
     if (settings.user.keepMobileScreenOn && moduleElements.playbackControls.statePlaying)
+      screenWakeLock.stateVisible();
+    */
+    
+    if (settings.user.keepMobileScreenOn)
       screenWakeLock.stateVisible();
   }
   else if (document.visibilityState === 'hidden')

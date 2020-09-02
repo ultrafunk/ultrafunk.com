@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /*
  * Custom request URL parsing, validation, sanitization and handling
  *
@@ -262,7 +262,7 @@ function create_shuffle_transient($request)
 //
 // Get page number for the current shuffle type
 //
-function shuffle_page_num($request, $max_page_num)
+function get_shuffle_page_num($request, $max_page_num)
 {
   $page_num = 0;
   
@@ -289,7 +289,7 @@ function do_parse_request($do_parse, $wp)
 
     if (true === $request->is_valid())
     {
-      $paged = shuffle_page_num($request, 9999);
+      $paged = get_shuffle_page_num($request, 9999);
     
       if (0 !== $paged)
       {

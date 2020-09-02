@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /*
  * Custom tags for this theme
  *
@@ -66,18 +66,18 @@ function pre_wp_head()
 
 function head()
 {
+  $meta_description = '<meta name="description" content="Ultrafunk is a free and open interactive playlist with carefully chosen and continually updated tracks rooted in Funk and other related genres you might like." />' . PHP_EOL;
+
   if (is_front_page() && !is_paged() && !is_shuffle())
-  {
-    ?>
-    <meta name="description" content="Ultrafunk is a free and open interactive playlist with carefully chosen and continually updated tracks rooted in Funk and other related genres you might like." />
-    <?php
-  }
+    echo $meta_description;
+  else if (get_dev_prod_const('page_about_id') === get_the_ID())
+    echo $meta_description;
 
   ?>
   <noscript><link rel="stylesheet" href="<?php echo esc_url(get_template_directory_uri()); ?>/inc/css/style-noscript.css" media="all" /></noscript>
   <?php
 
-  if (true === WP_DEBUG)
+  if (WP_DEBUG)
   {
     ?>
     <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -275,51 +275,6 @@ function nav_bar_title()
   echo '<div class="nav-bar-title">' . $prefix . $title . $pagination . '</div>';
 }
 
-/*
-function index_title()
-{
-  $prefix     = 'Channel:';
-  $title      = get_title();
-  $pagination = '';
-  $show_title = (have_posts() && (1 === get_pagednum())) ? true : false;
-  // Channels not shown in the header / nav menu
-  $channels   = array('rock', 'pop', 'easy-listening', 'afrobeat', 'r-and-b', 'fusion', 'go-go', 'premium', 'low-tempo', 'promo');
-  
-  if (is_search() && have_posts())
-  {
-    $prefix     = 'Search results:';
-    $title      = get_search_query();
-    $pagination = get_search_hits();
-  }
-  else if (is_tag() && $show_title)
-  {
-    $prefix = 'Artist:';
-    $title  = single_tag_title('', false);
-  }
-  else if (is_shuffle() && $show_title)
-  {
-    $prefix = 'Shuffle: ';
-    $title  = get_title();
-  }
-  else if (is_date() && $show_title)
-  {
-    // Do nothing on purpose!
-  }
-  else if ($show_title && is_category($channels))
-  {
-    // Do nothing on purpose!
-  }
-  else
-  {
-    return;
-  }
-
-  ?>
-  <h1 class="content-header"><?php echo esc_html($prefix); ?> <span class="light-text"><?php echo esc_html($title); ?></span><span class="lightest-text"><?php echo esc_html($pagination); ?></span></h1>
-  <?php
-}
-*/
-
 function content_nav_title()
 {
   $prefix = is_shuffle() ? '<b>Shuffle: </b>' : '<b>Channel: </b>';
@@ -356,18 +311,6 @@ function entry_title()
     esc_html(the_title(sprintf('<h2 class="entry-title"><a href="%s" rel="bookmark">', esc_url(get_permalink())), '</a></h2>'));
 }
 
-/*
-function meta_date_author()
-{
-  ?>
-  <div class="entry-meta-date-author">
-    <span class="date-author-long" title="Monthly archive"> <a href="/<?php echo get_the_date('Y/m'); ?>/"><?php echo get_the_date(); ?></a></span>
-    <span class="date-author-short" title="Monthly archive"><a href="/<?php echo get_the_date('Y/m'); ?>/"><?php echo get_the_date('d. M y'); ?></a></span>
-  </div>
-  <?php
-}
-*/
-
 function meta_controls()
 {
   if (!is_404() && !is_singular() && ('post' === get_post_type()))
@@ -385,6 +328,15 @@ function meta_controls()
   }
 }
 
+function content_excerpt()
+{
+  the_excerpt();
+
+  ?>
+  <p><a class="read-more" href="<?php echo esc_url(get_permalink()); ?>">Read More &#10095;&#10095;</a></p>
+  <?php
+}
+
 function intro_banner()
 {
   $property = '';
@@ -394,21 +346,21 @@ function intro_banner()
   if (is_front_page() && !is_paged() && !is_shuffle())
   {
     $property = 'showFrontpageIntro';
-    $post     = get_post(get_dev_prod_const('frontpage_intro'));
+    $post     = get_post(get_dev_prod_const('block_frontpage_intro_id'));
     $content  = apply_filters('the_content', wp_kses_post($post->post_content));
     $display  = true;
   }
   else if (is_category('premium') && have_posts() && !is_paged())
   {
     $property = 'showPremiumIntro';
-    $post     = get_post(get_dev_prod_const('premium_intro'));
+    $post     = get_post(get_dev_prod_const('block_premium_intro_id'));
     $content  = apply_filters('the_content', wp_kses_post($post->post_content));
     $display  = true;
   }
   else if (is_category('promo') && have_posts() && !is_paged())
   {
     $property = 'showPromoIntro';
-    $post     = get_post(get_dev_prod_const('promo_intro'));
+    $post     = get_post(get_dev_prod_const('block_promo_intro_id'));
     $content  = apply_filters('the_content', wp_kses_post($post->post_content));
     $display  = true;
   }

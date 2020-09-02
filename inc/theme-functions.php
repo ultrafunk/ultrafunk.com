@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /*
  * Functions which enhance the theme by hooking into WordPress
  *
@@ -76,6 +76,27 @@ function get_prev_next_urls()
     );
   }
 }
+
+//
+// Set number of posts (tracks) per page for Search + Shuffle based on user setting
+//
+function set_posts_per_page($query)
+{
+  if (!is_admin() && $query->is_main_query())
+  {
+    if (is_search() || is_shuffle())
+    {
+      if (isset($_COOKIE['UF_TRACKS_PER_PAGE']))
+      {
+        $num_tracks = intval($_COOKIE['UF_TRACKS_PER_PAGE']);
+  
+        if (($num_tracks > 2) && ($num_tracks < 25))
+          $query->set('posts_per_page', $num_tracks);
+      }
+    }
+  }
+}
+add_action('pre_get_posts', '\Ultrafunk\ThemeFunctions\set_posts_per_page', 1);
 
 //
 // Enhance search hits by replacing special chars in query string
@@ -277,13 +298,13 @@ function setup_nav_menu_item($menu_item)
   if (is_admin())
     return $menu_item;
 
-  if (is_front_page() && !is_shuffle() && (get_dev_prod_const('menu_item_all') === $menu_item->ID))
+  if (is_front_page() && !is_shuffle() && (get_dev_prod_const('menu_item_all_id') === $menu_item->ID))
     $menu_item->classes[] = 'current-menu-item';
   
-  if (!is_404() && is_shuffle() && (get_dev_prod_const('menu_item_shuffle') === $menu_item->ID))
+  if (!is_404() && is_shuffle() && (get_dev_prod_const('menu_item_shuffle_id') === $menu_item->ID))
     $menu_item->classes[] = 'current-menu-item';
 
-  if (get_dev_prod_const('menu_item_shuffle') === $menu_item->ID)
+  if (get_dev_prod_const('menu_item_shuffle_id') === $menu_item->ID)
   {
     $menu_item->url        = esc_url(get_shuffle_menu_item_url());
     $menu_item->attr_title = esc_attr(get_shuffle_menu_item_title());

@@ -1,6 +1,6 @@
 <?php
 /*
- * Template part for displaying single post
+ * Template part for displaying a post
  *
  */
 
@@ -10,8 +10,8 @@
   <header class="entry-header">
     <?php \Ultrafunk\ThemeTags\entry_title(); ?>
     <div class="entry-meta">
-      <?php // \Ultrafunk\ThemeTags\meta_date_author(); ?>
       <?php
+      \Ultrafunk\ThemeTags\meta_controls();
       echo '<div class="entry-meta-channels"><b>Channels:</b> ' . get_the_category_list(', ') . '</div>';
       echo get_the_tag_list('<div class="entry-meta-artists"><b>Artists:</b> ', ', ', '</div>');
       ?>

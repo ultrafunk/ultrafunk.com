@@ -6,7 +6,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.10.4';
+import * as debugLogger from '../common/debuglogger.js?ver=1.10.5';
 
 
 export {
@@ -14,6 +14,8 @@ export {
   KEY,
 //Functions
   isAvailable,
+  setCookie,
+  deleteCookie,
   getValue,
   setValue,
   readJson,
@@ -32,6 +34,7 @@ const KEY = {
   UF_SITE_SETTINGS:     'UF_SITE_SETTINGS',
   UF_SITE_THEME:        'UF_SITE_THEME',
   UF_TRACK_LAYOUT:      'UF_TRACK_LAYOUT',
+  UF_TRACKS_PER_PAGE:   'UF_TRACKS_PER_PAGE',
 };
 
 
@@ -66,6 +69,21 @@ function isAvailable(storageType)
       // acknowledge QuotaExceededError only if there's something already stored
       (storage && storage.length !== 0);
   }
+}
+
+
+// ************************************************************************************************
+// Set and delete cookie key => value pairs
+// ************************************************************************************************
+
+function setCookie(keyName, keyValue = '', maxAge = (60 * 60 * 24 * 365), path = '/')
+{
+  document.cookie = `${keyName}=${keyValue}; Max-Age=${maxAge}; Path=${path}; Secure; SameSite=Strict`;
+}
+
+function deleteCookie(keyName, path = '/')
+{
+  document.cookie = `${keyName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}`;
 }
 
 
