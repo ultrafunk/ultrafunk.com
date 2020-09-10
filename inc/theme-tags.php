@@ -313,19 +313,22 @@ function entry_title()
 
 function meta_controls()
 {
+  ?>
+  <div class="entry-meta-controls">
+  <div class="track-share-control"><span class="material-icons" title="Share this track" data-entry-track-title="<?php echo esc_html(get_the_title()); ?>" data-entry-track-link="<?php echo esc_url(get_permalink()); ?>">share</span></div>
+  <?php
+  
   if (!is_404() && !is_singular() && ('post' === get_post_type()))
   {
     global $wp_query;
 
     if (isset($wp_query) && ($wp_query->found_posts > 1))
     {
-      ?>
-      <div class="entry-meta-controls">
-        <div class="crossfade-control state-disabled"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/img/crossfade_icon_01.png" alt="" title="Crossfade to this track"></div>
-      </div>
-      <?php
+      ?><div class="crossfade-control state-disabled"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/img/crossfade_icon_01.png" alt="" title="Crossfade to this track"></div><?php
     }
   }
+
+  ?></div><?php
 }
 
 function content_excerpt()

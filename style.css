@@ -4,7 +4,7 @@ Theme URI:    https://github.com/ultrafunk/ultrafunk.com
 Author:       Ultrafunk
 Author URI:   https://ultrafunk.com
 Description:  ultrafunk.com WordPress theme
-Version:      1.10.5
+Version:      1.11.0
 Tested up to: 5.5
 Requires PHP: 7.4
 License:      Apache License 2.0
@@ -45,6 +45,7 @@ Tags:         entertainment, portfolio, grid-layout, one-column, two-columns, th
   --site-theme-icon-color: #fff;
 
   --button-border-radius: 6px;
+  --dialog-border-radius: 10px;
 }
 
 .site-theme-light {
@@ -710,7 +711,7 @@ body.no-playback #footer-crossfade-toggle {
   cursor: default;
 }
 
-#modal-overlay {
+#nav-menu-modal-overlay {
   display: none;
   cursor: pointer;
   position: fixed;
@@ -725,15 +726,15 @@ body.no-playback #footer-crossfade-toggle {
   transition: opacity 250ms;
 }
 
-#modal-overlay.show {
+#nav-menu-modal-overlay.show {
   display: block;
 }
 
-#modal-overlay.fadein {
+#nav-menu-modal-overlay.fadein {
   opacity: 0.6;
 }
 
-#modal-overlay.fadeout {
+#nav-menu-modal-overlay.fadeout {
   opacity: 0;
 }
 
@@ -846,20 +847,43 @@ strong {
   text-decoration: underline;
 }
 
-.entry-meta-controls .crossfade-control {
+.entry-meta-controls .track-share-control {
+  display: none;
   float: right;
+  position: relative;
+  height: 50px;
+  width: 50px;
+  margin-left: 10px;
+  margin-right: -10px;
+  bottom: -23px;
+}
+
+body.autoplay-on .entry-meta-controls .track-share-control {
+  display: block;
+}
+
+.entry-meta-controls .track-share-control .material-icons {
+  font-size: 40px;
+  color: var(--primary-icon-color);
+  overflow: hidden;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.entry-meta-controls .crossfade-control {
+  display: none;
+  float: right;
+  position: relative;
   width: 51px;
   margin-left: 10px;
   margin-right: -7px;
   bottom: -27px;
-  position: relative;
   line-height: 0;
-  display: none;
   cursor: pointer;
 }
 
-.entry-meta-controls .crossfade-control.no-autoplay {
-  display: inline-block;
+body.autoplay-off .entry-meta-controls .crossfade-control {
+  display: block;
 }
 
 .entry-meta-controls .crossfade-control img {
@@ -870,12 +894,14 @@ strong {
   filter: invert(1);
 }
 
+.entry-meta-controls .track-share-control .material-icons:hover,
 .entry-meta-controls .crossfade-control.state-enabled img:hover {
   opacity: var(--control-hover-opacity);
 }
 
 @media not all and (pointer: fine) {
 
+  .entry-meta-controls .track-share-control .material-icons:hover,
   .entry-meta-controls .crossfade-control.state-enabled img:hover {
     opacity: 1;
   }
@@ -1276,8 +1302,12 @@ body.no-playback #site-header.sticky-nav-down {
     line-height: 31px;
   }
 
+  .entry-meta-controls .track-share-control {
+    bottom: -14px
+  }
+  
   .entry-meta-controls .crossfade-control {
-    bottom: -19px;
+    bottom: -18px;
   }
 
   .nav-links .page-numbers li {
@@ -1373,10 +1403,6 @@ body.no-playback #site-header.sticky-nav-down {
   .entry-content ul {
     font-size: unset;
     line-height: unset;
-  }
-
-  .entry-meta-controls .crossfade-control {
-    bottom: -13px;
   }
 
 }
@@ -1479,6 +1505,14 @@ body.no-playback #site-header.sticky-nav-down {
     font-size: 20px;
     line-height: 30px;
     margin-top: 50px;
+  }
+
+  .entry-meta-controls .track-share-control {
+    bottom: -8px;
+  }
+
+  .entry-meta-controls .crossfade-control {
+    bottom: -12px;
   }
 
   #taxonomies-2,
@@ -1740,9 +1774,19 @@ body.no-playback #site-header.sticky-nav-down {
     font-weight: 300;
   }
 
+  .entry-meta-controls .track-share-control {
+    width: 38px;
+    height: 38px;
+    margin-right: -7px;
+    bottom: -4px
+  }
+
+  .entry-meta-controls .track-share-control .material-icons {
+    font-size: 28px;
+  }
+
   .entry-meta-controls .crossfade-control {
     width: 38px;
-    margin-left: 10px;
     margin-right: -5px;
     bottom: -4px;  
   }

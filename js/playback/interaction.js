@@ -5,13 +5,13 @@
 //
 
 
-import * as debugLogger          from '../common/debuglogger.js?ver=1.10.5';
-import * as storage              from '../common/storage.js?ver=1.10.5';
-import { playbackSettings }      from '../common/settings.js?ver=1.10.5';
-import * as utils                from '../common/utils.js?ver=1.10.5';
-import * as eventLogger          from './eventlogger.js?ver=1.10.5';
-import * as playback             from './playback.js?ver=1.10.5';
-import { updateProgressPercent } from './playback-controls.js?ver=1.10.5';
+import * as debugLogger          from '../common/debuglogger.js?ver=1.11.0';
+import * as storage              from '../common/storage.js?ver=1.11.0';
+import { playbackSettings }      from '../common/settings.js?ver=1.11.0';
+import * as utils                from '../common/utils.js?ver=1.11.0';
+import * as eventLogger          from './eventlogger.js?ver=1.11.0';
+import * as playback             from './playback.js?ver=1.11.0';
+import { updateProgressPercent } from './playback-controls.js?ver=1.11.0';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -515,7 +515,7 @@ function documentEventFullscreenChange()
 
 function documentEventVisibilityChange()
 {
-  debug.log(`documentEventVisibilityChange() - visibilityState: ${document.visibilityState}`);
+//debug.log(`documentEventVisibilityChange() - visibilityState: ${document.visibilityState}`);
 
   if (document.visibilityState === 'visible')
   {
@@ -540,7 +540,7 @@ function documentEventVisibilityChange()
     else
       moduleElements.playbackControls.statePlaying = false;
 
-    debug.log('documentEventVisibilityChange() - statePlaying: ' + moduleElements.playbackControls.statePlaying);
+  //debug.log('documentEventVisibilityChange() - statePlaying: ' + moduleElements.playbackControls.statePlaying);
   }
 }
 
@@ -781,8 +781,8 @@ function updateAutoPlayDOM(autoPlay)
   debug.log(`updateAutoPlayDOM() - autoPlay: ${autoPlay}`);
 
   moduleElements.autoPlayToggle.querySelector('.autoplay-on-off').textContent = autoPlay ? 'ON' : 'OFF';
-  moduleElements.nowPlayingIcons.forEach(element => (autoPlay ? element.classList.remove('no-autoplay') : element.classList.add('no-autoplay')));
-  autoPlay ? moduleElements.crossfadeToggle.classList.remove('disabled') : moduleElements.crossfadeToggle.classList.add('disabled');
+  autoPlay ? utils.replaceClass(document.body, 'autoplay-off', 'autoplay-on') : utils.replaceClass(document.body, 'autoplay-on', 'autoplay-off');
+  autoPlay ? moduleElements.crossfadeToggle.classList.remove('disabled')      : moduleElements.crossfadeToggle.classList.add('disabled');
 
   if (autoPlay)
   {

@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.10.5';
-import * as storage     from './common/storage.js?ver=1.10.5';
-import { siteSettings } from './common/settings.js?ver=1.10.5';
-import * as utils       from './common/utils.js?ver=1.10.5';
+import * as debugLogger from './common/debuglogger.js?ver=1.11.0';
+import * as storage     from './common/storage.js?ver=1.11.0';
+import { siteSettings } from './common/settings.js?ver=1.11.0';
+import * as utils       from './common/utils.js?ver=1.11.0';
 
 
 const debug  = debugLogger.getInstance('index');
@@ -122,6 +122,8 @@ function initIndex()
   moduleElements.siteContent       = document.getElementById('site-content');
   moduleElements.siteContentSearch = document.querySelector('#site-content form input.search-field');
 
+  utils.addEventListeners('.entry-meta-controls .track-share-control', 'click', trackShare.click);
+
   resize.addEventListener();
   scroll.addEventListener();
 
@@ -214,6 +216,81 @@ function setPreviousPageTitle()
     });
   }
 }
+
+
+// ************************************************************************************************
+// Track share module
+// ************************************************************************************************
+
+const trackShare = (() =>
+{
+  let encodedTitle = null;
+  let escapedLink  = null;
+
+  const singleChoiceList = [
+    { id: 'copyToClipboard',    description: '<b>Copy Link</b> to Clipboard' },
+    { id: 'shareOnEmail',       description: '<b>Share</b> on Email'         },
+    { id: 'findOnAmazonMusic',  description: '<b>Find</b> on Amazon Music'   },
+    { id: 'findOnAppleMusic',   description: '<b>Find</b> on Apple Music'    },
+    { id: 'findOnSpotify',      description: '<b>Find</b> on Spotify'        },
+    { id: 'findOnTidal',        description: '<b>Find</b> on Tidal'          },
+    { id: 'findOnYouTubeMusic', description: '<b>Find</b> on YouTube Music'  },
+  ];
+
+  return {
+    click,
+  };
+  
+  function singleChoiceListClick(clickedId)
+  {
+    debug.log(`singleChoiceListClick(): ${clickedId} - trackTitle: ${decodeURIComponent(encodedTitle)} - trackLink: ${escapedLink}`);
+
+    switch (clickedId)
+    {
+      case 'copyToClipboard':
+        navigator.clipboard.writeText(escapedLink).then(() =>
+        {
+          utils.snackbar.show('Track link copied to the clipboard', 3);
+        },
+        function()
+        {
+          utils.snackbar.show('Failed to copy Track link to the clipboard', 4);
+        });
+        break;
+
+      case 'shareOnEmail':
+        window.location.href = `mailto:?subject=${encodedTitle}&body=${escapedLink}%0d%0a`;
+        break;
+
+      case 'findOnSpotify':
+        window.open(`https://google.com/search?q=${encodedTitle}%20site:spotify.com`, "_blank");
+        break;
+
+      case 'findOnAppleMusic':
+        window.open(`https://google.com/search?q=${encodedTitle}%20site:music.apple.com`, "_blank");
+        break;
+
+      case 'findOnAmazonMusic':
+        window.open(`https://google.com/search?q=${encodedTitle}%20site:music.amazon.com`, "_blank");
+        break;
+
+      case 'findOnTidal':
+        window.open(`https://google.com/search?q=${encodedTitle}%20site:tidal.com`, "_blank");
+        break;
+
+      case 'findOnYouTubeMusic':
+        window.open(`https://google.com/search?q=${encodedTitle}%20site:music.youtube.com`, "_blank");
+        break;
+    }
+  }
+  
+  function click(event)
+  {
+    encodedTitle = encodeURIComponent(event.target.getAttribute('data-entry-track-title'));
+    escapedLink  = event.target.getAttribute('data-entry-track-link');
+    utils.modal.show('Share Track', singleChoiceList, singleChoiceListClick);
+  }
+})();
 
 
 // ************************************************************************************************
@@ -415,7 +492,7 @@ const navMenu = (() =>
   function init()
   {
     elements.navMenu      = document.querySelector('#site-navigation .nav-menu-outer');
-    elements.modalOverlay = document.getElementById('modal-overlay');
+    elements.modalOverlay = document.getElementById('nav-menu-modal-overlay');
 
     utils.addEventListeners('.nav-menu-toggle', 'click', toggle);
     elements.modalOverlay.addEventListener('click', toggle);
@@ -442,7 +519,7 @@ const navMenu = (() =>
 
     if (isVisible)
     {
-      elements.modalOverlay.classList.value = '';
+      elements.modalOverlay.className = '';
       elements.modalOverlay.classList.add('show');
       setTimeout(() => elements.modalOverlay.classList.add('fadein'), 50);
     }
@@ -456,8 +533,8 @@ const navMenu = (() =>
   {
     if (isVisible === false)
     {
-      elements.modalOverlay.classList.value = '';
-      elements.navMenu.style.display        = '';
+      elements.modalOverlay.className = '';
+      elements.navMenu.style.display  = '';
     }
   }
 })();
@@ -495,8 +572,11 @@ const navSearch = (() =>
     // Hide nav search bar on ESC
     elements.searchField.addEventListener('keydown', (event) =>
     {
-      event.stopPropagation();
-      if (event.key === 'Escape') hide();
+      if (event.key === 'Escape')
+      {
+        event.stopPropagation();
+        hide();
+      }
     });
   }
 

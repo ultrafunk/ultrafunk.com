@@ -6,7 +6,7 @@
 
 ?>
 
-<article id="post-<?php the_ID(); ?>" data-entry-title="<?php echo esc_html(get_the_title()); ?>" <?php post_class(); ?>>
+<article id="post-<?php the_ID(); ?>" data-entry-track-title="<?php echo esc_html(get_the_title()); ?>" <?php post_class(); ?>>
   <header class="entry-header">
     <?php \Ultrafunk\ThemeTags\entry_title(); ?>
     <div class="entry-meta">

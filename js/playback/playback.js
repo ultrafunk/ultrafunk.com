@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger  from '../common/debuglogger.js?ver=1.10.5';
-import * as mediaPlayers from './mediaplayers.js?ver=1.10.5';
-import * as controls     from './playback-controls.js?ver=1.10.5';
-import * as eventLogger  from './eventlogger.js?ver=1.10.5';
+import * as debugLogger  from '../common/debuglogger.js?ver=1.11.0';
+import * as mediaPlayers from './mediaplayers.js?ver=1.11.0';
+import * as controls     from './playback-controls.js?ver=1.11.0';
+import * as eventLogger  from './eventlogger.js?ver=1.11.0';
 
 
 export {
@@ -40,7 +40,7 @@ const moduleConfig = {
   youTubeIframeIdRegEx:      null,
   soundCloudIframeIdRegEx:   null,
   entriesSelector:           'article',
-  entryTitleData:            'data-entry-title',
+  trackTitleData:            'data-entry-track-title',
   progressControlsId:        'progress-controls',
   playbackControlsId:        'playback-controls',
   entryMetaControlsSelector: '.entry-meta-controls .crossfade-control',
@@ -102,7 +102,7 @@ function getAllEmbeddedPlayers()
   entries.forEach(entry => 
   {
     const postId     = entry.id;
-    const entryTitle = entry.getAttribute(moduleConfig.entryTitleData);
+    const entryTitle = entry.getAttribute(moduleConfig.trackTitleData);
     const iframes    = entry.querySelectorAll('iframe');
 
     iframes.forEach(iframe =>

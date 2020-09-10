@@ -1,0 +1,307 @@
+/*
+* utils.css
+*
+* https://ultrafunk.com
+* 
+*/
+
+.site-theme-light {
+  --modal-background-color: #fff;
+  --snackbar-background-color: #444;
+  --snackbar-text-color: #fff;
+  --snackbar-action-button-color: #4b96ff;
+  --snackbar-action-button-hover-color: #dd0000;
+  --snackbar-close-button-color: #999;
+  --snackbar-close-button-hover-color: #fff;
+}
+
+.site-theme-dark {
+  --modal-background-color: #444;
+  --snackbar-background-color: #555;
+  --snackbar-text-color: #fff;
+  --snackbar-action-button-color: #4b96ff;
+  --snackbar-action-button-hover-color: #dd0000;
+  --snackbar-close-button-color: #999;
+  --snackbar-close-button-hover-color: #fff;
+}
+
+
+/**************************************************************************************************
+* Modal
+***************************************************************************************************/
+
+#modal-dialog {
+  display: none;
+  cursor: pointer;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2000;
+  background-color: rgba(0, 0, 0, 0.7);
+  -webkit-tap-highlight-color: transparent;
+  justify-content: center;
+  align-items: center;
+}
+
+#modal-dialog .modal-container {
+  padding: 15px 30px;
+  min-width: 400px;
+  max-width: 800px;
+  background-color: var(--modal-background-color);
+  color: var(--primary-font-color);
+  box-shadow: 0px 0px 15px 5px rgba(0, 0, 0, 0.25);
+  border-radius: var(--dialog-border-radius);
+  cursor: auto;
+}
+
+#modal-dialog .modal-header {
+  display: flex;
+  margin-bottom: 5px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#modal-dialog .modal-title {
+  display: inline-flex;
+  font-size: 25px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+#modal-dialog .modal-close-button {
+  display: inline-flex;
+  color: var(--primary-icon-color);
+  padding: 0px 0px 0px 15px;
+  width: 40px;
+  height: 40px;
+  user-select: none;
+  margin-right: -10px;
+}
+
+#modal-dialog .modal-close-button .material-icons {
+  font-size: 40px;
+  cursor: pointer;
+}
+
+#modal-dialog .modal-close-button:hover {
+  opacity: var(--control-hover-opacity);
+}
+
+#modal-dialog .modal-body {
+  font-size: 20px;
+  line-height: 44px;
+  font-weight: 400;
+}
+
+#modal-dialog .modal-single-choice {
+  display: table;
+  cursor: pointer;
+}
+
+#modal-dialog .modal-single-choice:hover {
+  color: var(--link-hover-color);
+}
+
+#modal-dialog.show {
+  display: flex;
+  animation: modal-show 250ms;
+}
+
+@keyframes modal-show {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+#modal-dialog.hide {
+  display: flex;
+  animation: modal-hide 250ms;
+}
+
+@keyframes modal-hide {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@media screen and (max-width: 500px) {
+  
+  #modal-dialog .modal-container {
+    width: 100%;
+    min-width: unset;
+    padding: 10px 20px;
+    margin: 0 20px 0 20px;
+  }
+
+  #modal-dialog .modal-header {
+    margin-bottom: 0;
+  }
+
+  #modal-dialog .modal-title {
+    font-size: 18px;
+  }
+
+  #modal-dialog .modal-close-button {
+    width: 32px;
+    height: 32px;
+    margin-right: -5px;
+  }
+
+  #modal-dialog .modal-close-button .material-icons {
+    font-size: 32px;
+  }
+
+  #modal-dialog .modal-body {
+    font-size: 15px;
+    line-height: 40px;
+  }
+
+}
+
+
+/**************************************************************************************************
+* Snackbar
+***************************************************************************************************/
+
+#snackbar {
+  display: flex;
+  visibility: hidden;
+  box-sizing: border-box;
+  width: 100%;
+  position: fixed;
+  z-index: 800;
+  bottom: 25px;
+  justify-content: center;
+}
+
+#snackbar .snackbar-container {
+  display: flex;
+  margin: 0 25px;
+  padding: 15px 22px 15px 30px;
+  max-width: 700px;
+  min-width: 400px;
+  background-color: var(--snackbar-background-color);
+  color: var(--snackbar-text-color);
+  font-size: 20px;
+  line-height: 30px;
+  font-weight: 400;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.3);
+  border-radius: var(--button-border-radius);
+}
+
+#snackbar .snackbar-message {
+  float: left;
+  width: 100%;
+}
+
+#snackbar .snackbar-action-button {
+  font-weight: 700;
+  font-size: 25px;
+  cursor: pointer;
+  color: var(--snackbar-action-button-color);
+  text-decoration: none;
+  text-transform: uppercase;
+  margin-left: 20px;
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+
+#snackbar .snackbar-action-button:hover {
+  color: var(--snackbar-action-button-hover-color);
+  text-decoration: none;
+}
+
+#snackbar .snackbar-close-button {
+  color: var(--snackbar-close-button-color);
+  float: right;
+  padding: 0px 0px 0px 12px;
+  width: 40px;
+  height: 40px;
+  user-select: none;
+}
+
+#snackbar .snackbar-close-button .material-icons {
+  font-size: 40px;
+  cursor: pointer;
+}
+
+#snackbar .snackbar-close-button:hover {
+  color: var(--snackbar-close-button-hover-color);
+}
+
+#snackbar.show {
+  visibility: visible;
+  animation: snackbar-show 0.5s;
+}
+
+@keyframes snackbar-show {
+  from { bottom:    0; opacity: 0; }
+  to   { bottom: 25px; opacity: 1; }
+}
+
+#snackbar.hide {
+  animation: snackbar-hide 0.5s;
+}
+
+@keyframes snackbar-hide {
+  from { bottom: 25px; opacity: 1; }
+  to   { bottom:    0; opacity: 0; }
+}
+
+@media screen and (max-width: 500px) {
+  
+  @keyframes snackbar-show {
+    from { bottom:    0; opacity: 0; }
+    to   { bottom: 10px; opacity: 1; }
+  }
+
+  @keyframes snackbar-hide {
+    from { bottom: 10px; opacity: 1; }
+    to   { bottom:    0; opacity: 0; }
+  }
+
+  #snackbar {
+    bottom: 10px;
+  }
+  
+  #snackbar .snackbar-container {
+    margin: 0px 10px;
+    padding: 6px 10px 6px 15px;
+    font-size: 15px;
+    line-height: 22px;
+    max-width: 100%;
+    min-width: unset;
+    width: 100%;
+  }
+
+  #snackbar .snackbar-message {
+    padding: 4px 0px;
+  }
+
+  #snackbar .snackbar-action-button {
+    font-size: 18px;
+    margin-left: 8px;
+  }
+  
+  #snackbar .snackbar-close-button {
+    padding: 0px 0px 0px 2px;
+    width: 32px;
+    height: 32px;
+  }
+  
+  #snackbar .snackbar-close-button .material-icons {
+    font-size: 32px;
+  }
+  
+}
+
+@media screen and (max-width: 400px) {
+
+  #snackbar .snackbar-container {
+    font-size: 14px;
+    line-height: 21px;
+  }
+
+}

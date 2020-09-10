@@ -5,15 +5,15 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.10.5';
-import { snackbar }     from '../common/utils.js?ver=1.10.5';
-import * as settings    from '../common/settings.js?ver=1.10.5';
+import * as debugLogger from '../common/debuglogger.js?ver=1.11.0';
+import { snackbar }     from '../common/utils.js?ver=1.11.0';
+import * as settings    from '../common/settings.js?ver=1.11.0';
 import {
   KEY,
   deleteCookie,
   readJson,
   writeJson,
-} from '../common/storage.js?ver=1.10.5';
+} from '../common/storage.js?ver=1.11.0';
 
 
 const debug          = debugLogger.getInstance('settings');
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () =>
 
 function readSettingsError()
 {
-  document.getElementById(`${moduleConfig.settingsSaveResetId}`).style.display = 'none';
+  document.getElementById(moduleConfig.settingsSaveResetId).style.display = 'none';
 
   moduleElements.settingsContainer.insertAdjacentHTML('afterbegin', readSettingsErrorHtml);
   moduleElements.settingsContainer.style.opacity = 1;

@@ -6,7 +6,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.10.5';
+import * as debugLogger from '../common/debuglogger.js?ver=1.11.0';
 
 
 export {
@@ -313,10 +313,10 @@ const onSettingsChange = (settingsKey, settingsObject) =>
 // Add and call settings observers on changes
 // ************************************************************************************************
 
-function addSettingsObserver(observer, property)
+function addSettingsObserver(property, observer)
 {
   debug.log(`addSettingsObserver() for property: ${property}`);
-  observers.push({ observer: observer, property: property });
+  observers.push({ property: property, observer: observer });
 }
 
 function callSettingsObservers(property, oldValue, newValue)

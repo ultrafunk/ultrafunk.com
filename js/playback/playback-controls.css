@@ -7,22 +7,22 @@
 
 .site-theme-light {
   --progress-bar-color: #dd0000;
-  --progress-bar-color-no-autoplay: #4080ff;
+  --progress-bar-color-autoplay-off: #4080ff;
     
   --playback-play-pause-color: #dd0000;
   --playback-play-pause-hover-color: #ff0000;
-  --playback-play-pause-color-no-autoplay: #3264c8;
-  --playback-play-pause-hover-color-no-autoplay: #4080ff;
+  --playback-play-pause-color-autoplay-off: #3264c8;
+  --playback-play-pause-hover-color-autoplay-off: #4080ff;
 }
 
 .site-theme-dark {
   --progress-bar-color: #dd0000;
-  --progress-bar-color-no-autoplay: #4080ff;
+  --progress-bar-color-autoplay-off: #4080ff;
 
   --playback-play-pause-color: #dd0000;
   --playback-play-pause-hover-color: #ff0000;
-  --playback-play-pause-color-no-autoplay: #3264c8;
-  --playback-play-pause-hover-color-no-autoplay: #4080ff;
+  --playback-play-pause-color-autoplay-off: #3264c8;
+  --playback-play-pause-hover-color-autoplay-off: #4080ff;
 }
 
 #progress-controls {
@@ -51,8 +51,8 @@
   will-change: transform;
 }
 
-#progress-controls .bar-control.no-autoplay {
-  background: var(--progress-bar-color-no-autoplay);
+body.autoplay-off #progress-controls .bar-control {
+  background: var(--progress-bar-color-autoplay-off);
 }
 
 #playback-controls {
@@ -165,13 +165,13 @@
   color: var(--playback-play-pause-hover-color);
 }
 
-#playback-controls .play-pause-control.no-autoplay.state-play,
-#playback-controls .play-pause-control.no-autoplay.state-pause {
-  color: var(--playback-play-pause-color-no-autoplay);
+body.autoplay-off #playback-controls .play-pause-control.state-play,
+body.autoplay-off #playback-controls .play-pause-control.state-pause {
+  color: var(--playback-play-pause-color-autoplay-off);
 }
 
-#playback-controls .play-pause-control.no-autoplay:hover {
-  color: var(--playback-play-pause-hover-color-no-autoplay);
+body.autoplay-off #playback-controls .play-pause-control:hover {
+  color: var(--playback-play-pause-hover-color-autoplay-off);
 }
 
 #playback-controls .play-pause-control.state-play,
@@ -181,7 +181,7 @@
   background-position: center;
 }
 
-#playback-controls .play-pause-control.no-autoplay.state-pause.time-remaining-warning {
+body.autoplay-off #playback-controls .play-pause-control.state-pause.time-remaining-warning {
   opacity: 0.25;
 }
 
@@ -259,14 +259,14 @@
     opacity: 1;
   }
 
-  #playback-controls .play-pause-control.no-autoplay.state-play,
-  #playback-controls .play-pause-control.no-autoplay.state-pause {
-    color: var(--playback-play-pause-color-no-autoplay);
+  body.autoplay-off #playback-controls .play-pause-control.state-play,
+  body.autoplay-off #playback-controls .play-pause-control.state-pause {
+    color: var(--playback-play-pause-color-autoplay-off);
   }
 
-  #playback-controls .play-pause-control.no-autoplay:hover {
+  body.autoplay-off #playback-controls .play-pause-control:hover {
     -webkit-tap-highlight-color: transparent;
-    color: var(--playback-play-pause-color-no-autoplay);
+    color: var(--playback-play-pause-color-autoplay-off);
     opacity: 1;
   }
 
@@ -289,12 +289,12 @@
   color: #ff0000;
 }
 
-.now-playing-icon.no-autoplay::before {
+body.autoplay-off .now-playing-icon::before {
   color: #0080ff;
 }
 
 .playing-animate::before,
-.playing-animate.no-autoplay::before {
+body.autoplay-off .playing-animate::before {
   animation: track-icon-pulse 2s ease-in-out infinite;
 }
 
@@ -397,7 +397,7 @@
   }
 
   #playback-controls .timer-control.show-on-mobile,
-  #playback-controls .timer-control.no-autoplay {
+  body.autoplay-off #playback-controls .timer-control {
     display: inline-block;
     margin-right: 4px;
     margin-left: 9px;

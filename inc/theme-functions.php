@@ -221,13 +221,13 @@ function embed_iframe_setparams($cached_html)
 {
   if (false !== stripos($cached_html, 'youtube.com/'))
   {
-    $cached_html = str_ireplace('<iframe', sprintf('<iframe id="youtube-uid-%s"', uniqid()), $cached_html);
+    $cached_html = str_ireplace('<iframe', sprintf('<iframe id="youtube-uid-%s" loading="eager"', uniqid()), $cached_html);
   //$cached_html = str_ireplace('www.youtube.com', 'www.youtube-nocookie.com', $cached_html);
     $cached_html = str_ireplace('?feature=oembed', sprintf('?feature=oembed&enablejsapi=1&origin=%s', get_dev_prod_const('iframe_origin')), $cached_html);
   }
   else if (false !== stripos($cached_html, 'soundcloud.com/'))
   {
-    $cached_html = str_ireplace('<iframe', sprintf('<iframe id="soundcloud-uid-%s" allow="autoplay"', uniqid()), $cached_html);
+    $cached_html = str_ireplace('<iframe', sprintf('<iframe id="soundcloud-uid-%s" allow="autoplay" loading="eager"', uniqid()), $cached_html);
     $cached_html = str_ireplace('?visual=true', '?visual=true&single_active=false', $cached_html);
   }
   

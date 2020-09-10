@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.10.5';
+import * as debugLogger from '../common/debuglogger.js?ver=1.11.0';
 
 
 export {
@@ -17,6 +17,7 @@ export {
   getCssPropValue,
   matchesMedia,
   replaceClass,
+  modal,
   snackbar,
 };
 
@@ -98,24 +99,124 @@ function replaceClass(element, removeClass, addClass)
 
 
 // ************************************************************************************************
+// Modal dialog UI module
+// ************************************************************************************************
+
+const modal = (() =>
+{
+  const config = { id: 'modal' };
+
+  const html = `
+    <div id="${config.id}-dialog" tabindex="-1">
+      <div class="${config.id}-container">
+        <div class="${config.id}-header">
+          <div class="${config.id}-title"></div>
+          <div class="${config.id}-close-button"><span class="material-icons" title="Dismiss">close</span></div>
+        </div>
+        <div class="${config.id}-body"></div>
+      </div>
+    </div>
+  `;
+
+  const elements = { overlay: null, container: null, body: null };
+  let singleChoiceClickCallback = null;
+  
+  return {
+    show,
+  };
+
+  function show(title, singleChoiceList, singleChoiceClickCallbackFunc)
+  {
+    init();
+    
+    if (elements.container === null)
+    {
+      debug.error(`modal.show(): Unable to show modal with id: ${config.id}`);
+    }
+    else
+    {
+      singleChoiceClickCallback = singleChoiceClickCallbackFunc;
+      setSingleChoiceList(singleChoiceList);
+
+      elements.container.querySelector(`.${config.id}-title`).innerHTML = title;
+      elements.overlay.classList.add('show');
+      elements.overlay.addEventListener('keydown', keyDown);
+      elements.overlay.focus();
+    }
+  }
+
+  function init()
+  {
+    if (elements.container === null)
+    {
+      document.body.insertAdjacentHTML('beforeend', html);
+      
+      elements.overlay   = document.getElementById(`${config.id}-dialog`);
+      elements.container = elements.overlay.querySelector(`.${config.id}-container`);
+      elements.body      = elements.overlay.querySelector(`.${config.id}-body`);
+
+      elements.overlay.addEventListener('click', (event) =>
+      {
+        if (event.target === elements.overlay)
+          close();
+      });
+
+      elements.overlay.addEventListener('animationend', () =>
+      {
+        if (elements.overlay.classList.contains('hide'))
+          elements.overlay.className = '';
+      });
+
+      elements.overlay.querySelector(`.${config.id}-close-button`).addEventListener('click', close);
+    }
+  }
+
+  function setSingleChoiceList(singleChoiceList)
+  {
+    let html = '';
+
+    singleChoiceList.forEach(entry => html += `<div id="${entry.id}" class="${config.id}-single-choice">${entry.description}</div>`);
+    elements.body.innerHTML = html;
+
+    singleChoiceList.forEach(entry => elements.body.querySelector(`#${entry.id}`).addEventListener('click', singleChoiceListClick));
+  }
+
+  function singleChoiceListClick()
+  {
+    close();
+    singleChoiceClickCallback(this.id);
+  }
+
+  function keyDown(event)
+  {
+    event.stopPropagation();
+
+    if (event.key === 'Escape')
+      close();
+}
+
+  function close()
+  {
+    elements.overlay.removeEventListener('keydown', keyDown);
+    elements.overlay.classList.replace('show', 'hide');
+  }
+})();
+
+
+// ************************************************************************************************
 // Snackbar UI module
 // ************************************************************************************************
 
 const snackbar = (() =>
 {
-  const config = {
-    afterId: 'site-footer',
-    id:      'snackbar',
-  };
+  const config = { id: 'snackbar' };
 
   const html = `
     <div id="${config.id}">
-      <div class="${config.id}-wrapper">
+      <div class="${config.id}-container">
         <div class="${config.id}-message"></div>
         <div class="${config.id}-action-button"></div>
-        <div class="${config.id}-close-button">
-          <span class="material-icons" title="Dismiss">close</span>
-        </div>
+        <div class="${config.id}-close-button"><span class="material-icons" title="Dismiss">close</span></div>
       </div>
     </div>
   `;
@@ -145,7 +246,7 @@ const snackbar = (() =>
       reset();
 
       elements.snackbar.querySelector(`.${config.id}-message`).innerHTML = message;
-      elements.snackbar.classList.add('fadein');
+      elements.snackbar.classList.add('show');
       elements.actionButton.style.display = 'none';
       afterCloseCallback = afterCloseCallbackFunc;
   
@@ -166,10 +267,11 @@ const snackbar = (() =>
       {
         visibleTimeoutId = setTimeout(() =>
         {
-          elements.snackbar.classList.add('fadeout');
+          elements.snackbar.classList.add('hide');
+          
           fadeTimeoutId = setTimeout(() =>
           {
-            elements.snackbar.classList.value = '';
+            elements.snackbar.className = '';
 
             if (afterCloseCallback !== null)
             {
@@ -192,27 +294,19 @@ const snackbar = (() =>
   {
     if (elements.snackbar === null)
     {
-      const afterElement = document.getElementById(config.afterId);
-    
-      if (afterElement !== null)
+      document.body.insertAdjacentHTML('beforeend', html);
+
+      elements.snackbar     = document.getElementById(config.id);
+      elements.actionButton = elements.snackbar.querySelector(`.${config.id}-action-button`);
+      elements.closeButton  = elements.snackbar.querySelector(`.${config.id}-close-button`);
+      
+      elements.closeButton.addEventListener('click', () =>
       {
-        afterElement.insertAdjacentHTML('afterend', html);
-        elements.snackbar     = document.getElementById(config.id);
-        elements.actionButton = elements.snackbar.querySelector(`.${config.id}-action-button`);
-        elements.closeButton  = elements.snackbar.querySelector(`.${config.id}-close-button`);
-        
-        elements.closeButton.addEventListener('click', () =>
-        {
-          if (afterCloseCallback !== null)
-            afterCloseCallback();
-            
-          reset(true);
-        });
-      }
-      else
-      {
-        debug.error(`snackbar.init(): Unable to insert snackbar HTML after: ${config.afterId}`);
-      }
+        if (afterCloseCallback !== null)
+          afterCloseCallback();
+          
+        reset(true);
+      });
     }
   }
   
@@ -229,9 +323,11 @@ const snackbar = (() =>
       clearTimeout(fadeTimeoutId);
       fadeTimeoutId = -1;
     }
+
+    elements.actionButton.removeEventListener('click', actionButtonClick);
   
     if (hideSnackbar)
-      elements.snackbar.classList.remove('fadein');
+      elements.snackbar.classList.remove('show');
   }
 })();
 

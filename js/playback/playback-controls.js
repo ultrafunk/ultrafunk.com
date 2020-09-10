@@ -5,9 +5,9 @@
 //
 
 
-import * as debugLogger        from '../common/debuglogger.js?ver=1.10.5';
-import { addSettingsObserver } from '../common/storage.js?ver=1.10.5';
-import { replaceClass }        from '../common/utils.js?ver=1.10.5';
+import * as debugLogger        from '../common/debuglogger.js?ver=1.11.0';
+import { addSettingsObserver } from '../common/storage.js?ver=1.11.0';
+import { replaceClass }        from '../common/utils.js?ver=1.11.0';
 
 
 export {
@@ -106,8 +106,6 @@ function init(playbackConfig, playbackSettings, seekClickCallback, crossfadeClic
 
   if (controls.trackCrossfade.elements.length !== 0)
     controls.trackCrossfade.clickCallback = crossfadeClickCallback;
-
-  updateAutoPlayState();
 }
 
 function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks)
@@ -142,10 +140,10 @@ function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks)
   updateMuteState();
 
   if (controls.trackCrossfade.elements.length > 1)
-    controls.trackCrossfade.elements.forEach((element) => element.addEventListener('click', trackCrossfadeClick));
+    controls.trackCrossfade.elements.forEach(element => element.addEventListener('click', trackCrossfadeClick));
 
-  addSettingsObserver(updateAutoPlayState, 'autoPlay');
-  addSettingsObserver(updateMuteState,     'masterMute');
+  addSettingsObserver('autoPlay',   updateAutoPlayState);
+  addSettingsObserver('masterMute', updateMuteState);
 }
 
 function setState(control, state = STATE.DISABLED)
@@ -357,12 +355,5 @@ function updateAutoPlayState()
     setTimerText(controls.timer.positionElement, settings.autoPlay ? controls.timer.positionSeconds : (controls.timer.durationSeconds - controls.timer.positionSeconds));
     setTimerText(controls.timer.durationElement, controls.timer.durationSeconds);
   }
-
-  controls.trackCrossfade.elements.forEach(element => (settings.autoPlay ? element.classList.remove('no-autoplay') : element.classList.add('no-autoplay')));
-  
-  settings.autoPlay ? controls.progressBar.element.classList.remove('no-autoplay') : controls.progressBar.element.classList.add('no-autoplay');
-  settings.autoPlay ? controls.details.element.classList.remove('no-autoplay')     : controls.details.element.classList.add('no-autoplay');
-  settings.autoPlay ? controls.timer.element.classList.remove('no-autoplay')       : controls.timer.element.classList.add('no-autoplay');
-  settings.autoPlay ? controls.playPause.element.classList.remove('no-autoplay')   : controls.playPause.element.classList.add('no-autoplay');
 }
 

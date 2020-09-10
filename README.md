@@ -3,7 +3,7 @@
 This is the complete WordPress theme source code for the [ultrafunk.com](https://ultrafunk.com) website, updated each time a new release is published. The source code is provided as is with no warranties or support of any kind.
 
 # Client configurations
-Tested on mobile and desktop Chrome, Firefox and misc. Chromium based browsers that supports ES2018.
+Tested on mobile and desktop Chrome, Firefox and misc. Chromium based browsers that supports ES2020.
 
 # Server configurations
 Tested on servers running LAMP: Linux, Apache, MariaDB / MySQL and PHP.
