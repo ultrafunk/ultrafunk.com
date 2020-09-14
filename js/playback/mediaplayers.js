@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.11.0';
+import * as debugLogger from '../common/debuglogger.js?ver=1.11.1';
 
 
 export {
@@ -167,7 +167,7 @@ class YouTube extends MediaPlayer
 
   getPosition(callback)
   {
-    callback(this.embeddedPlayer.getCurrentTime() * 1000, this.duration);
+    callback((this.embeddedPlayer.getCurrentTime() * 1000), this.duration);
   }
 }
 
@@ -541,6 +541,9 @@ const crossfadePlayers = (() =>
     return false;
   }
 
+  //
+  // https://dsp.stackexchange.com/questions/14754/equal-power-crossfade
+  //
   function equalPowerFade()
   {
     fadeOutPlayer.getPosition((positionMilliseconds) =>

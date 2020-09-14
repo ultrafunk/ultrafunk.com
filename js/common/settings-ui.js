@@ -5,15 +5,15 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.11.0';
-import { snackbar }     from '../common/utils.js?ver=1.11.0';
-import * as settings    from '../common/settings.js?ver=1.11.0';
+import * as debugLogger from '../common/debuglogger.js?ver=1.11.1';
+import { snackbar }     from '../common/utils.js?ver=1.11.1';
+import * as settings    from '../common/settings.js?ver=1.11.1';
 import {
   KEY,
   deleteCookie,
   readJson,
   writeJson,
-} from '../common/storage.js?ver=1.11.0';
+} from '../common/storage.js?ver=1.11.1';
 
 
 const debug          = debugLogger.getInstance('settings');
@@ -30,7 +30,7 @@ const moduleElements = {
   settingsContainer: null,
 };
 
-const readSettingsErrorHtml = `<h3>An error occurred while reading Playback and Site settings</h3>
+const settingsErrorTemplate = `<h3>An error occurred while reading Playback and Site settings</h3>
   <p>This can be caused by several issues, but most likely it happened because of corrupt or malformed JSON data in the browsers Local Storage.</p>
   <p>Clearing all settings stored locally in the browser will probably fix the problem, click on the button below to do that.
   <b>Note:</b> All Playback and Site settings will be reset to default values.</p>
@@ -41,7 +41,7 @@ const readSettingsErrorHtml = `<h3>An error occurred while reading Playback and 
 
 
 // ************************************************************************************************
-//
+// Document load init + settings read error handling
 // ************************************************************************************************
 
 document.addEventListener('DOMContentLoaded', () =>
@@ -87,7 +87,7 @@ function readSettingsError()
 {
   document.getElementById(moduleConfig.settingsSaveResetId).style.display = 'none';
 
-  moduleElements.settingsContainer.insertAdjacentHTML('afterbegin', readSettingsErrorHtml);
+  moduleElements.settingsContainer.insertAdjacentHTML('afterbegin', settingsErrorTemplate);
   moduleElements.settingsContainer.style.opacity = 1;
 
   document.querySelector(`#${moduleConfig.settingsContainerId} .settings-clear`).addEventListener('click', () =>
@@ -106,7 +106,7 @@ function readSettingsError()
 }
 
 // ************************************************************************************************
-//
+// Read and write settings JSON data from local storage + reset settings to default
 // ************************************************************************************************
 
 function readSettings()
@@ -129,7 +129,7 @@ function resetSettings(settings, schema)
 
 
 // ************************************************************************************************
-//
+// Set current settings values and update values on UI interaction
 // ************************************************************************************************
 
 function setCurrentValues(settings, schema)
@@ -165,7 +165,7 @@ function getValueStringsIndex(schemaEntry, findValue)
 
 
 // ************************************************************************************************
-//
+// Create HTML content for read settings
 // ************************************************************************************************
 
 function insertSettingsHtml()
@@ -196,7 +196,7 @@ function addTableRow(entry)
 
 
 // ************************************************************************************************
-//
+// Update data on UI-events (click), save and reset settings
 // ************************************************************************************************
 
 function playbackSettingsClick(event) { updateRowClicked(event, playbackSettings.user, settings.playbackSettingsSchema); }

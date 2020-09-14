@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.11.0';
+import * as debugLogger from '../common/debuglogger.js?ver=1.11.1';
 
 
 export {
@@ -106,7 +106,7 @@ const modal = (() =>
 {
   const config = { id: 'modal' };
 
-  const html = `
+  const template = `
     <div id="${config.id}-dialog" tabindex="-1">
       <div class="${config.id}-container">
         <div class="${config.id}-header">
@@ -127,29 +127,24 @@ const modal = (() =>
 
   function show(title, singleChoiceList, singleChoiceClickCallbackFunc)
   {
+    debug.log(`modal.show(): ${title}`);
+
     init();
     
-    if (elements.container === null)
-    {
-      debug.error(`modal.show(): Unable to show modal with id: ${config.id}`);
-    }
-    else
-    {
-      singleChoiceClickCallback = singleChoiceClickCallbackFunc;
-      setSingleChoiceList(singleChoiceList);
+    singleChoiceClickCallback = singleChoiceClickCallbackFunc;
+    setSingleChoiceList(singleChoiceList);
 
-      elements.container.querySelector(`.${config.id}-title`).innerHTML = title;
-      elements.overlay.classList.add('show');
-      elements.overlay.addEventListener('keydown', keyDown);
-      elements.overlay.focus();
-    }
+    elements.container.querySelector(`.${config.id}-title`).innerHTML = title;
+    elements.overlay.classList.add('show');
+    elements.overlay.addEventListener('keydown', keyDown);
+    elements.overlay.focus();
   }
 
   function init()
   {
     if (elements.container === null)
     {
-      document.body.insertAdjacentHTML('beforeend', html);
+      document.body.insertAdjacentHTML('beforeend', template);
       
       elements.overlay   = document.getElementById(`${config.id}-dialog`);
       elements.container = elements.overlay.querySelector(`.${config.id}-container`);
@@ -173,10 +168,10 @@ const modal = (() =>
 
   function setSingleChoiceList(singleChoiceList)
   {
-    let html = '';
+    let listHtml = '';
 
-    singleChoiceList.forEach(entry => html += `<div id="${entry.id}" class="${config.id}-single-choice">${entry.description}</div>`);
-    elements.body.innerHTML = html;
+    singleChoiceList.forEach(entry => listHtml += `<div id="${entry.id}" class="${config.id}-single-choice">${entry.description}</div>`);
+    elements.body.innerHTML = listHtml;
 
     singleChoiceList.forEach(entry => elements.body.querySelector(`#${entry.id}`).addEventListener('click', singleChoiceListClick));
   }
@@ -184,7 +179,7 @@ const modal = (() =>
   function singleChoiceListClick()
   {
     close();
-    singleChoiceClickCallback(this.id);
+    setTimeout(() => singleChoiceClickCallback(this.id), 150);
   }
 
   function keyDown(event)
@@ -211,7 +206,7 @@ const snackbar = (() =>
 {
   const config = { id: 'snackbar' };
 
-  const html = `
+  const template = `
     <div id="${config.id}">
       <div class="${config.id}-container">
         <div class="${config.id}-message"></div>
@@ -221,7 +216,7 @@ const snackbar = (() =>
     </div>
   `;
 
-  const elements          = { snackbar: null, actionButton: null, closeButton: null };
+  const elements = { snackbar: null, actionButton: null, closeButton: null };
   let actionClickCallback = null;
   let afterCloseCallback  = null;
   let visibleTimeoutId    = -1;
@@ -236,51 +231,43 @@ const snackbar = (() =>
     debug.log(`snackbar.show(): ${message} (${timeout} sec)`);
   
     init();
-  
-    if (elements.snackbar === null)
+    reset();
+
+    elements.snackbar.querySelector(`.${config.id}-message`).innerHTML = message;
+    elements.snackbar.classList.add('show');
+    elements.actionButton.style.display = 'none';
+    afterCloseCallback = afterCloseCallbackFunc;
+
+    if ((actionText !== null) && (actionClickCallbackFunc !== null))
     {
-      debug.error(`snackbar.show(): Unable to show snackbar with id: ${config.id}`);
+      actionClickCallback = actionClickCallbackFunc;
+      elements.actionButton.style.display = 'block';
+      elements.actionButton.textContent   = actionText;
+      elements.actionButton.addEventListener('click', actionButtonClick);
     }
     else
     {
-      reset();
-
-      elements.snackbar.querySelector(`.${config.id}-message`).innerHTML = message;
-      elements.snackbar.classList.add('show');
-      elements.actionButton.style.display = 'none';
-      afterCloseCallback = afterCloseCallbackFunc;
-  
-      if ((actionText !== null) && (actionClickCallbackFunc !== null))
+      // Fix edge case when actionButton is hidden...
+      matchesMedia(MATCH.SITE_MAX_WIDTH_MOBILE) ? elements.closeButton.style.paddingLeft = '10px' : elements.closeButton.style.paddingLeft = '20px';
+    }
+    
+    if (timeout !== 0)
+    {
+      visibleTimeoutId = setTimeout(() =>
       {
-        actionClickCallback = actionClickCallbackFunc;
-        elements.actionButton.style.display = 'block';
-        elements.actionButton.textContent   = actionText;
-        elements.actionButton.addEventListener('click', actionButtonClick);
-      }
-      else
-      {
-        // Fix edge case when actionButton is hidden...
-        matchesMedia(MATCH.SITE_MAX_WIDTH_MOBILE) ? elements.closeButton.style.paddingLeft = '10px' : elements.closeButton.style.paddingLeft = '20px';
-      }
-      
-      if (timeout !== 0)
-      {
-        visibleTimeoutId = setTimeout(() =>
+        elements.snackbar.classList.add('hide');
+        
+        fadeTimeoutId = setTimeout(() =>
         {
-          elements.snackbar.classList.add('hide');
-          
-          fadeTimeoutId = setTimeout(() =>
-          {
-            elements.snackbar.className = '';
+          elements.snackbar.className = '';
 
-            if (afterCloseCallback !== null)
-            {
-              afterCloseCallback();
-            }
-          }, 450);
-        },
-        (timeout * 1000));
-      }
+          if (afterCloseCallback !== null)
+          {
+            afterCloseCallback();
+          }
+        }, 450);
+      },
+      (timeout * 1000));
     }
   }
 
@@ -294,7 +281,7 @@ const snackbar = (() =>
   {
     if (elements.snackbar === null)
     {
-      document.body.insertAdjacentHTML('beforeend', html);
+      document.body.insertAdjacentHTML('beforeend', template);
 
       elements.snackbar     = document.getElementById(config.id);
       elements.actionButton = elements.snackbar.querySelector(`.${config.id}-action-button`);

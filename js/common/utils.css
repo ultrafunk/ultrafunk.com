@@ -43,6 +43,11 @@
   -webkit-tap-highlight-color: transparent;
   justify-content: center;
   align-items: center;
+  outline: 0;
+}
+
+#modal-dialog:focus {
+  outline: 0;
 }
 
 #modal-dialog .modal-container {
@@ -96,7 +101,7 @@
 }
 
 #modal-dialog .modal-single-choice {
-  display: table;
+  display: block;
   cursor: pointer;
 }
 
@@ -116,7 +121,7 @@
 
 #modal-dialog.hide {
   display: flex;
-  animation: modal-hide 250ms;
+  animation: modal-hide 150ms;
 }
 
 @keyframes modal-hide {

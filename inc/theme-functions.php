@@ -99,7 +99,7 @@ function set_posts_per_page($query)
 add_action('pre_get_posts', '\Ultrafunk\ThemeFunctions\set_posts_per_page', 1);
 
 //
-// Enhance search hits by replacing special chars in query string
+// Enhance search results by replacing special chars in query string
 // This should be done by default in WordPress?
 //
 function modify_search_query($query)

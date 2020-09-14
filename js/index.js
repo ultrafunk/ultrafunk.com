@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.11.0';
-import * as storage     from './common/storage.js?ver=1.11.0';
-import { siteSettings } from './common/settings.js?ver=1.11.0';
-import * as utils       from './common/utils.js?ver=1.11.0';
+import * as debugLogger from './common/debuglogger.js?ver=1.11.1';
+import * as storage     from './common/storage.js?ver=1.11.1';
+import { siteSettings } from './common/settings.js?ver=1.11.1';
+import * as utils       from './common/utils.js?ver=1.11.1';
 
 
 const debug  = debugLogger.getInstance('index');
@@ -225,7 +225,7 @@ function setPreviousPageTitle()
 const trackShare = (() =>
 {
   let encodedTitle = null;
-  let escapedLink  = null;
+  let escapedURL   = null;
 
   const singleChoiceList = [
     { id: 'copyToClipboard',    description: '<b>Copy Link</b> to Clipboard' },
@@ -241,25 +241,26 @@ const trackShare = (() =>
     click,
   };
   
-  function singleChoiceListClick(clickedId)
+  function singleChoiceListClick(clickId)
   {
-    debug.log(`singleChoiceListClick(): ${clickedId} - trackTitle: ${decodeURIComponent(encodedTitle)} - trackLink: ${escapedLink}`);
+    debug.log(`singleChoiceListClick(): ${clickId} - trackTitle: ${decodeURIComponent(encodedTitle)} - trackURL: ${escapedURL}`);
 
-    switch (clickedId)
+    switch (clickId)
     {
       case 'copyToClipboard':
-        navigator.clipboard.writeText(escapedLink).then(() =>
+        navigator.clipboard.writeText(escapedURL).then(() =>
         {
           utils.snackbar.show('Track link copied to the clipboard', 3);
         },
-        function()
+        (reason) =>
         {
-          utils.snackbar.show('Failed to copy Track link to the clipboard', 4);
+          debug.error(`trackShare.copyToClipboard() failed because ${reason}`);
+          utils.snackbar.show('Failed to copy Track link to the clipboard', 5);
         });
         break;
 
       case 'shareOnEmail':
-        window.location.href = `mailto:?subject=${encodedTitle}&body=${escapedLink}%0d%0a`;
+        window.location.href = `mailto:?subject=${encodedTitle}&body=${escapedURL}%0d%0a`;
         break;
 
       case 'findOnSpotify':
@@ -287,8 +288,8 @@ const trackShare = (() =>
   function click(event)
   {
     encodedTitle = encodeURIComponent(event.target.getAttribute('data-entry-track-title'));
-    escapedLink  = event.target.getAttribute('data-entry-track-link');
-    utils.modal.show('Share Track', singleChoiceList, singleChoiceListClick);
+    escapedURL   = event.target.getAttribute('data-entry-track-url');
+    utils.modal.show('Share  / Find Track', singleChoiceList, singleChoiceListClick);
   }
 })();
 

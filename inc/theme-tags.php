@@ -315,7 +315,7 @@ function meta_controls()
 {
   ?>
   <div class="entry-meta-controls">
-  <div class="track-share-control"><span class="material-icons" title="Share this track" data-entry-track-title="<?php echo esc_html(get_the_title()); ?>" data-entry-track-link="<?php echo esc_url(get_permalink()); ?>">share</span></div>
+  <div class="track-share-control"><span class="material-icons" title="Share or find track" data-entry-track-title="<?php echo esc_html(get_the_title()); ?>" data-entry-track-url="<?php echo esc_url(get_permalink()); ?>">share</span></div>
   <?php
   
   if (!is_404() && !is_singular() && ('post' === get_post_type()))
@@ -336,7 +336,7 @@ function content_excerpt()
   the_excerpt();
 
   ?>
-  <p><a class="read-more" href="<?php echo esc_url(get_permalink()); ?>">Read More &#10095;&#10095;</a></p>
+  <p><a class="show-more" href="<?php echo esc_url(get_permalink()); ?>">Show More &#10095;&#10095;</a></p>
   <?php
 }
 
