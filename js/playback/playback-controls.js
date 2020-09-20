@@ -5,9 +5,9 @@
 //
 
 
-import * as debugLogger        from '../common/debuglogger.js?ver=1.11.1';
-import { addSettingsObserver } from '../common/storage.js?ver=1.11.1';
-import { replaceClass }        from '../common/utils.js?ver=1.11.1';
+import * as debugLogger        from '../common/debuglogger.js?ver=1.12.0';
+import { addSettingsObserver } from '../common/storage.js?ver=1.12.0';
+import { replaceClass }        from '../common/utils.js?ver=1.12.0';
 
 
 export {
@@ -345,7 +345,7 @@ function updateTrackCrossfadeState(isPlaying, currentTrack = -1)
 
 
 // ************************************************************************************************
-//
+// AutoPlay state changes
 // ************************************************************************************************
 
 function updateAutoPlayState()

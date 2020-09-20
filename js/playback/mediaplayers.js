@@ -5,20 +5,18 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.11.1';
+import * as debugLogger from '../common/debuglogger.js?ver=1.12.0';
 
 
 export {
 //Constants
-  DEFAULT,
-  TITLE_SOURCE,
+  CROSSFADE_TYPE,
 //Classes
   YouTube,
   SoundCloud,
 //Functions
   getPlayers,
   setArtistTitle,
-  setArtistTitleFromServer,
 };
 
 
@@ -26,16 +24,21 @@ const debug  = debugLogger.getInstance('mediaplayers');
 let config   = {};
 let settings = {};
 
-const DEFAULT = {
-  VOLUME_MAX: 100,
-  VOLUME_MIN:   0,
+const VOLUME = {
+  MIN:   0,
+  MAX: 100,
 };
 
-// MediaPlayer constants
-const TITLE_SOURCE = {
-  GET_FROM_DATASET:  1,
-  GET_FROM_SERVER:   2,
-  ISSET_FROM_SERVER: 3,
+const CROSSFADE_TYPE = {
+  NONE:  -1,
+  AUTO:   0,
+  TRACK:  1,
+};
+
+const CROSSFADE_CURVE = {
+  NONE:        -1,
+  EQUAL_POWER:  0,
+  LINEAR:       1,
 };
 
 // Used to split details string into Artist and Title strings
@@ -56,7 +59,6 @@ class MediaPlayer
     this.playable       = true;
 
     this.duration    = 0;
-    this.titleSource = TITLE_SOURCE.GET_FROM_DATASET;
     this.artist      = null;
     this.title       = null;
 
@@ -65,34 +67,27 @@ class MediaPlayer
     this.thumbnail.decoding = 'async';
   }
   
-  getPostId()                 { return this.postId;                    }
-  getIframeId()               { return this.iframeId;                  }
-  getUid()                    { return this.iframeId;                  }
-  getEmbeddedPlayer()         { return this.embeddedPlayer;            }
+  getPostId()           { return this.postId;                    }
+  getIframeId()         { return this.iframeId;                  }
+  getUid()              { return this.iframeId;                  }
+  getEmbeddedPlayer()   { return this.embeddedPlayer;            }
 
-  getPlayable()               { return this.playable;                  }
-  setPlayable(playable)       { this.playable = playable;              }
+  getPlayable()         { return this.playable;                  }
+  setPlayable(playable) { this.playable = playable;              }
 
-  getDuration()               { return this.duration;                  }
-  setDuration(duration)       { this.duration = duration;              }
+  getDuration()         { return this.duration;                  }
+  setDuration(duration) { this.duration = duration;              }
 
-  setTitleSource(titleSource) { this.titleSource = titleSource;        }
+  getArtist()           { return this.artist;                    }
+  setArtist(artist)     { this.artist = artist;                  }
 
-  getArtist()                 { return this.artist;                    }
-  setArtist(artist)           { this.artist = artist;                  }
+  getTitle()            { return this.title;                     }
+  setTitle(title)       { this.title = title;                    }
 
-  getTitle()                  { return this.title;                     }
-  setTitle(title)             { this.title = title;                    }
+  getThumbnailSrc()     { return this.thumbnailSrc;              }
 
-  getThumbnailSrc()           { return this.thumbnailSrc;              }
-
-  seekTo(position)            { this.embeddedPlayer.seekTo(position);  }
-  setVolume(volume)           { this.embeddedPlayer.setVolume(volume); }
-
-  setArtistTitleFromServer(artistTitle)
-  {
-    return setArtistTitleFromServer(this, artistTitle);
-  }
+  seekTo(position)      { this.embeddedPlayer.seekTo(position);  }
+  setVolume(volume)     { this.embeddedPlayer.setVolume(volume); }
 }
 
 
@@ -117,8 +112,10 @@ class YouTube extends MediaPlayer
   pause() { this.embeddedPlayer.pauseVideo(); }
   stop()  { this.embeddedPlayer.stopVideo();  }
 
+  //
   // ToDo: Remove if no longer needed??
   // Handles YouTube iframe API edge case that causes embedded playback errors that only happen on Firefox...
+  //
   playbackError(errorHandler)
   {
     debug.log(`YouTube.play() - current playerState: ${this.embeddedPlayer.getPlayerState()} - previous playerState: ${this.previousPlayerState} - playable: ${this.playable}`);
@@ -126,9 +123,6 @@ class YouTube extends MediaPlayer
     if ((this.embeddedPlayer.getPlayerState() === -1) && (this.previousPlayerState === -1) && (this.playable === true))
     {
       debug.warn(`YouTube.play() - Unable to play track: ${this.getArtist()} - "${this.getTitle()}" with videoId: ${this.embeddedPlayer.getVideoData().video_id} -- No YouTube API error given!`);
-
-    //const errorData = { mediaUrl: this.embeddedPlayer.getVideoUrl(), mediaTitle: `${this.getArtist()} - ${this.getTitle()}` };
-    //debugLogger.logErrorOnServer('ERROR_MEDIA_UNPLAYABLE', errorData);
 
       this.playable = false;
       errorHandler(this, this.embeddedPlayer.getVideoUrl());
@@ -182,7 +176,7 @@ class SoundCloud extends MediaPlayer
   {
     super(postId, iframeId, embeddedPlayer);
     this.soundId = soundId;
-    this.volume  = DEFAULT.VOLUME_MAX;
+    this.volume  = VOLUME.MAX;
     this.muted   = false;
   }
 
@@ -287,22 +281,6 @@ function setArtistTitle(mediaPlayer, artistTitle)
       mediaPlayer.artist = artistTitle;
     }
   }
-}
-
-function setArtistTitleFromServer(mediaPlayer, artistTitle)
-{
-  if (mediaPlayer.titleSource === TITLE_SOURCE.GET_FROM_SERVER)
-  {
-    if (artistTitle.match(artistTitleRegEx) !== null)
-      setArtistTitle(mediaPlayer, artistTitle);
-    else
-      setArtistTitle(mediaPlayer, `${mediaPlayer.artist} - ${artistTitle}`);
-
-    mediaPlayer.titleSource = TITLE_SOURCE.ISSET_FROM_SERVER;
-    return true;
-  }
-  
-  return false;
 }
 
 
@@ -436,29 +414,36 @@ const mediaPlayers = ((crossfadePlayers, playTrackCallback) =>
 const crossfadePlayers = (() =>
 {
   let players         = {};
-  let intervalId      = -1;
   let isFading        = false;
+  let intervalId      = -1;
   let fadeOutPlayer   = null;
   let fadeInPlayer    = null;
-  let fadeStartVolume = 0;
-  let fadeStartTime   = 0;
   let fadeLength      = 0;
+  let fadeStartVolume = 0;
+  let fadeType        = CROSSFADE_TYPE.NONE;
+  let fadeCurve       = CROSSFADE_CURVE.NONE;
+  let fadeStartTime   = 0;
 
   return {
     setPlayers(mediaPlayers) { players = mediaPlayers; },
     isFading()               { return isFading;        },
+    init,
     start,
     stop,
     mute,
   };
 
-  function start(crossfadeStartTime, crossfadeLength, crossfadeCurve = 0, fadeInUid = null)
+  function init(crossfadeType, crossfadeCurve = 0, fadeInUid = null)
   {
     if ((isFading === false) && (set(fadeInUid) === true))
     {
-      debug.log(`crossfadePlayers.start() - crossfadeLength: ${crossfadeLength} - crossfadeCurve: ${((crossfadeCurve === 0) ? 'EqualPower (0)' : 'Linear (1)')} - fadeInUid: ${fadeInUid}`);
+      debug.log(`crossfadePlayers.init() - crossfadeType: ${debug.getObjectKeyForValue(CROSSFADE_TYPE, crossfadeType)} - crossfadeCurve: ${debug.getObjectKeyForValue(CROSSFADE_CURVE, crossfadeCurve)} - fadeInUid: ${fadeInUid}`);
 
-      isFading = true;
+      isFading        = true;
+      fadeStartVolume = settings.masterVolume;
+      fadeType        = crossfadeType;
+      fadeCurve       = crossfadeCurve;
+      
       fadeInPlayer.setVolume(0);
 
       if (fadeInUid === null)
@@ -466,19 +451,31 @@ const crossfadePlayers = (() =>
       else
         players.jumpToTrack(players.trackFromUid(fadeInUid), true, false);
 
-      fadeStartTime   = crossfadeStartTime + config.bufferingDelay;
-      fadeLength      = crossfadeLength - config.bufferingDelay - (config.updateCrossfadeInterval / 1000);
-      fadeStartVolume = settings.masterVolume;
+      return { fadeOutPlayer: players.indexMap.get(fadeOutPlayer.getUid()), fadeInPlayer: players.indexMap.get(fadeInPlayer.getUid()) };
+    }
 
-      // The easy and lazy way to compensate for buffering latency is +1 second...
-      setTimeout(() =>
+    return null;
+  }
+
+  function start(fadeInUid)
+  {
+    if (isFading)
+    {
+      fadeOutPlayer.getPosition((positionMilliseconds) =>
       {
-        if (isFading)
-        {
-          const fadeFunction = (crossfadeCurve === 0) ? equalPowerFade : linearFade;
-          intervalId = setInterval(fadeFunction, config.updateCrossfadeInterval);
-        }
-      }, (1000 - config.updateCrossfadeInterval));
+        fadeStartTime       = ((positionMilliseconds + config.updateCrossfadeInterval) / 1000);
+        const timeRemaining = fadeOutPlayer.getDuration() - fadeStartTime;
+        const fadeRemaining = timeRemaining - (config.updateCrossfadeInterval / 1000);
+  
+        if (fadeType === CROSSFADE_TYPE.AUTO)
+          fadeLength = fadeRemaining;
+        else if (fadeType === CROSSFADE_TYPE.TRACK)
+          fadeLength = (timeRemaining > settings.trackCrossfadeLength) ? settings.trackCrossfadeLength : fadeRemaining;
+
+        debug.log(`crossfadePlayers.start() - fadeStartTime: ${fadeStartTime.toFixed(2)} sec - timeRemaining: ${timeRemaining.toFixed(2)} sec - fadeLength: ${fadeLength.toFixed(2)} sec - fadeInUid: ${fadeInUid}`);
+
+        intervalId = setInterval((fadeCurve === CROSSFADE_CURVE.EQUAL_POWER) ? equalPowerFade : linearFade, config.updateCrossfadeInterval);
+      });
     }
   }
 
@@ -518,9 +515,11 @@ const crossfadePlayers = (() =>
       }
     
       isFading        = false;
-      fadeStartVolume = 0;
-      fadeStartTime   = 0;
       fadeLength      = 0;
+      fadeStartVolume = 0;
+      fadeType        = CROSSFADE_TYPE.NONE;
+      fadeCurve       = CROSSFADE_CURVE.NONE;
+      fadeStartTime   = 0;
     }
   }
 
@@ -548,26 +547,26 @@ const crossfadePlayers = (() =>
   {
     fadeOutPlayer.getPosition((positionMilliseconds) =>
     {
-      // Clamp negative values
+      // Clamp negative position values
       const position     = ((positionMilliseconds / 1000) - fadeStartTime);
       const fadePosition = (position >= 0) ? position : 0;
 
-      // Clamp negative values
+      // Clamp negative volume values
       const volume     = fadeStartVolume - (fadeStartVolume * (fadePosition / fadeLength));
-      const fadeVolume = (volume >= 0) ? volume : 0;
+      const fadeVolume = (volume >= VOLUME.MIN) ? volume : VOLUME.MIN;
 
       const fadeOutVolume = Math.round(Math.sqrt(fadeStartVolume * fadeVolume));
       const fadeInVolume  = Math.round(Math.sqrt(fadeStartVolume * (fadeStartVolume - fadeVolume)));
 
-      if ((fadePosition >= fadeLength) && (fadeVolume <= 0) && (fadeInVolume >= fadeStartVolume))
+      if ((fadePosition >= fadeLength) && (fadeVolume <= VOLUME.MIN) && (fadeInVolume >= fadeStartVolume))
       {
         stop();
       }
       else
       {
         /*
-        if ((fadeOutVolume === 100) || (fadeInVolume === 100))
-          debug.log(`fadePosition: ${fadePosition.toFixed(3)} - fadeVolume: ${fadeVolume.toFixed(3)} - fadeOutVolume: ${fadeOutVolume} - fadeInVolume: ${fadeInVolume}`);
+        if ((fadeOutVolume >= (VOLUME.MAX - 1)) || (fadeInVolume >= (VOLUME.MAX - 1)))
+          console.log(`fadePosition: ${fadePosition.toFixed(3)} - fadeVolume: ${fadeVolume.toFixed(3)} - fadeOutVolume: ${fadeOutVolume} - fadeInVolume: ${fadeInVolume}`);
         */
 
         fadeOutPlayer.setVolume(fadeOutVolume);
@@ -584,15 +583,15 @@ const crossfadePlayers = (() =>
       const fadeInVolume  = Math.round(fadeStartVolume * (fadePosition / fadeLength));
       const fadeOutVolume = fadeStartVolume - fadeInVolume;
 
-      if ((fadePosition > fadeLength) && (fadeOutVolume < 0) && (fadeInVolume > fadeStartVolume))
+      if ((fadePosition > fadeLength) && (fadeOutVolume < VOLUME.MIN) && (fadeInVolume > fadeStartVolume))
       {
         stop();
       }
       else
       {
         /*
-        if ((fadeOutVolume === 100) || (fadeInVolume === 100))
-          debug.log(`fadePosition: ${fadePosition.toFixed(3)} - fadeInVolume: ${fadeInVolume} - fadeOutVolume: ${fadeOutVolume}`);
+        if ((fadeOutVolume >= (VOLUME.MAX - 1)) || (fadeInVolume >= (VOLUME.MAX - 1)))
+          console.log(`fadePosition: ${fadePosition.toFixed(3)} - fadeInVolume: ${fadeInVolume} - fadeOutVolume: ${fadeOutVolume}`);
         */
 
         fadeOutPlayer.setVolume(fadeOutVolume);

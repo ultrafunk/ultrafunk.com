@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.11.1';
+import * as debugLogger from '../common/debuglogger.js?ver=1.12.0';
 
 
 export {
@@ -49,13 +49,14 @@ const EVENT = {
   STATE_CUED:      5,  // YT.PlayerState.CUED
   RESUME_AUTOPLAY: 50,
   PLAYER_ERROR:    60,
+  CROSSFADE_START: 70,
 };
 
 const entry = {
   eventSource: SOURCE.UNKNOWN,
-  timeStamp:   0,
   eventType:   EVENT.UNKNOWN,
   uId:         null,
+  timeStamp:   0,
 };
 
 
@@ -69,18 +70,19 @@ class EventLog
   {
     this.log        = [];
     this.maxEntries = maxEntries;
+    this.lastPos    = 0;
     this.matchCount = 0;
   }
   
   // Simple and inefficient, but good enough...
-  add(eventSource, timeStamp, eventType, uId)
+  add(eventSource, eventType, uId, timeStamp = Date.now())
   {
     const logEntry = Object.create(entry);
 
     logEntry.eventSource = eventSource;
-    logEntry.timeStamp   = timeStamp;
     logEntry.eventType   = eventType;
     logEntry.uId         = uId;
+    logEntry.timeStamp   = timeStamp;
     
     if (this.log.length < this.maxEntries)
     {
@@ -97,6 +99,41 @@ class EventLog
   {
     this.log = [];
   }
+
+  initMatch()
+  {
+    this.lastPos    = this.log.length - 1;
+    this.matchCount = 0;
+  }
+
+  matchesEvent(index, eventSource, eventType, uId = null)
+  {
+    if ((this.log[this.lastPos - index].eventSource === eventSource) &&
+        (this.log[this.lastPos - index].eventType   === eventType)   &&
+        (this.log[this.lastPos - index].uId         === uId))
+    {
+      this.matchCount++;
+    }
+  }
+  
+  matchesDelta(elements, delta)
+  {
+    if ((this.log[this.lastPos].timeStamp - this.log[this.lastPos - elements].timeStamp) <= delta)
+      this.matchCount++;
+  }
+
+  isPatternMatch(matchCount, event)
+  {
+    if (this.matchCount === matchCount)
+    {
+      debug.log(`MATCH for: ${event}`);
+      debug.logEventLog(this.log, SOURCE, EVENT);
+      
+      return true;
+    }
+
+    return false;
+  }
 }
 
 
@@ -106,33 +143,20 @@ class EventLog
 
 class Interaction extends EventLog
 {
-  constructor(maxEntries)
-  {
-    super(maxEntries);
-  }
+  constructor(maxEntries) { super(maxEntries); }
 
   doubleClicked(eventSource, eventType, deltaTime)
   {
-    debug.logEventLog(this.log, SOURCE, EVENT);
+    this.initMatch();
 
-    const lastPos   = this.log.length - 1;
-    this.matchCount = 0;
-
-    if (lastPos >= 1)
+    if (this.lastPos >= 1)
     {
-      if ((this.log[lastPos - 1].eventSource === eventSource) &&
-          (this.log[lastPos - 1].eventType   === eventType))
-            this.matchCount++;
-      
-      if ((this.log[lastPos].eventSource === eventSource) &&
-          (this.log[lastPos].eventType   === eventType))
-            this.matchCount++;
-
-      if ((this.log[lastPos].timeStamp - this.log[lastPos - 1].timeStamp) <= deltaTime)
-        this.matchCount++;
+      this.matchesEvent(1, eventSource, eventType);
+      this.matchesEvent(0, eventSource, eventType);
+      this.matchesDelta(1, deltaTime);
     }
 
-    return ((this.matchCount === 3) ? true : false);
+    return this.isPatternMatch(3, 'DoubleClicked');
   }
 }
 
@@ -143,111 +167,67 @@ class Interaction extends EventLog
 
 class Playback extends EventLog
 {
-  constructor(maxEntries)
-  {
-    super(maxEntries);
-  }
+  constructor(maxEntries) { super(maxEntries); }
 
   ytAutoPlayBlocked(uId, deltaTime)
   {
-    debug.logEventLog(this.log, SOURCE, EVENT);
-
-    const lastPos   = this.log.length - 1;
-    this.matchCount = 0;
+    this.initMatch();
     
-    if (lastPos >= 3)
+    if (this.lastPos >= 3)
     {
-      if ((this.log[lastPos - 3].eventSource === SOURCE.ULTRAFUNK)      &&
-          (this.log[lastPos - 3].eventType   === EVENT.RESUME_AUTOPLAY) &&
-          (this.log[lastPos - 3].uId         === null))
-            this.matchCount++;
-
-      if ((this.log[lastPos - 2].eventSource === SOURCE.YOUTUBE)        &&
-          (this.log[lastPos - 2].eventType   === EVENT.STATE_UNSTARTED) &&
-          (this.log[lastPos - 2].uId         === uId))
-            this.matchCount++;
-
-      if ((this.log[lastPos - 1].eventSource === SOURCE.YOUTUBE)        &&
-          (this.log[lastPos - 1].eventType   === EVENT.STATE_BUFFERING) &&
-          (this.log[lastPos - 1].uId         === uId))
-            this.matchCount++;
-
-      if ((this.log[lastPos].eventSource === SOURCE.YOUTUBE)        &&
-          (this.log[lastPos].eventType   === EVENT.STATE_UNSTARTED) &&
-          (this.log[lastPos].uId         === uId))
-            this.matchCount++;
-            
-      if ((this.log[lastPos].timeStamp - this.log[lastPos - 3].timeStamp) <= deltaTime)
-        this.matchCount++;
+      this.matchesEvent(3, SOURCE.ULTRAFUNK, EVENT.RESUME_AUTOPLAY, null);
+      this.matchesEvent(2, SOURCE.YOUTUBE,   EVENT.STATE_UNSTARTED, uId);
+      this.matchesEvent(1, SOURCE.YOUTUBE,   EVENT.STATE_BUFFERING, uId);
+      this.matchesEvent(0, SOURCE.YOUTUBE,   EVENT.STATE_UNSTARTED, uId);
+      this.matchesDelta(3, deltaTime);
     }
     
-    return ((this.matchCount === 5) ? true : false);
+    return this.isPatternMatch(5, 'YouTube AutoPlayBlocked');
   }
   
   scAutoPlayBlocked(uId, deltaTime)
   {
-    debug.logEventLog(this.log, SOURCE, EVENT);
-
-    const lastPos   = this.log.length - 1;
-    this.matchCount = 0;
+    this.initMatch();
     
-    if (lastPos >= 3)
+    if (this.lastPos >= 3)
     {
-      if ((this.log[lastPos - 3].eventSource === SOURCE.ULTRAFUNK)      &&
-          (this.log[lastPos - 3].eventType   === EVENT.RESUME_AUTOPLAY) &&
-          (this.log[lastPos - 3].uId         === null))
-            this.matchCount++;
-      
-      if ((this.log[lastPos - 2].eventSource === SOURCE.SOUNDCLOUD)   &&
-          (this.log[lastPos - 2].eventType   === EVENT.STATE_PLAYING) &&
-          (this.log[lastPos - 2].uId         === uId))
-            this.matchCount++;
-
-      if ((this.log[lastPos - 1].eventSource === SOURCE.SOUNDCLOUD)  &&
-          (this.log[lastPos - 1].eventType   === EVENT.STATE_PAUSED) &&
-          (this.log[lastPos - 1].uId         === uId))
-            this.matchCount++;
-
-      if ((this.log[lastPos].eventSource === SOURCE.SOUNDCLOUD)  &&
-          (this.log[lastPos].eventType   === EVENT.STATE_PAUSED) &&
-          (this.log[lastPos].uId         === uId))
-            this.matchCount++;
-            
-      if ((this.log[lastPos].timeStamp - this.log[lastPos - 3].timeStamp) <= deltaTime)
-        this.matchCount++;
+      this.matchesEvent(3, SOURCE.ULTRAFUNK,  EVENT.RESUME_AUTOPLAY, null);
+      this.matchesEvent(2, SOURCE.SOUNDCLOUD, EVENT.STATE_PLAYING,   uId);
+      this.matchesEvent(1, SOURCE.SOUNDCLOUD, EVENT.STATE_PAUSED,    uId);
+      this.matchesEvent(0, SOURCE.SOUNDCLOUD, EVENT.STATE_PAUSED,    uId);
+      this.matchesDelta(3, deltaTime);
     }
     
-    return ((this.matchCount === 5) ? true : false);
+    return this.isPatternMatch(5, 'SoundCloud AutoPlayBlocked');
   }
 
   scWidgetPlayBlocked(uId, deltaTime)
   {
-    debug.logEventLog(this.log, SOURCE, EVENT);
-
-    const lastPos   = this.log.length - 1;
-    this.matchCount = 0;
+    this.initMatch();
     
-    if (lastPos >= 2)
+    if (this.lastPos >= 2)
     {
-      if ((this.log[lastPos - 2].eventSource === SOURCE.SOUNDCLOUD)   &&
-          (this.log[lastPos - 2].eventType   === EVENT.STATE_PLAYING) &&
-          (this.log[lastPos - 2].uId         === uId))
-            this.matchCount++;
-
-      if ((this.log[lastPos - 1].eventSource === SOURCE.SOUNDCLOUD)  &&
-          (this.log[lastPos - 1].eventType   === EVENT.STATE_PAUSED) &&
-          (this.log[lastPos - 1].uId         === uId))
-            this.matchCount++;
-
-      if ((this.log[lastPos].eventSource === SOURCE.SOUNDCLOUD)  &&
-          (this.log[lastPos].eventType   === EVENT.STATE_PAUSED) &&
-          (this.log[lastPos].uId         === uId))
-            this.matchCount++;
-            
-      if ((this.log[lastPos].timeStamp - this.log[lastPos - 2].timeStamp) <= deltaTime)
-        this.matchCount++;
+      this.matchesEvent(2, SOURCE.SOUNDCLOUD, EVENT.STATE_PLAYING, uId);
+      this.matchesEvent(1, SOURCE.SOUNDCLOUD, EVENT.STATE_PAUSED,  uId);
+      this.matchesEvent(0, SOURCE.SOUNDCLOUD, EVENT.STATE_PAUSED,  uId);
+      this.matchesDelta(2, deltaTime);
     }
     
-    return ((this.matchCount === 4) ? true : false);
+    return this.isPatternMatch(4, 'SoundCloud WidgetPlayBlocked');
+  }
+
+  scPlayDoubleTrigger(uId, deltaTime)
+  {
+    this.initMatch();
+
+    if (this.lastPos >= 2)
+    {
+      this.matchesEvent(2, SOURCE.ULTRAFUNK,  EVENT.CROSSFADE_START, null);
+      this.matchesEvent(1, SOURCE.SOUNDCLOUD, EVENT.STATE_PLAYING,   uId);
+      this.matchesEvent(0, SOURCE.SOUNDCLOUD, EVENT.STATE_PLAYING,   uId);
+      this.matchesDelta(1, deltaTime);
+    }
+
+    return this.isPatternMatch(4, 'SoundCloud PlayDoubleTrigger');
   }
 }

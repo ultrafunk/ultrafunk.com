@@ -44,9 +44,9 @@ class DevBuild extends DebugLog
     {
       const data = {
         eventSource: this.getObjectKeyForValue(eventSource, eventLog[i].eventSource),
-        timeStamp:   eventLog[i].timeStamp,
         eventType:   this.getObjectKeyForValue(eventType, eventLog[i].eventType),
         uId:         eventLog[i].uId,
+        timeStamp:   eventLog[i].timeStamp,
       };
 
       entries.push(data);

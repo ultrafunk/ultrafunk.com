@@ -5,13 +5,13 @@
 //
 
 
-import * as debugLogger          from '../common/debuglogger.js?ver=1.11.1';
-import * as storage              from '../common/storage.js?ver=1.11.1';
-import { playbackSettings }      from '../common/settings.js?ver=1.11.1';
-import * as utils                from '../common/utils.js?ver=1.11.1';
-import * as eventLogger          from './eventlogger.js?ver=1.11.1';
-import * as playback             from './playback.js?ver=1.11.1';
-import { updateProgressPercent } from './playback-controls.js?ver=1.11.1';
+import * as debugLogger          from '../common/debuglogger.js?ver=1.12.0';
+import * as storage              from '../common/storage.js?ver=1.12.0';
+import { playbackSettings }      from '../common/settings.js?ver=1.12.0';
+import * as utils                from '../common/utils.js?ver=1.12.0';
+import * as eventLogger          from './eventlogger.js?ver=1.12.0';
+import * as playback             from './playback.js?ver=1.12.0';
+import { updateProgressPercent } from './playback-controls.js?ver=1.12.0';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -237,7 +237,7 @@ const playbackEvents = (() =>
     mediaEnded();
 
     if (eventData.scrollToMedia)
-      scrollTo.id(eventData.postId, eventData.iframeId);
+      scrollTo.id(eventData.postId);
   }
   
   function continueAutoplay(playbackEvent)
@@ -552,7 +552,7 @@ function documentEventVisibilityChange()
 function playbackDetailsClick(event)
 {
   showCurrentTrack(event);
-  eventLog.add(eventLogger.SOURCE.MOUSE, Date.now(), eventLogger.EVENT.MOUSE_CLICK, null);
+  eventLog.add(eventLogger.SOURCE.MOUSE, eventLogger.EVENT.MOUSE_CLICK, null);
 
   if (event.target.tagName.toLowerCase() === 'img')
     showInteractionHint('showTrackImageHint', '<b>Tip:</b> Double click or double tap on the Track Thumbnail for full screen');
@@ -575,8 +575,7 @@ function subPaginationClick(event, destUrl)
 function showCurrentTrack(event)
 {
   event.preventDefault();
-  const playbackStatus = playback.getStatus();
-  scrollTo.id(playbackStatus.postId, playbackStatus.iframeId);
+  scrollTo.id(playback.getStatus().postId);
 }
 
 function enterFullscreenTrack()
@@ -678,7 +677,7 @@ function arrowLeftKey(event)
   }
   else
   {
-    eventLog.add(eventLogger.SOURCE.KEYBOARD, Date.now(), eventLogger.EVENT.KEY_ARROW_LEFT, null);
+    eventLog.add(eventLogger.SOURCE.KEYBOARD, eventLogger.EVENT.KEY_ARROW_LEFT, null);
 
     if (!doubleTapNavPrev(navigationVars.prevUrl, playback.getStatus())) // eslint-disable-line no-undef
       playback.prevClick(event);
@@ -715,7 +714,7 @@ function arrowRightKey(event)
   }
   else
   {
-    eventLog.add(eventLogger.SOURCE.KEYBOARD, Date.now(), eventLogger.EVENT.KEY_ARROW_RIGHT, null);
+    eventLog.add(eventLogger.SOURCE.KEYBOARD, eventLogger.EVENT.KEY_ARROW_RIGHT, null);
 
     if (!doubleTapNavNext(navigationVars.nextUrl, playback.getStatus())) // eslint-disable-line no-undef
       playback.nextClick(event);
@@ -831,28 +830,23 @@ const scrollTo = (() =>
     id,
   };
 
-  function id(postId, iframeId)
+  function id(postId)
   {
     if (settings.user.autoScroll)
     {
-      const singlePlayer    = (document.querySelectorAll(`#${postId} iframe`).length === 1) ? true : false;
-      const scrollToElement = singlePlayer ? postId : iframeId;
-      const topMargin       = singlePlayer ? getTopMargin() : 10;
-
       // Actual functional 'offsetTop' calculation: https://stackoverflow.com/a/52477551
-      const offsetTop       = Math.round(window.scrollY + document.getElementById(scrollToElement).getBoundingClientRect().top);
-
-      const scrollTop       = Math.round(window.pageYOffset); // Don't want float results that can cause jitter
-      let   headerHeight    = getScrollHeaderHeight(offsetTop > scrollTop);
+      const offsetTop    = Math.round(window.scrollY + document.getElementById(postId).getBoundingClientRect().top);
+      const scrollTop    = Math.round(window.pageYOffset); // Don't want float results that can cause jitter
+      let   headerHeight = getScrollHeaderHeight(offsetTop > scrollTop);
 
       // If we get obscured by the sticky header menu, recalculate headerHeight to account for that
-      if ((scrollTop + headerHeight + topMargin) > offsetTop)
+      if ((scrollTop + headerHeight + getTopMargin()) > offsetTop)
         headerHeight = getScrollHeaderHeight(false);
 
       // ToDo: This will not be smooth on iOS... Needs polyfill
       window.scroll(
       {
-        top:      (offsetTop - (headerHeight + topMargin)),
+        top:      (offsetTop - (headerHeight + getTopMargin())),
         left:     0,
         behavior: (settings.user.smoothScrolling ? 'smooth' : 'auto'),
       });
@@ -871,12 +865,9 @@ const scrollTo = (() =>
 
   function getTopMargin()
   {
-    if (document.documentElement.classList.contains('track-layout-2-column'))
-      return 35;
-    
-    if (document.documentElement.classList.contains('track-layout-3-column'))
-      return 30;
-
-    return 40;
+    if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
+      return (utils.getCssPropValue('--site-content-top-margin-mobile') - 1); // -1 because of fractional pixels on HiDPI displays (iframe bottom 1 px would show on top)
+    else
+      return (utils.getCssPropValue('--site-content-top-margin') - 1);        // -1 because of fractional pixels on HiDPI displays (iframe bottom 1 px would show on top)
   }
 })();

@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger  from '../common/debuglogger.js?ver=1.11.1';
-import * as mediaPlayers from './mediaplayers.js?ver=1.11.1';
-import * as controls     from './playback-controls.js?ver=1.11.1';
-import * as eventLogger  from './eventlogger.js?ver=1.11.1';
+import * as debugLogger  from '../common/debuglogger.js?ver=1.12.0';
+import * as mediaPlayers from './mediaplayers.js?ver=1.12.0';
+import * as controls     from './playback-controls.js?ver=1.12.0';
+import * as eventLogger  from './eventlogger.js?ver=1.12.0';
 
 
 export {
@@ -46,7 +46,8 @@ const moduleConfig = {
   entryMetaControlsSelector: '.entry-meta-controls .crossfade-control',
   updateTimerInterval:       200, // Milliseconds between each timer event
   updateCrossfadeInterval:   50,  // Milliseconds between each crossfade event
-  bufferingDelay:            1,   // VERY rough estimate of "average" network buffering delay in seconds
+  minTrackCrossfadeTime:     5,   // Shortest allowed track to track fade time
+  maxBufferingDelay:         3,   // VERY rough estimate of "max" network buffering delay in seconds
 };
 
 // Playback events for listeners
@@ -148,31 +149,7 @@ function getAllEmbeddedPlayers()
       players.add(player);
     });
   });
-
-//setPropsForSamePostId();
 }
-
-/*
-function setPropsForSamePostId()
-{
-  const mediaPlayers = players.getMediaPlayers();
-  const samePostIds  = {};
-
-  // Create list of duplicate postIds
-  mediaPlayers.forEach((player, index) =>
-  {
-    samePostIds[player.getPostId()] = samePostIds[player.getPostId()] || [];
-    samePostIds[player.getPostId()].push(index);
-  });
-
-  // Traverse list and set relevant properties for all items with same postId
-  Object.entries(samePostIds).forEach(([postId, indexes]) => // eslint-disable-line no-unused-vars
-  {
-    if (indexes.length > 1)
-      indexes.forEach(index => mediaPlayers[index].setTitleSource(mediaPlayer.TITLE_SOURCE.GET_FROM_SERVER));
-  });
-}
-*/
 
 function updateMediaPlayersReady()
 {
@@ -275,36 +252,9 @@ function toggleMute()
   players.mute();
 }
   
-function trackCrossfadeClick(fadeInIframeId)
-{
-  const fadeInUid = players.uIdFromIframeId(fadeInIframeId);
-
-  if ((players.isCurrent(fadeInUid) === false) && (players.current.getDuration() > 0))
-  {
-    debug.log(`trackCrossfadeClick(): ${(players.isCurrent(fadeInUid) === false)}\nfadeOut: ${players.current.getArtist()} - ${players.current.getTitle()} [${players.current.getUid()}]\nfadeIn.: ${players.playerFromUid(fadeInUid).getArtist()} - ${players.playerFromUid(fadeInUid).getTitle()} [${players.current.getUid()}]`);
-
-    if ((settings.masterMute !== true) && (settings.autoPlay === false) && settings.trackCrossfade)
-    {
-      players.current.getPosition((positionMilliseconds) =>
-      {
-        const positionSeconds = positionMilliseconds / 1000;
-        const timeRemaining   = players.current.getDuration() - positionSeconds;
-
-        // Check for shortest "allowed" fade time
-        if (timeRemaining >= 6)
-        {
-          const approxFadeLength = settings.trackCrossfadeLength + moduleConfig.bufferingDelay;
-          const fadeLength       = (timeRemaining > approxFadeLength) ? approxFadeLength : timeRemaining;
-          players.crossfade.start(positionSeconds, fadeLength, settings.trackCrossfadeCurve, fadeInUid);
-        }
-      });
-    }
-  }
-}
-
 function playTrack(playMedia, scrollToMedia = true)
 {
-  callEventHandler(EVENT.MEDIA_SHOW, { scrollToMedia: scrollToMedia, postId: players.current.getPostId(), iframeId: players.current.getIframeId() });
+  callEventHandler(EVENT.MEDIA_SHOW, { scrollToMedia: scrollToMedia, postId: players.current.getPostId() });
   
   if (playMedia)
     players.current.play(onEmbeddedPlayerError);
@@ -318,7 +268,7 @@ function skipToTrack(track, playMedia = true)
   {
     // Reset eventlog to enable check for autoplay block
     eventLog.clear();
-    eventLog.add(eventLogger.SOURCE.ULTRAFUNK, Date.now(), eventLogger.EVENT.RESUME_AUTOPLAY, null);
+    eventLog.add(eventLogger.SOURCE.ULTRAFUNK, eventLogger.EVENT.RESUME_AUTOPLAY, null);
     
     if (players.jumpToTrack(track, playMedia))
       controls.updateNextState(players.getStatus());
@@ -328,7 +278,7 @@ function skipToTrack(track, playMedia = true)
 function resumeAutoPlay()
 {
   debug.log('resumeAutoPlay()');
-  eventLog.add(eventLogger.SOURCE.ULTRAFUNK, Date.now(), eventLogger.EVENT.RESUME_AUTOPLAY, null);
+  eventLog.add(eventLogger.SOURCE.ULTRAFUNK, eventLogger.EVENT.RESUME_AUTOPLAY, null);
   togglePlayPause();
 }
 
@@ -345,6 +295,42 @@ function getStatus()
 
 
 // ************************************************************************************************
+// Track to Track crossfade click handler + crossfade init helper function
+// ************************************************************************************************
+
+function trackCrossfadeClick(fadeInIframeId)
+{
+  const fadeInUid = players.uIdFromIframeId(fadeInIframeId);
+
+  if ((players.isCurrent(fadeInUid) === false) && (players.current.getDuration() > 0))
+  {
+    debug.log(`trackCrossfadeClick():\nfadeOut: ${players.current.getArtist()} - "${players.current.getTitle()}" (${players.current.getUid()})\nfadeIn.: ${players.playerFromUid(fadeInUid).getArtist()} - "${players.playerFromUid(fadeInUid).getTitle()}" (${fadeInUid})`);
+
+    if ((settings.masterMute !== true) && (settings.autoPlay === false) && settings.trackCrossfade)
+    {
+      players.current.getPosition((positionMilliseconds) =>
+      {
+        const timeRemaining = players.current.getDuration() - (positionMilliseconds / 1000);
+
+        if (timeRemaining >= (moduleConfig.minTrackCrossfadeTime + moduleConfig.maxBufferingDelay))
+          crossfadeInit(mediaPlayers.CROSSFADE_TYPE.TRACK, settings.trackCrossfadeCurve, fadeInUid);
+      });
+    }
+  }
+}
+
+function crossfadeInit(crossfadeType, crossfadeCurve, crossfadeInUid = null)
+{
+  eventLog.add(eventLogger.SOURCE.ULTRAFUNK, eventLogger.EVENT.CROSSFADE_START, null);
+
+  const playersIndex = players.crossfade.init(crossfadeType, crossfadeCurve, crossfadeInUid);
+
+  if (playersIndex !== null)
+    playersState.syncControls(playersIndex.fadeOutPlayer, playersIndex.fadeInPlayer);
+}
+
+
+// ************************************************************************************************
 // Playback controls and embedded players state sync module
 // ************************************************************************************************
 
@@ -355,43 +341,50 @@ const playersState = (() =>
     PAUSE: 2,
   };
   
-  let sync = function syncRecursive(nextPlayerIndex, syncState)
+  let syncAll = function syncAllRecursive(nextPlayerUid, syncState)
   {
-    debug.log(`playersState.sync() - prevPlayerIndex: ${players.getPlayerIndex()} - nextPlayerIndex: ${nextPlayerIndex} - syncState: ${debug.getObjectKeyForValue(STATE, syncState)}`);
+    debug.log(`playersState.syncAll() - previousTrack: ${players.getPlayerIndex() + 1} - nextTrack: ${players.indexMap.get(nextPlayerUid) + 1} - syncState: ${debug.getObjectKeyForValue(STATE, syncState)}`);
     
-    if (players.getPlayerIndex() === nextPlayerIndex)
+    if (players.isCurrent(nextPlayerUid))
     {
       if (syncState === STATE.PLAY)
       {
+        players.crossfade.start(nextPlayerUid);
         controls.updatePlayState(players.getStatus());
         callEventHandler(EVENT.MEDIA_PLAYING, { postId: players.current.getPostId() });
       }
       else if (syncState === STATE.PAUSE)
       {
-        controls.updatePauseState();
         players.crossfade.stop();
+        controls.updatePauseState();
         callEventHandler(EVENT.MEDIA_PAUSED, { postId: players.current.getPostId() });
       }
     }
     else
     {
       const prevPlayerIndex = players.getPlayerIndex();
+      const nextPlayerIndex = players.indexMap.get(nextPlayerUid);
       
       players.stop();
       players.setPlayerIndex(nextPlayerIndex);
-
-      if (nextPlayerIndex > prevPlayerIndex)
-        controls.updateNextState(players.getStatus());
-      else
-        controls.updatePrevState(players.getStatus());
       
-      syncRecursive(nextPlayerIndex, syncState);
+      syncControls(prevPlayerIndex, nextPlayerIndex);
+      syncAllRecursive(nextPlayerUid, syncState);
     }
   };
 
+  function syncControls(prevPlayerIndex, nextPlayerIndex)
+  {
+    if (nextPlayerIndex > prevPlayerIndex)
+      controls.updateNextState(players.getStatus());
+    else
+      controls.updatePrevState(players.getStatus());
+  }
+
   return {
     STATE,
-    sync,
+    syncAll,
+    syncControls,
   };
 })();
 
@@ -450,7 +443,7 @@ const playbackTimer = (() =>
     if ((positionSeconds > 0) && (durationSeconds > 0))
     {
       updateTimeRemainingWarning(positionSeconds, durationSeconds);
-      updateAutoCrossfade(positionMilliseconds, positionSeconds, durationSeconds);
+      updateAutoCrossfade(positionSeconds, durationSeconds);
     }
   }
   
@@ -476,16 +469,14 @@ const playbackTimer = (() =>
     }
   }
 
-  function updateAutoCrossfade(positionMilliseconds, positionSeconds, durationSeconds)
+  function updateAutoCrossfade(positionSeconds, durationSeconds)
   {
     if ((settings.masterMute !== true) && settings.autoPlay && settings.autoCrossfade)
     {
-      const approxFadeLength = settings.autoCrossfadeLength + moduleConfig.bufferingDelay;
-
-      if ((durationSeconds - positionSeconds) === approxFadeLength)
+      if ((durationSeconds - positionSeconds) === (settings.autoCrossfadeLength + moduleConfig.maxBufferingDelay))
       {
         if ((players.getCurrentTrack() + 1) <= players.getNumTracks())
-          players.crossfade.start((positionMilliseconds / 1000), approxFadeLength, settings.autoCrossfadeCurve);
+          crossfadeInit(mediaPlayers.CROSSFADE_TYPE.AUTO, settings.autoCrossfadeCurve);
       }
     }
   }
@@ -507,7 +498,7 @@ function onEmbeddedPlayerError(player, mediaUrl)
   if (players.isCurrent(player.getUid()) === false)
     players.stop();
   
-  eventLog.add(eventSource, Date.now(), eventLogger.EVENT.PLAYER_ERROR, player.getUid());
+  eventLog.add(eventSource, eventLogger.EVENT.PLAYER_ERROR, player.getUid());
   controls.updatePauseState();
   callEventHandler(EVENT.MEDIA_UNAVAILABLE, getPlayerErrorVars(player, mediaUrl));
 }
@@ -563,7 +554,7 @@ function onYouTubePlayerReady(event)
 
 function onYouTubePlayerStateChange(event)
 {
-  eventLog.add(eventLogger.SOURCE.YOUTUBE, Date.now(), event.data, event.target.f.id);
+  eventLog.add(eventLogger.SOURCE.YOUTUBE, event.data, event.target.f.id);
   
   switch (event.data)
   {
@@ -589,15 +580,10 @@ function onYouTubePlayerStateChange(event)
         debug.log('onYouTubePlayerStateChange: PLAYING');
 
         // Call order is important on play events for state handling: Always sync first!
-        playersState.sync(players.indexMap.get(event.target.f.id), playersState.STATE.PLAY);
+        playersState.syncAll(event.target.f.id, playersState.STATE.PLAY);
 
         players.current.setDuration(Math.round(event.target.getDuration()));
         playbackTimer.start();
-
-        /*
-        if (players.current.setArtistTitleFromServer(event.target.getVideoData().title))
-          controls.setDetails(players.getStatus());
-        */
       }
       break;
 
@@ -607,7 +593,7 @@ function onYouTubePlayerStateChange(event)
 
         if (players.isCurrent(event.target.f.id))
         {
-          playersState.sync(players.indexMap.get(event.target.f.id), playersState.STATE.PAUSE);
+          playersState.syncAll(event.target.f.id, playersState.STATE.PAUSE);
           playbackTimer.stop(false);
         }
         else
@@ -699,13 +685,19 @@ function getSoundCloudSoundId(iframeSrc)
 function onSoundCloudPlayerEventPlay(event)
 {
   debug.log(`onSoundCloudPlayerEvent: PLAY (uID: ${event.soundId})`);
-  eventLog.add(eventLogger.SOURCE.SOUNDCLOUD, Date.now(), eventLogger.EVENT.STATE_PLAYING, event.soundId);
+  eventLog.add(eventLogger.SOURCE.SOUNDCLOUD, eventLogger.EVENT.STATE_PLAYING, event.soundId);
 
-  // Call order is important on play events for state handling: Always sync first!
-  playersState.sync(players.indexMap.get(event.soundId), playersState.STATE.PLAY);
-
-  if (players.crossfade.isFading() === false)
+  if (players.crossfade.isFading() && players.isCurrent(event.soundId))
   {
+    // Call order is important on play events for state handling: Always sync first!
+    if (eventLog.scPlayDoubleTrigger(event.soundId, (moduleConfig.maxBufferingDelay * 1000)))
+      playersState.syncAll(event.soundId, playersState.STATE.PLAY);
+  }
+  else
+  {
+    // Call order is important on play events for state handling: Always sync first!
+    playersState.syncAll(event.soundId, playersState.STATE.PLAY);
+
     players.current.mute(settings.masterMute);
     players.current.setVolume(settings.masterVolume);
   }
@@ -729,7 +721,7 @@ function soundCloudPlaybackBlocked(playbackEvent, eventData = null)
 function onSoundCloudPlayerEventPause(event)
 {
   debug.log(`onSoundCloudPlayerEvent: PAUSE (uID: ${event.soundId})`);
-  eventLog.add(eventLogger.SOURCE.SOUNDCLOUD, Date.now(), eventLogger.EVENT.STATE_PAUSED, event.soundId);
+  eventLog.add(eventLogger.SOURCE.SOUNDCLOUD, eventLogger.EVENT.STATE_PAUSED, event.soundId);
   
   if (eventLog.scAutoPlayBlocked(event.soundId, 3000))
   {
@@ -748,7 +740,7 @@ function onSoundCloudPlayerEventPause(event)
       {
         if (positionMilliseconds > 0)
         {
-          playersState.sync(players.indexMap.get(event.soundId), playersState.STATE.PAUSE);
+          playersState.syncAll(event.soundId, playersState.STATE.PAUSE);
           playbackTimer.stop(false);
         }
       });    

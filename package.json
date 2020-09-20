@@ -1,6 +1,6 @@
 {
   "name": "ultrafunk.com",
-  "version": "1.11.1",
+  "version": "1.12.0",
   "description": "WordPress theme",
   "homepage": "https://github.com/ultrafunk/ultrafunk.com",
   "repository": "git@github.com:ultrafunk/ultrafunk.com.git",
@@ -16,6 +16,6 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "eslint": "^7.8.1"
+    "eslint": "^7.9.0"
   }
 }

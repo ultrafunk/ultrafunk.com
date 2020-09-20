@@ -5,15 +5,15 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.11.1';
-import { snackbar }     from '../common/utils.js?ver=1.11.1';
-import * as settings    from '../common/settings.js?ver=1.11.1';
+import * as debugLogger from '../common/debuglogger.js?ver=1.12.0';
+import { snackbar }     from '../common/utils.js?ver=1.12.0';
+import * as settings    from '../common/settings.js?ver=1.12.0';
 import {
   KEY,
   deleteCookie,
   readJson,
   writeJson,
-} from '../common/storage.js?ver=1.11.1';
+} from '../common/storage.js?ver=1.12.0';
 
 
 const debug          = debugLogger.getInstance('settings');

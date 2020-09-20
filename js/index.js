@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.11.1';
-import * as storage     from './common/storage.js?ver=1.11.1';
-import { siteSettings } from './common/settings.js?ver=1.11.1';
-import * as utils       from './common/utils.js?ver=1.11.1';
+import * as debugLogger from './common/debuglogger.js?ver=1.12.0';
+import * as storage     from './common/storage.js?ver=1.12.0';
+import { siteSettings } from './common/settings.js?ver=1.12.0';
+import * as utils       from './common/utils.js?ver=1.12.0';
 
 
 const debug  = debugLogger.getInstance('index');
@@ -30,7 +30,7 @@ const moduleElements = {
 
 
 // ************************************************************************************************
-//
+//  Document ready, keyboard events and event listeners
 // ************************************************************************************************
 
 document.addEventListener('DOMContentLoaded', () =>
@@ -103,7 +103,7 @@ window.addEventListener('storage', windowEventStorage);
 
 
 // ************************************************************************************************
-//
+// Index init and setup
 // ************************************************************************************************
 
 function readSettings()
@@ -135,7 +135,7 @@ function initIndex()
 
 
 // ************************************************************************************************
-// 
+// Misc. support functions
 // ************************************************************************************************
 
 function windowEventStorage(event)
@@ -230,22 +230,24 @@ const trackShare = (() =>
   const singleChoiceList = [
     { id: 'copyToClipboard',    description: '<b>Copy Link</b> to Clipboard' },
     { id: 'shareOnEmail',       description: '<b>Share</b> on Email'         },
-    { id: 'findOnAmazonMusic',  description: '<b>Find</b> on Amazon Music'   },
-    { id: 'findOnAppleMusic',   description: '<b>Find</b> on Apple Music'    },
-    { id: 'findOnSpotify',      description: '<b>Find</b> on Spotify'        },
-    { id: 'findOnTidal',        description: '<b>Find</b> on Tidal'          },
-    { id: 'findOnYouTubeMusic', description: '<b>Find</b> on YouTube Music'  },
+    { id: 'findOnAmazonMusic',  description: '<b>Find</b> on Amazon Music',  site: 'music.amazon.com'  },
+    { id: 'findOnAppleMusic',   description: '<b>Find</b> on Apple Music',   site: 'music.apple.com'   },
+    { id: 'findOnSpotify',      description: '<b>Find</b> on Spotify',       site: 'spotify.com'       },
+    { id: 'findOnTidal',        description: '<b>Find</b> on Tidal',         site: 'tidal.com'         },
+    { id: 'findOnYouTubeMusic', description: '<b>Find</b> on YouTube Music', site: 'music.youtube.com' },
   ];
 
   return {
     click,
   };
   
-  function singleChoiceListClick(clickId)
+  function singleChoiceListClick(clickedId)
   {
-    debug.log(`singleChoiceListClick(): ${clickId} - trackTitle: ${decodeURIComponent(encodedTitle)} - trackURL: ${escapedURL}`);
+    debug.log(`singleChoiceListClick(): ${clickedId} - trackTitle: ${decodeURIComponent(encodedTitle)} - trackURL: ${escapedURL}`);
 
-    switch (clickId)
+    const clickedEntry = singleChoiceList.find(entry => entry.id === clickedId);
+
+    switch (clickedEntry.id)
     {
       case 'copyToClipboard':
         navigator.clipboard.writeText(escapedURL).then(() =>
@@ -262,26 +264,9 @@ const trackShare = (() =>
       case 'shareOnEmail':
         window.location.href = `mailto:?subject=${encodedTitle}&body=${escapedURL}%0d%0a`;
         break;
-
-      case 'findOnSpotify':
-        window.open(`https://google.com/search?q=${encodedTitle}%20site:spotify.com`, "_blank");
-        break;
-
-      case 'findOnAppleMusic':
-        window.open(`https://google.com/search?q=${encodedTitle}%20site:music.apple.com`, "_blank");
-        break;
-
-      case 'findOnAmazonMusic':
-        window.open(`https://google.com/search?q=${encodedTitle}%20site:music.amazon.com`, "_blank");
-        break;
-
-      case 'findOnTidal':
-        window.open(`https://google.com/search?q=${encodedTitle}%20site:tidal.com`, "_blank");
-        break;
-
-      case 'findOnYouTubeMusic':
-        window.open(`https://google.com/search?q=${encodedTitle}%20site:music.youtube.com`, "_blank");
-        break;
+      
+      default:
+        window.open(`https://google.com/search?q=${encodedTitle}%20site:${clickedEntry.site}`, "_blank");
     }
   }
   

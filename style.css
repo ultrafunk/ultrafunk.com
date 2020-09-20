@@ -4,7 +4,7 @@ Theme URI:    https://github.com/ultrafunk/ultrafunk.com
 Author:       Ultrafunk
 Author URI:   https://ultrafunk.com
 Description:  ultrafunk.com WordPress theme
-Version:      1.11.1
+Version:      1.12.0
 Tested up to: 5.5
 Requires PHP: 7.4
 License:      Apache License 2.0
@@ -34,7 +34,7 @@ Tags:         entertainment, portfolio, grid-layout, one-column, two-columns, th
   --site-header-up-mobile: 111px;
 
   --site-content-top-margin: 75px;
-  --site-content-top-margin-mobile: 50px;
+  --site-content-top-margin-mobile: 32px;
 
   --site-content-track-layout-min-width: 1100px;
 
@@ -1692,7 +1692,7 @@ body.no-playback #site-header.sticky-nav-down {
   }
 
   #site-content {
-    margin: calc(var(--site-content-top-margin-mobile) + var(--site-header-mobile)) auto 70px auto;
+    margin: calc(var(--site-content-top-margin-mobile) + var(--site-header-mobile)) auto 50px auto;
   }
   
   body.no-playback #site-content {
@@ -1716,12 +1716,12 @@ body.no-playback #site-header.sticky-nav-down {
   */
 
   article {
-    margin-top: 50px;
+    margin-top: var(--site-content-top-margin-mobile);
   }
   
   nav.navigation.pagination,
   nav.navigation.post-navigation {
-    margin: 75px auto;
+    margin: 60px auto 50px auto;
   }
 
   .nav-links .page-numbers li {
@@ -1767,7 +1767,7 @@ body.no-playback #site-header.sticky-nav-down {
   h3 {
     font-size: 18px;
     line-height: 26px;
-    margin-top: 40px;
+    margin-top: 33px;
   }
 
   .lightest-text {
