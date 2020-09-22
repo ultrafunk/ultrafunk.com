@@ -315,7 +315,7 @@ function meta_controls()
 {
   ?>
   <div class="entry-meta-controls">
-  <div class="track-share-control"><span class="material-icons" title="Share or find track" data-entry-track-title="<?php echo esc_html(get_the_title()); ?>" data-entry-track-url="<?php echo esc_url(get_permalink()); ?>">share</span></div>
+  <div class="track-share-control"><span class="material-icons" title="Share track / Play On" data-entry-track-title="<?php echo esc_html(get_the_title()); ?>" data-entry-track-url="<?php echo esc_url(get_permalink()); ?>">share</span></div>
   <?php
   
   if (!is_404() && !is_singular() && ('post' === get_post_type()))

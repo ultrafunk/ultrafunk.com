@@ -6,7 +6,7 @@
 .track-layout-2-column,
 .track-layout-3-column {
   --site-max-width: 2420px;
-  --site-content-top-margin: 30px;
+  --site-content-margin-top: 30px;
   --intro-banner-max-width: 1200px;
   --footer-max-width: 1200px;
 }
@@ -103,8 +103,7 @@
 .track-layout-2-column .entry-meta-controls .track-share-control {
   width: 42px;
   height: 42px;
-  margin-right: -9px;
-  bottom: -20px;
+  margin-right: -8px;
 }
 
 .track-layout-2-column .entry-meta-controls .track-share-control .material-icons {
@@ -113,19 +112,19 @@
 
 .track-layout-2-column .entry-meta-controls .crossfade-control {
   width: 44px;
-  margin-right: -5px;
-  bottom: -22px;
+  height: 44px;
+  margin-right: -6px;
 }
 
 .track-layout-2-column .entry-meta-controls .crossfade-control img {
   width: 44px;
+  height: 44px;
 }
 
 .track-layout-3-column .entry-meta-controls .track-share-control {
   width: 38px;
   height: 38px;
   margin-right: -8px;
-  bottom: -14px;
 }
 
 .track-layout-3-column .entry-meta-controls .track-share-control .material-icons {
@@ -134,12 +133,13 @@
 
 .track-layout-3-column .entry-meta-controls .crossfade-control {
   width: 40px;
+  height: 40px;
   margin-right: -5px;
-  bottom: -15px;
 }
 
 .track-layout-3-column .entry-meta-controls .crossfade-control img {
   width: 40px;
+  height: 40px;
 }
 
 .track-layout-2-column figure.wp-block-embed {
@@ -148,11 +148,6 @@
 
 .track-layout-3-column figure.wp-block-embed {
   margin: 10px 0 0 0;
-}
-
-.track-layout-2-column nav.navigation.pagination,
-.track-layout-3-column nav.navigation.pagination {
-  margin: 145px auto 160px auto;
 }
 
 .track-layout-2-column .site-footer-container,

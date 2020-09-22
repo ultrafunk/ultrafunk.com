@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.12.0';
-import * as storage     from './common/storage.js?ver=1.12.0';
-import { siteSettings } from './common/settings.js?ver=1.12.0';
-import * as utils       from './common/utils.js?ver=1.12.0';
+import * as debugLogger from './common/debuglogger.js?ver=1.12.1';
+import * as storage     from './common/storage.js?ver=1.12.1';
+import { siteSettings } from './common/settings.js?ver=1.12.1';
+import * as utils       from './common/utils.js?ver=1.12.1';
 
 
 const debug  = debugLogger.getInstance('index');
@@ -122,8 +122,7 @@ function initIndex()
   moduleElements.siteContent       = document.getElementById('site-content');
   moduleElements.siteContentSearch = document.querySelector('#site-content form input.search-field');
 
-  utils.addEventListeners('.entry-meta-controls .track-share-control', 'click', trackShare.click);
-
+  trackShare.addEventListeners();
   resize.addEventListener();
   scroll.addEventListener();
 
@@ -224,33 +223,47 @@ function setPreviousPageTitle()
 
 const trackShare = (() =>
 {
-  let encodedTitle = null;
-  let escapedURL   = null;
+  let trackTitle = null;
+  let trackUrl   = null;
+  const separatorRegEx = /\s{1,}[–·-]\s{1,}/i;
 
   const singleChoiceList = [
     { id: 'copyToClipboard',    description: '<b>Copy Link</b> to Clipboard' },
     { id: 'shareOnEmail',       description: '<b>Share</b> on Email'         },
-    { id: 'findOnAmazonMusic',  description: '<b>Find</b> on Amazon Music',  site: 'music.amazon.com'  },
-    { id: 'findOnAppleMusic',   description: '<b>Find</b> on Apple Music',   site: 'music.apple.com'   },
-    { id: 'findOnSpotify',      description: '<b>Find</b> on Spotify',       site: 'spotify.com'       },
-    { id: 'findOnTidal',        description: '<b>Find</b> on Tidal',         site: 'tidal.com'         },
-    { id: 'findOnYouTubeMusic', description: '<b>Find</b> on YouTube Music', site: 'music.youtube.com' },
+    { id: 'playOnAmazonMusic',  description: '<b>Play</b> on Amazon Music'   },
+    { id: 'playOnAppleMusic',   description: '<b>Play</b> on Apple Music'    },
+    { id: 'playOnSpotify',      description: '<b>Play</b> on Spotify'        },
+    { id: 'playOnTidal',        description: '<b>Play</b> on Tidal'          },
+    { id: 'playOnYouTubeMusic', description: '<b>Play</b> on YouTube Music'  },
   ];
 
   return {
+    addEventListeners,
     click,
   };
   
-  function singleChoiceListClick(clickedId)
+  function addEventListeners()
   {
-    debug.log(`singleChoiceListClick(): ${clickedId} - trackTitle: ${decodeURIComponent(encodedTitle)} - trackURL: ${escapedURL}`);
+    utils.addEventListeners('.entry-meta-controls .track-share-control', 'click', click);
+  }
 
-    const clickedEntry = singleChoiceList.find(entry => entry.id === clickedId);
+  function click(event)
+  {
+    trackTitle = event.target.getAttribute('data-entry-track-title');
+    trackUrl   = event.target.getAttribute('data-entry-track-url');
+    utils.modal.show('Share / Play Track', singleChoiceList, singleChoiceListClick);
+  }
 
-    switch (clickedEntry.id)
+  function singleChoiceListClick(clickId)
+  {
+    debug.log(`singleChoiceListClick(): ${clickId} - trackTitle: ${trackTitle} - trackUrl: ${trackUrl}`);
+
+    const searchString = encodeURIComponent(trackTitle.replace(separatorRegEx, ' '));
+
+    switch (clickId)
     {
       case 'copyToClipboard':
-        navigator.clipboard.writeText(escapedURL).then(() =>
+        navigator.clipboard.writeText(trackUrl).then(() =>
         {
           utils.snackbar.show('Track link copied to the clipboard', 3);
         },
@@ -262,19 +275,29 @@ const trackShare = (() =>
         break;
 
       case 'shareOnEmail':
-        window.location.href = `mailto:?subject=${encodedTitle}&body=${escapedURL}%0d%0a`;
+        window.location.href = `mailto:?subject=${encodeURIComponent(trackTitle)}&body=${trackUrl}%0d%0a`;
         break;
-      
-      default:
-        window.open(`https://google.com/search?q=${encodedTitle}%20site:${clickedEntry.site}`, "_blank");
+
+      case 'playOnAmazonMusic':
+        window.open(`https://music.amazon.com/search/${searchString}`, "_blank");
+        break;
+
+      case 'playOnAppleMusic':
+        window.open(`https://music.apple.com/ca/search?term=${searchString}`, "_blank");
+        break;
+
+      case 'playOnSpotify':
+        window.open(`https://open.spotify.com/search/${searchString}`, "_blank");
+        break;
+
+      case 'playOnTidal':
+        window.open(`https://google.com/search?q=${searchString}%20site:tidal.com`, "_blank");
+        break;
+
+      case 'playOnYouTubeMusic':
+        window.open(`https://music.youtube.com/search?q=${searchString}`, "_blank");
+        break;
     }
-  }
-  
-  function click(event)
-  {
-    encodedTitle = encodeURIComponent(event.target.getAttribute('data-entry-track-title'));
-    escapedURL   = event.target.getAttribute('data-entry-track-url');
-    utils.modal.show('Share  / Find Track', singleChoiceList, singleChoiceListClick);
   }
 })();
 
@@ -326,7 +349,7 @@ const siteTheme = (() =>
   {
     elements.toggle = document.querySelector(config.toggleId);
     const mediaQueryList = window.matchMedia(config.prefDarkScheme);
-    mediaQueryList.addListener(matchMediaPrefColorScheme);
+    mediaQueryList.addEventListener('change', matchMediaPrefColorScheme);
     utils.addEventListeners(config.toggleId, 'click', toggle);
     setCurrent();
   }
@@ -408,7 +431,7 @@ const trackLayout = (() =>
   {
     elements.toggle = document.querySelector(config.toggleId);
     const mediaQueryList = window.matchMedia(config.minWidth);
-    mediaQueryList.addListener(matchMediaMinWidth);
+    mediaQueryList.addEventListener('change', matchMediaMinWidth);
     utils.addEventListeners(config.toggleId, 'click', toggle);
     setCurrent();
   }
@@ -675,22 +698,19 @@ const resize = (() =>
   
   function setTopMargin()
   {
-    let contentTopMargin = utils.getCssPropValue('--site-content-top-margin');
+    const contentMarginTop = utils.getCssPropValue('--site-content-margin-top');
     
-    if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
-      contentTopMargin = utils.getCssPropValue('--site-content-top-margin-mobile');
-
     if (moduleElements.siteHeader.classList.contains('hide-nav-menu'))
       headerHeight = moduleElements.siteHeader.offsetHeight;
 
     if ((moduleElements.introBanner !== null) && (moduleElements.introBanner.style.display.length !== 0))
     {
       moduleElements.introBanner.style.marginTop = `${headerHeight}px`;
-      moduleElements.siteContent.style.marginTop = `${contentTopMargin}px`;
+      moduleElements.siteContent.style.marginTop = `${contentMarginTop}px`;
     }
     else
     {
-      moduleElements.siteContent.style.marginTop = `${headerHeight + contentTopMargin}px`;
+      moduleElements.siteContent.style.marginTop = `${headerHeight + contentMarginTop}px`;
     }
   }
 })();

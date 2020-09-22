@@ -5,13 +5,13 @@
 //
 
 
-import * as debugLogger          from '../common/debuglogger.js?ver=1.12.0';
-import * as storage              from '../common/storage.js?ver=1.12.0';
-import { playbackSettings }      from '../common/settings.js?ver=1.12.0';
-import * as utils                from '../common/utils.js?ver=1.12.0';
-import * as eventLogger          from './eventlogger.js?ver=1.12.0';
-import * as playback             from './playback.js?ver=1.12.0';
-import { updateProgressPercent } from './playback-controls.js?ver=1.12.0';
+import * as debugLogger          from '../common/debuglogger.js?ver=1.12.1';
+import * as storage              from '../common/storage.js?ver=1.12.1';
+import { playbackSettings }      from '../common/settings.js?ver=1.12.1';
+import * as utils                from '../common/utils.js?ver=1.12.1';
+import * as eventLogger          from './eventlogger.js?ver=1.12.1';
+import * as playback             from './playback.js?ver=1.12.1';
+import { updateProgressPercent } from './playback-controls.js?ver=1.12.1';
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -840,13 +840,13 @@ const scrollTo = (() =>
       let   headerHeight = getScrollHeaderHeight(offsetTop > scrollTop);
 
       // If we get obscured by the sticky header menu, recalculate headerHeight to account for that
-      if ((scrollTop + headerHeight + getTopMargin()) > offsetTop)
+      if ((scrollTop + headerHeight + getMarginTop()) > offsetTop)
         headerHeight = getScrollHeaderHeight(false);
 
       // ToDo: This will not be smooth on iOS... Needs polyfill
       window.scroll(
       {
-        top:      (offsetTop - (headerHeight + getTopMargin())),
+        top:      (offsetTop - (headerHeight + getMarginTop())),
         left:     0,
         behavior: (settings.user.smoothScrolling ? 'smooth' : 'auto'),
       });
@@ -863,11 +863,9 @@ const scrollTo = (() =>
       return ((matchesMaxWidthMobile === true) ? siteHeaderUpMobilePx : siteHeaderUpPx);
   }
 
-  function getTopMargin()
+  function getMarginTop()
   {
-    if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
-      return (utils.getCssPropValue('--site-content-top-margin-mobile') - 1); // -1 because of fractional pixels on HiDPI displays (iframe bottom 1 px would show on top)
-    else
-      return (utils.getCssPropValue('--site-content-top-margin') - 1);        // -1 because of fractional pixels on HiDPI displays (iframe bottom 1 px would show on top)
+    // -1 because of fractional pixels on HiDPI displays (iframe bottom 1 px would show on top)
+    return (utils.getCssPropValue('--site-content-margin-top') - 1);
   }
 })();

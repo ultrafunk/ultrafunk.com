@@ -91,7 +91,7 @@
 
 #settings-save-reset {
   clear: both;
-  margin: 100px 0 50px 0;
+  margin: var(--site-content-margin-bottom) 0;
   overflow: hidden;
 }
 
@@ -194,8 +194,8 @@
   }
 
   #settings-save-reset {
-    margin: 60px 20px 80px 20px
-  }  
+    margin: var(--site-content-margin-bottom) 20px;
+  } 
 
   #settings-container table td {
     padding: 12px 15px;

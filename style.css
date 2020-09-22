@@ -4,7 +4,7 @@ Theme URI:    https://github.com/ultrafunk/ultrafunk.com
 Author:       Ultrafunk
 Author URI:   https://ultrafunk.com
 Description:  ultrafunk.com WordPress theme
-Version:      1.12.0
+Version:      1.12.1
 Tested up to: 5.5
 Requires PHP: 7.4
 License:      Apache License 2.0
@@ -33,8 +33,8 @@ Tags:         entertainment, portfolio, grid-layout, one-column, two-columns, th
   --site-header-up: 145px;
   --site-header-up-mobile: 111px;
 
-  --site-content-top-margin: 75px;
-  --site-content-top-margin-mobile: 32px;
+  --site-content-margin-top: 75px;
+  --site-content-margin-bottom: 100px;
 
   --site-content-track-layout-min-width: 1100px;
 
@@ -507,19 +507,22 @@ ul#menu-primary-menu {
 
 #site-content {
   max-width: var(--site-max-width);
-  margin: calc(var(--site-content-top-margin) + var(--site-header-full)) auto 125px auto;
+  margin: calc(var(--site-content-margin-top) + var(--site-header-full)) auto var(--site-content-margin-bottom) auto;
   width: 100%;
   box-sizing: border-box;
   clear: both;
 }
 
 body.no-playback #site-content {
-  margin-top: calc(var(--site-content-top-margin) + var(--site-header-full-no-playback));
+  margin-top: calc(var(--site-content-margin-top) + var(--site-header-full-no-playback));
 }
 
-nav.navigation.pagination,
+nav.navigation.pagination {
+  margin: 140px auto 155px auto;
+}
+
 nav.navigation.post-navigation {
-  margin: 160px auto 175px auto;
+  margin: 100px auto;
 }
 
 nav .nav-links ul {
@@ -757,7 +760,7 @@ h1.content-header {
 }
 
 article {
-  margin-top: 175px;
+  margin-top: 100px;
 }
 
 article:first-of-type {
@@ -837,6 +840,34 @@ strong {
   font-weight: 100;
 }
 
+
+/**************************************************************************************************
+* .entry-meta styles
+***************************************************************************************************/
+
+.entry-meta {
+  display: grid;
+}
+
+body.no-playback .entry-meta {
+  display: none;
+}
+
+.entry-meta-channels {
+  grid-row: 1;
+}
+
+.entry-meta-artists {
+  grid-row: 2;
+}
+
+.entry-meta-controls {
+  grid-row: 1 / span 2;
+  display: flex;
+  align-items: center;
+  justify-self: end;
+}
+
 .entry-meta a {
   text-decoration: none;
   color: var(--primary-font-color);
@@ -847,15 +878,28 @@ strong {
   text-decoration: underline;
 }
 
+.entry-meta-channels,
+.entry-meta-artists {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.single .entry-meta-channels,
+.single .entry-meta-artists,
+.page .entry-meta-channels,
+.page .entry-meta-artists {
+  white-space: initial;
+  overflow: initial;
+  text-overflow: initial;
+}
+
 .entry-meta-controls .track-share-control {
   display: none;
-  float: right;
-  position: relative;
-  height: 50px;
   width: 50px;
+  height: 50px;
   margin-left: 10px;
-  margin-right: -10px;
-  bottom: -23px;
+  margin-right: -9px;
 }
 
 body.autoplay-on .entry-meta-controls .track-share-control {
@@ -865,21 +909,18 @@ body.autoplay-on .entry-meta-controls .track-share-control {
 .entry-meta-controls .track-share-control .material-icons {
   font-size: 40px;
   color: var(--primary-icon-color);
-  overflow: hidden;
   cursor: pointer;
   padding: 5px;
 }
 
 .entry-meta-controls .crossfade-control {
   display: none;
-  float: right;
-  position: relative;
   width: 51px;
+  height: 51px;
   margin-left: 10px;
   margin-right: -7px;
-  bottom: -27px;
-  line-height: 0;
   cursor: pointer;
+  overflow: hidden;
 }
 
 body.autoplay-off .entry-meta-controls .crossfade-control {
@@ -888,6 +929,7 @@ body.autoplay-off .entry-meta-controls .crossfade-control {
 
 .entry-meta-controls .crossfade-control img {
   width: 51px;
+  height: 51px;
 }
 
 .site-theme-dark .entry-meta-controls .crossfade-control img {
@@ -913,35 +955,10 @@ body.autoplay-off .entry-meta-controls .crossfade-control {
   cursor: default;
 }
 
-.entry-meta-channels,
-.entry-meta-artists {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
-.single .entry-meta-channels,
-.single .entry-meta-artists,
-.page .entry-meta-channels,
-.page .entry-meta-artists {
-  white-space: initial;
-  overflow: initial;
-  text-overflow: initial;
-}
-
-.entry-meta-date-author {
-  float: right;
-  border: 1px solid var(--date-page-border-color);
-  padding: 10px 15px;
-  max-width: 250px;
-  margin-top: 6px;
-  margin-left: 20px;
-  display: none;
-}
-
-.date-author-short {
-  display: none;
-}
+/**************************************************************************************************
+* .entry-content styles
+***************************************************************************************************/
 
 .entry-content {
   clear: both;
@@ -1195,14 +1212,6 @@ body.no-playback #site-header.sticky-nav-down {
 
 @media screen and (min-width: 1351px) {
 
-  #site-content {
-    margin-top: calc(var(--site-content-top-margin) + var(--site-header-full));
-  }
-
-  body.no-playback #site-content {
-    margin-top: calc(var(--site-content-top-margin) + var(--site-header-full-no-playback));
-  }
-
   h1.content-header {
     display: none;
   }
@@ -1238,30 +1247,12 @@ body.no-playback #site-header.sticky-nav-down {
 
   #site-content {
     max-width: 100%;
-    margin-top: calc(var(--site-content-top-margin) + var(--site-header-full));
   }
 
-  body.no-playback #site-content {
-    margin-top: calc(var(--site-content-top-margin) + var(--site-header-full-no-playback));
+  article {
+    margin-top: var(--site-content-margin-top);
   }
-  
-}
-
-
-/**************************************************************************************************
-* Responsive: max-width: 1200px
-***************************************************************************************************/
-
-@media screen and (max-width: 1200px) {
-
-  #site-content {
-    margin-top: calc(var(--site-content-top-margin) + var(--site-header-full));
-  }
-
-  body.no-playback #site-content {
-    margin-top: calc(var(--site-content-top-margin) + var(--site-header-full-no-playback));
-  }
-  
+    
 }
 
 
@@ -1287,27 +1278,11 @@ body.no-playback #site-header.sticky-nav-down {
     margin: 0 1px 6px 1px;
   }
 
-  #site-content {
-    margin-top: calc(var(--site-content-top-margin) + var(--site-header-full));
-  }
-
-  body.no-playback #site-content {
-    margin-top: calc(var(--site-content-top-margin) + var(--site-header-full-no-playback));
-  }
-
   #intro-banner,
   .entry-content p,
   .entry-content ul {
     font-size: 21px;
     line-height: 31px;
-  }
-
-  .entry-meta-controls .track-share-control {
-    bottom: -14px
-  }
-  
-  .entry-meta-controls .crossfade-control {
-    bottom: -18px;
   }
 
   .nav-links .page-numbers li {
@@ -1338,6 +1313,11 @@ body.no-playback #site-header.sticky-nav-down {
 
 @media screen and (max-width: 900px) {
   
+  :root {
+    --site-content-margin-top: 50px;
+    --site-content-margin-bottom: 75px;
+  }
+
   .site-header-container,
   nav.navigation,
   #intro-banner,
@@ -1364,14 +1344,6 @@ body.no-playback #site-header.sticky-nav-down {
 
   #menu-primary-menu li:nth-of-type(2n + 1) {
     margin: 0 1px 6px 0;
-  }
-
-  #site-content {
-    margin-top: calc(var(--site-content-top-margin) + var(--site-header-full));
-  }
-
-  body.no-playback #site-content {
-    margin-top: calc(var(--site-content-top-margin) + var(--site-header-full-no-playback));
   }
 
   h1 {
@@ -1414,6 +1386,11 @@ body.no-playback #site-header.sticky-nav-down {
 
 @media screen and (max-width: 768px) {
   
+  :root {
+    --site-content-margin-top: 40px;
+    --site-content-margin-bottom: 65px;
+  }
+
   .site-header-container,
   nav.navigation,
   #intro-banner,
@@ -1448,14 +1425,6 @@ body.no-playback #site-header.sticky-nav-down {
 
   #intro-banner {
     font-weight: 300;
-  }
-
-  #site-content {
-    margin-top: calc(var(--site-content-top-margin) + var(--site-header-full));
-  }
-  
-  body.no-playback #site-content {
-    margin-top: calc(var(--site-content-top-margin) + var(--site-header-full-no-playback));
   }
 
   .nav-links .page-numbers li {
@@ -1507,14 +1476,6 @@ body.no-playback #site-header.sticky-nav-down {
     margin-top: 50px;
   }
 
-  .entry-meta-controls .track-share-control {
-    bottom: -8px;
-  }
-
-  .entry-meta-controls .crossfade-control {
-    bottom: -12px;
-  }
-
   #taxonomies-2,
   #taxonomies-3 {
     clear: both;
@@ -1547,6 +1508,11 @@ body.no-playback #site-header.sticky-nav-down {
 ***************************************************************************************************/
 
 @media screen and (max-width: 500px) {
+
+  :root {
+    --site-content-margin-top: 32px;
+    --site-content-margin-bottom: 50px;
+  }
 
   .site-header-container,
   nav.navigation,
@@ -1692,36 +1658,16 @@ body.no-playback #site-header.sticky-nav-down {
   }
 
   #site-content {
-    margin: calc(var(--site-content-top-margin-mobile) + var(--site-header-mobile)) auto 50px auto;
+    margin: calc(var(--site-content-margin-top) + var(--site-header-mobile)) auto var(--site-content-margin-bottom) auto;
   }
   
   body.no-playback #site-content {
-    margin-top: calc(var(--site-content-top-margin-mobile) + var(--site-header-mobile-no-playback));
+    margin-top: calc(var(--site-content-margin-top) + var(--site-header-mobile-no-playback));
   }
 
-  /*
-  .entry-meta-date-author {
-    margin-top: 4px;
-    margin-left: 10px;
-    padding: 6px 10px;
-  }
-  
-  .date-author-long {
-    display: none;
-  }
-  
-  .date-author-short {
-    display: block;
-  }
-  */
-
-  article {
-    margin-top: var(--site-content-top-margin-mobile);
-  }
-  
   nav.navigation.pagination,
   nav.navigation.post-navigation {
-    margin: 60px auto 50px auto;
+    margin: 60px auto 55px auto;
   }
 
   .nav-links .page-numbers li {
@@ -1767,7 +1713,7 @@ body.no-playback #site-header.sticky-nav-down {
   h3 {
     font-size: 18px;
     line-height: 26px;
-    margin-top: 33px;
+    margin-top: 35px;
   }
 
   .lightest-text {
@@ -1778,7 +1724,6 @@ body.no-playback #site-header.sticky-nav-down {
     width: 38px;
     height: 38px;
     margin-right: -7px;
-    bottom: -4px
   }
 
   .entry-meta-controls .track-share-control .material-icons {
@@ -1787,12 +1732,13 @@ body.no-playback #site-header.sticky-nav-down {
 
   .entry-meta-controls .crossfade-control {
     width: 38px;
+    height: 38px;
     margin-right: -5px;
-    bottom: -4px;  
   }
 
   .entry-meta-controls .crossfade-control img {
     width: 38px;
+    height: 38px;
   }
   
   .entry-content p {
