@@ -4,7 +4,7 @@ Theme URI:    https://github.com/ultrafunk/ultrafunk.com
 Author:       Ultrafunk
 Author URI:   https://ultrafunk.com
 Description:  ultrafunk.com WordPress theme
-Version:      1.12.1
+Version:      1.12.2
 Tested up to: 5.5
 Requires PHP: 7.4
 License:      Apache License 2.0
@@ -75,6 +75,8 @@ Tags:         entertainment, portfolio, grid-layout, one-column, two-columns, th
   --form-search-field-border-focus: 2px solid #bbb;
   --form-input-autofill-box-shadow: 0 0 0 50px #fff inset;
 
+  --iframe-placeholder: url(inc/img/iframe_placeholder_light.png);
+
   --date-page-border-color: #888;
   --page-numbers-background: rgba(127, 127, 127, 0.15);
   --page-numbers-background-hover: rgba(127, 127, 127, 0.3);
@@ -114,6 +116,8 @@ Tags:         entertainment, portfolio, grid-layout, one-column, two-columns, th
   --form-search-field-border: 2px solid #444;
   --form-search-field-border-focus: 2px solid #666;
   --form-input-autofill-box-shadow: 0 0 0 50px #222 inset;
+
+  --iframe-placeholder: url(inc/img/iframe_placeholder_dark.png);
 
   --date-page-border-color: #bbb;
   --page-numbers-background: rgba(127, 127, 127, 0.25);
@@ -1005,6 +1009,10 @@ body.autoplay-off .entry-meta-controls .crossfade-control {
   height: 0;
   overflow: hidden;
   max-width: 100%;
+  background-image: var(--iframe-placeholder);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 .wp-block-embed__wrapper iframe,

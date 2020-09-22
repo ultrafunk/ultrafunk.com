@@ -5,9 +5,9 @@
 //
 
 
-import * as debugLogger        from '../common/debuglogger.js?ver=1.12.1';
-import { addSettingsObserver } from '../common/storage.js?ver=1.12.1';
-import { replaceClass }        from '../common/utils.js?ver=1.12.1';
+import * as debugLogger        from '../common/debuglogger.js?ver=1.12.2';
+import { addSettingsObserver } from '../common/storage.js?ver=1.12.2';
+import { replaceClass }        from '../common/utils.js?ver=1.12.2';
 
 
 export {
@@ -62,7 +62,7 @@ function init(playbackConfig, playbackSettings, seekClickCallback, crossfadeClic
   settings = playbackSettings;
 
   // Quick'n'dirty preload of this single CSS background image...
-  new Image().src = "/wp-content/themes/ultrafunk/img/play_pause_bg_filler.png";
+  new Image().src = "/wp-content/themes/ultrafunk/inc/img/play_pause_bg_filler.png";
 
   const playbackProgress = document.getElementById(config.progressControlsId);
 
@@ -217,7 +217,7 @@ function setThumbnail(thumbnailSrc)
   if (thumbnailSrc !== null)
     controls.thumbnail.img.src = thumbnailSrc;
   else
-    controls.thumbnail.img.src = '/wp-content/themes/ultrafunk/img/photo_filled_grey.png';
+    controls.thumbnail.img.src = '/wp-content/themes/ultrafunk/inc/img/photo_filled_grey.png';
 
   controls.thumbnail.img.decode().then(() => { controls.thumbnail.element.classList.remove('loading'); });
 }

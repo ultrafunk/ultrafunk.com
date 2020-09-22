@@ -176,7 +176,7 @@ body.autoplay-off #playback-controls .play-pause-control:hover {
 
 #playback-controls .play-pause-control.state-play,
 #playback-controls .play-pause-control.state-pause {
-  background-image: url(../../img/play_pause_bg_filler.png);
+  background-image: url(../../inc/img/play_pause_bg_filler.png);
   background-repeat: no-repeat;
   background-position: center;
 }

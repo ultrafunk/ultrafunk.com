@@ -3,7 +3,7 @@
 .VSCodeCounter/
 dist/
 docs/
-img/
+/img/
 node_modules/
 plugins/
 scripts/
