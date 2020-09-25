@@ -4,7 +4,7 @@ Theme URI:    https://github.com/ultrafunk/ultrafunk.com
 Author:       Ultrafunk
 Author URI:   https://ultrafunk.com
 Description:  ultrafunk.com WordPress theme
-Version:      1.12.2
+Version:      1.12.3
 Tested up to: 5.5
 Requires PHP: 7.4
 License:      Apache License 2.0
@@ -15,7 +15,7 @@ Tags:         entertainment, portfolio, grid-layout, one-column, two-columns, th
 
 
 /**************************************************************************************************
-* CSS variables
+* :root CSS variables
 ***************************************************************************************************/
 
 :root {
@@ -48,6 +48,11 @@ Tags:         entertainment, portfolio, grid-layout, one-column, two-columns, th
   --dialog-border-radius: 10px;
 }
 
+
+/**************************************************************************************************
+* Light theme CSS variables
+***************************************************************************************************/
+
 .site-theme-light {
   --body-background-focus: #fff;
   --body-background-blurred: #ddd;
@@ -62,7 +67,7 @@ Tags:         entertainment, portfolio, grid-layout, one-column, two-columns, th
   --control-disabled-background-rgba: rgba(127, 127, 127, 0.26);
 
   --button-text-color: #fff;
-  --button-background-color: #777;
+  --button-background-color: #707070;
   --button-background-hover-rgba: rgba(0, 0, 0, 0.75);
 
   --intro-banner-background: #505050;
@@ -90,6 +95,11 @@ Tags:         entertainment, portfolio, grid-layout, one-column, two-columns, th
   --header-gradient-no-blur: linear-gradient(0deg, rgba(230, 230, 230, 1) 0%, rgba(255, 255, 255, 1) 100%);
 }
 
+
+/**************************************************************************************************
+* Dark theme CSS variables
+***************************************************************************************************/
+
 .site-theme-dark {
   --body-background-focus: #222;
   --body-background-blurred: #000;
@@ -104,7 +114,7 @@ Tags:         entertainment, portfolio, grid-layout, one-column, two-columns, th
   --control-disabled-background-rgba: rgba(127, 127, 127, 0.26);
 
   --button-text-color: #fff;
-  --button-background-color: #777;
+  --button-background-color: #666;
   --button-background-hover-rgba: rgba(127, 127, 127, 0.33);
 
   --intro-banner-background: #444;
@@ -672,7 +682,7 @@ nav .nav-links ul {
 #footer-crossfade-toggle,
 #footer-site-theme-toggle,
 #footer-track-layout-toggle {
-  display: block;
+  display: table;
   color: var(--site-theme-icon-color);
 }
 
@@ -1459,6 +1469,13 @@ body.no-playback #site-header.sticky-nav-down {
     text-align: center;
   }
 
+  #footer-autoplay-toggle,
+  #footer-crossfade-toggle,
+  #footer-site-theme-toggle,
+  #footer-track-layout-toggle {
+    display: block;
+  }
+
   h1 {
     font-size: 30px;
     line-height: 40px;
@@ -1710,8 +1727,6 @@ body.no-playback #site-header.sticky-nav-down {
 
   h2,
   h2.widget-title,
-  .single h2.entry-title,
-  .single h2.entry-title a,
   .page h2.entry-title,
   .page h2.entry-title a {
     font-size: 20px;
@@ -1779,6 +1794,10 @@ body.no-playback #site-header.sticky-nav-down {
 ***************************************************************************************************/
 
 @media screen and (max-width: 400px) {
+
+  #menu-primary-menu li a {
+    padding: 8px 16px;
+  }
 
   h2.entry-title,
   h2.entry-title a {

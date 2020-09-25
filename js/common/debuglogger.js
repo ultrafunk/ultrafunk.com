@@ -57,13 +57,7 @@ class DevBuild extends DebugLog
 
   getObjectKeyForValue(object, value)
   {
-    const entries = Object.entries(object);
-    
-    for (let i = 0; i < entries.length; i++)
-    {
-      if (entries[i][1] === value)
-        return entries[i][0];
-    }
+    return Object.keys(object).find(key => object[key] === value);
   }
 }
 
@@ -83,18 +77,12 @@ class ProdBuild extends DebugLog
 
 function getInstance(caller)
 {
-  if (DEBUG)
-    return new DevBuild(caller);
-  else
-    return new ProdBuild(caller);
+  return ((DEBUG === true) ? new DevBuild(caller) : new ProdBuild(caller));
 }
 
 function padString(string, maxLength, padChar)
 {
-  if (string.length > maxLength)
-    return string.slice(0, maxLength);
-  else
-    return string.padEnd(maxLength, padChar);
+  return ((string.length > maxLength) ? string.slice(0, maxLength) : string.padEnd(maxLength, padChar));
 }
 
 function logErrorOnServer(errorCategory, errorData)

@@ -25,6 +25,11 @@
   --playback-play-pause-hover-color-autoplay-off: #4080ff;
 }
 
+
+/**************************************************************************************************
+* Progress controls
+***************************************************************************************************/
+
 #progress-controls {
   background: rgba(0, 0, 0, 0.3);
   width: 100%;
@@ -54,6 +59,19 @@
 body.autoplay-off #progress-controls .bar-control {
   background: var(--progress-bar-color-autoplay-off);
 }
+
+
+/**************************************************************************************************
+* Playback controls
+* - Details:      Artist + title
+* - Thumbnail:    Track image
+* - Timer:        Track position and duration
+* - Previous:     Prev track + seek to start
+* - Play / Pause: Playback state toggle (autoplay and DJ-mode)
+* - Next:         Next track
+* - Shuffle       Shuffle All, Artist or Channel
+* - Mute          Master mute
+***************************************************************************************************/
 
 #playback-controls {
   line-height: 0;
@@ -238,6 +256,11 @@ body.autoplay-off #playback-controls .play-pause-control.state-pause.time-remain
   padding: 5px;
 }
 
+
+/**************************************************************************************************
+* "Unstick" all hover styles when using touch input
+***************************************************************************************************/
+
 @media not all and (pointer: fine) {
 
   #playback-controls .details-control {
@@ -285,6 +308,11 @@ body.autoplay-off #playback-controls .play-pause-control.state-pause.time-remain
 
 }
 
+
+/**************************************************************************************************
+* Now playing icons (indicates currently playing track)
+***************************************************************************************************/
+
 .now-playing-icon::before {
   color: #ff0000;
 }
@@ -305,6 +333,11 @@ body.autoplay-off .playing-animate::before {
 .playing-paused::before {
   animation-play-state: paused !important;
 }
+
+
+/**************************************************************************************************
+* Responsive
+***************************************************************************************************/
 
 @media screen and (max-width: 1050px) {
 

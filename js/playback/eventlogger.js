@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.12.2';
+import * as debugLogger from '../common/debuglogger.js?ver=1.12.3';
 
 
 export {
@@ -74,7 +74,6 @@ class EventLog
     this.matchCount = 0;
   }
   
-  // Simple and inefficient, but good enough...
   add(eventSource, eventType, uId, timeStamp = Date.now())
   {
     const logEntry = Object.create(entry);
@@ -84,6 +83,7 @@ class EventLog
     logEntry.uId         = uId;
     logEntry.timeStamp   = timeStamp;
     
+    // Simple and inefficient, but good enough...
     if (this.log.length < this.maxEntries)
     {
       this.log.push(logEntry);
@@ -156,7 +156,7 @@ class Interaction extends EventLog
       this.matchesDelta(1, deltaTime);
     }
 
-    return this.isPatternMatch(3, 'DoubleClicked');
+    return this.isPatternMatch(3, `${debug.getObjectKeyForValue(SOURCE, eventSource)} Double Clicked`);
   }
 }
 
@@ -182,7 +182,7 @@ class Playback extends EventLog
       this.matchesDelta(3, deltaTime);
     }
     
-    return this.isPatternMatch(5, 'YouTube AutoPlayBlocked');
+    return this.isPatternMatch(5, 'YouTube AutoPlay Blocked');
   }
   
   scAutoPlayBlocked(uId, deltaTime)
@@ -198,7 +198,7 @@ class Playback extends EventLog
       this.matchesDelta(3, deltaTime);
     }
     
-    return this.isPatternMatch(5, 'SoundCloud AutoPlayBlocked');
+    return this.isPatternMatch(5, 'SoundCloud AutoPlay Blocked');
   }
 
   scWidgetPlayBlocked(uId, deltaTime)
@@ -213,7 +213,7 @@ class Playback extends EventLog
       this.matchesDelta(2, deltaTime);
     }
     
-    return this.isPatternMatch(4, 'SoundCloud WidgetPlayBlocked');
+    return this.isPatternMatch(4, 'SoundCloud WidgetPlay Blocked');
   }
 
   scPlayDoubleTrigger(uId, deltaTime)
@@ -228,6 +228,6 @@ class Playback extends EventLog
       this.matchesDelta(1, deltaTime);
     }
 
-    return this.isPatternMatch(4, 'SoundCloud PlayDoubleTrigger');
+    return this.isPatternMatch(4, 'SoundCloud Play Double Trigger');
   }
 }

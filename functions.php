@@ -80,7 +80,7 @@ add_action('widgets_init', 'ultrafunk_widgets_init');
 // Limit number of entries shown by the built-in Archive widget
 function ultrafunk_limit_archives($args)
 {
-  $args['limit'] = 12;
+  $args['limit'] = 15;
   return $args;
 }
 add_filter('widget_archives_args', 'ultrafunk_limit_archives');

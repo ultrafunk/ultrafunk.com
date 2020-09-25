@@ -1,7 +1,9 @@
 /*
- * Track layout CSS
- *
- */
+* Track layout grid CSS
+*
+* https://ultrafunk.com
+*
+*/
 
 .track-layout-2-column,
 .track-layout-3-column {
@@ -154,6 +156,11 @@
 .track-layout-3-column .site-footer-container {
   max-width: var(--footer-max-width);
 }
+
+
+/**************************************************************************************************
+*  Responsive
+***************************************************************************************************/
 
 @media screen and (max-width: 2525px) {
 
