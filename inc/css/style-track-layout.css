@@ -9,7 +9,6 @@
 .track-layout-3-column {
   --site-max-width: 2420px;
   --site-content-margin-top: 30px;
-  --intro-banner-max-width: 1200px;
   --footer-max-width: 1200px;
 }
 
@@ -17,11 +16,6 @@
 .track-layout-3-column .site-header-container {
   padding-left: 65px;
   padding-right: 65px;
-}
-
-.track-layout-2-column .intro-banner-container,
-.track-layout-3-column .intro-banner-container {
-  max-width: var(--intro-banner-max-width);
 }
 
 .track-layout-2-column h1.content-header,

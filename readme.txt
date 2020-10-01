@@ -1,6 +1,6 @@
-# **Ultrafunk Theme**
+# **Ultrafunk theme / PWA**
 
-This is the complete WordPress theme source code for the [ultrafunk.com](https://ultrafunk.com) website, updated each time a new release is published. The source code is provided as is with no warranties or support of any kind.
+This is the complete WordPress theme source code for the [ultrafunk.com](https://ultrafunk.com) website / PWA (Progressive Web App), updated each time a new release is published. The source code is provided as is with no warranties or support of any kind.
 
 # Client configurations
 Tested on mobile and desktop Chrome, Firefox and misc. Chromium based browsers that supports ES2020.
@@ -22,7 +22,7 @@ PHP version 7.4 or greater
 [WP Extended Search](https://wordpress.org/plugins/wp-extended-search/) (WordPress Plugin)  
 [WP Fastest Cache](https://wordpress.org/plugins/wp-fastest-cache/) (WordPress Plugin)
 
-# Screenshots (very outdated...)
+# Screenshots (very outdated)
 
 ![ultrafunk-screenshot-01](https://ultrafunk.com/wp-content/uploads/screenshots/screenshot_mobile_11.png)
 

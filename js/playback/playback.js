@@ -5,19 +5,20 @@
 //
 
 
-import * as debugLogger  from '../common/debuglogger.js?ver=1.12.3';
-import * as mediaPlayers from './mediaplayers.js?ver=1.12.3';
-import * as controls     from './playback-controls.js?ver=1.12.3';
-import * as eventLogger  from './eventlogger.js?ver=1.12.3';
+import * as debugLogger  from '../common/debuglogger.js?ver=1.12.4';
+import * as mediaPlayers from './mediaplayers.js?ver=1.12.4';
+import * as controls     from './playback-controls.js?ver=1.12.4';
+import * as eventLogger  from './eventlogger.js?ver=1.12.4';
 
 
 export {
 // Constants
   EVENT,
 // Functions
-  init,
   setConfig,
+  hasEmbeddedPlayers,
   setEventHandlers,
+  init,
   togglePlayPause,
   prevClick,
   nextClick,
@@ -34,11 +35,12 @@ const eventLog        = new eventLogger.Playback(10);
 const eventHandlers   = {};
 let settings          = {};
 let players           = {};
-let playersReadyCount = 0;
+let loadEventsTotal   = 0;
+let loadEventsCount   = 1;
 
-const moduleConfig = {
-  youTubeIframeIdRegEx:      null,
-  soundCloudIframeIdRegEx:   null,
+const mConfig = {
+  youTubeIframeIdRegEx:      /youtube-uid/i,
+  soundCloudIframeIdRegEx:   /soundcloud-uid/i,
   entriesSelector:           'article',
   trackTitleData:            'data-entry-track-title',
   progressControlsId:        'progress-controls',
@@ -75,14 +77,14 @@ function init(playbackSettings)
 {
   settings = playbackSettings;
 
-  controls.init(moduleConfig, settings, seekClick, trackCrossfadeClick);
-  players = mediaPlayers.getPlayers(moduleConfig, settings, playTrack);
+  controls.init(mConfig, settings, seekClick, trackCrossfadeClick);
+  players = mediaPlayers.getPlayers(mConfig, settings, playTrack);
 
   initYouTubeAPI();
   initSoundCloudAPI();
 }
 
-function setConfig(configProps = {})          { Object.assign(moduleConfig, configProps);    }
+function setConfig(configProps = {})          { Object.assign(mConfig, configProps);    }
 function setEventHandlers(handlersProps = {}) { Object.assign(eventHandlers, handlersProps); }
 
 function callEventHandler(playbackEvent, eventData = null)
@@ -96,14 +98,33 @@ function callEventHandler(playbackEvent, eventData = null)
 // Find, register and init all embedder media players
 // ************************************************************************************************
 
+// Search page for <iframes> and check if any of them contains an embedded player
+function hasEmbeddedPlayers()
+{
+  let playersCount = 0;
+
+  document.querySelectorAll('iframe').forEach(element =>
+  {
+    if (mConfig.youTubeIframeIdRegEx.test(element.id) || mConfig.soundCloudIframeIdRegEx.test(element.id))
+      playersCount++;
+  });
+
+  debug.log(`hasEmbeddedPlayers() - playersCount: ${playersCount}`);
+
+  // The total number of loadEvents include 3 stages before embedded players are loaded
+  loadEventsTotal = playersCount + 3;
+
+  return (playersCount > 0);
+}
+
 function getAllEmbeddedPlayers()
 {
-  const entries = document.querySelectorAll(moduleConfig.entriesSelector);
+  const entries = document.querySelectorAll(mConfig.entriesSelector);
 
   entries.forEach(entry => 
   {
     const postId     = entry.id;
-    const entryTitle = entry.getAttribute(moduleConfig.trackTitleData);
+    const entryTitle = entry.getAttribute(mConfig.trackTitleData);
     const iframes    = entry.querySelectorAll('iframe');
 
     iframes.forEach(iframe =>
@@ -111,7 +132,7 @@ function getAllEmbeddedPlayers()
       const iframeId = iframe.id;
       let   player   = {};
 
-      if (moduleConfig.youTubeIframeIdRegEx.test(iframeId)) 
+      if (mConfig.youTubeIframeIdRegEx.test(iframeId)) 
       {
         const embeddedPlayer = new YT.Player(iframeId, // eslint-disable-line no-undef
         {
@@ -125,7 +146,7 @@ function getAllEmbeddedPlayers()
           
         player = new mediaPlayers.YouTube(postId, iframeId, embeddedPlayer);
       }
-      else if (moduleConfig.soundCloudIframeIdRegEx.test(iframeId))
+      else if (mConfig.soundCloudIframeIdRegEx.test(iframeId))
       {
         /* eslint-disable */
         const embeddedPlayer = SC.Widget(iframeId);
@@ -151,11 +172,14 @@ function getAllEmbeddedPlayers()
   });
 }
 
+function getLoadingPercent()
+{
+  return { loadingPercent: (100 * (loadEventsCount++ / loadEventsTotal)) };
+}
+
 function updateMediaPlayersReady()
 {
-  playersReadyCount++;
-
-  if (playersReadyCount >= players.getNumTracks())
+  if (loadEventsCount >= loadEventsTotal)
   {
     controls.ready(prevClick, togglePlayPause, nextClick, toggleMute, players.getNumTracks());
     callEventHandler(EVENT.READY);
@@ -163,7 +187,7 @@ function updateMediaPlayersReady()
   }
   else
   {
-    callEventHandler(EVENT.LOADING);
+    callEventHandler(EVENT.LOADING, getLoadingPercent());
   }
 }
 
@@ -312,7 +336,7 @@ function trackCrossfadeClick(fadeInIframeId)
       {
         const timeRemaining = players.current.getDuration() - (positionMilliseconds / 1000);
 
-        if (timeRemaining >= (moduleConfig.minTrackCrossfadeTime + moduleConfig.maxBufferingDelay))
+        if (timeRemaining >= (mConfig.minTrackCrossfadeTime + mConfig.maxBufferingDelay))
           crossfadeInit(mediaPlayers.CROSSFADE_TYPE.TRACK, settings.trackCrossfadeCurve, fadeInUid);
       });
     }
@@ -407,7 +431,7 @@ const playbackTimer = (() =>
   function start()
   {
     stop(false);
-    intervalId = setInterval(update, moduleConfig.updateTimerInterval);
+    intervalId = setInterval(update, mConfig.updateTimerInterval);
   }
   
   function stop(playbackEnded = false)
@@ -473,7 +497,7 @@ const playbackTimer = (() =>
   {
     if ((settings.masterMute !== true) && settings.autoPlay && settings.autoCrossfade)
     {
-      if ((durationSeconds - positionSeconds) === (settings.autoCrossfadeLength + moduleConfig.maxBufferingDelay))
+      if ((durationSeconds - positionSeconds) === (settings.autoCrossfadeLength + mConfig.maxBufferingDelay))
       {
         if ((players.getCurrentTrack() + 1) <= players.getNumTracks())
           crossfadeInit(mediaPlayers.CROSSFADE_TYPE.AUTO, settings.autoCrossfadeCurve);
@@ -526,7 +550,7 @@ function getPlayerErrorVars(player, mediaUrl)
 function initYouTubeAPI()
 {
   debug.log('initYouTubeAPI()');
-  callEventHandler(EVENT.LOADING);
+  callEventHandler(EVENT.LOADING, getLoadingPercent());
 
   let tag = document.createElement('script');
   tag.id = 'youtube-iframe-api';
@@ -538,7 +562,7 @@ function initYouTubeAPI()
 window.onYouTubeIframeAPIReady = function()
 {
   debug.log('onYouTubeIframeAPIReady()');
-  callEventHandler(EVENT.LOADING);
+  callEventHandler(EVENT.LOADING, getLoadingPercent());
 
   //ToDo: THIS SHOULD NOT BE TRIGGERED HERE ONLY?
   getAllEmbeddedPlayers();
@@ -650,7 +674,7 @@ function onYouTubePlayerError(event)
 function initSoundCloudAPI()
 {
   debug.log('initSoundCloudAPI()');
-  callEventHandler(EVENT.LOADING);
+  callEventHandler(EVENT.LOADING, getLoadingPercent());
 }
 
 function onSoundCloudPlayerEventReady()
@@ -690,7 +714,7 @@ function onSoundCloudPlayerEventPlay(event)
   if (players.crossfade.isFading() && players.isCurrent(event.soundId))
   {
     // Call order is important on play events for state handling: Always sync first!
-    if (eventLog.scPlayDoubleTrigger(event.soundId, (moduleConfig.maxBufferingDelay * 1000)))
+    if (eventLog.scPlayDoubleTrigger(event.soundId, (mConfig.maxBufferingDelay * 1000)))
       playersState.syncAll(event.soundId, playersState.STATE.PLAY);
   }
   else

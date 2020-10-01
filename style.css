@@ -4,7 +4,7 @@ Theme URI:    https://github.com/ultrafunk/ultrafunk.com
 Author:       Ultrafunk
 Author URI:   https://ultrafunk.com
 Description:  ultrafunk.com WordPress theme
-Version:      1.12.3
+Version:      1.12.4
 Tested up to: 5.5
 Requires PHP: 7.4
 License:      Apache License 2.0
@@ -32,6 +32,8 @@ Tags:         entertainment, portfolio, grid-layout, one-column, two-columns, th
   --site-header-down-mobile: 65px;
   --site-header-up: 145px;
   --site-header-up-mobile: 111px;
+
+  --intro-banner-max-width: 1200px;
 
   --site-content-margin-top: 75px;
   --site-content-margin-bottom: 100px;
@@ -206,6 +208,10 @@ body.blurred {
 
 body.no-playback #progress-controls {
   display: none;
+}
+
+body.page {
+  --site-max-width: 1000px;
 }
 
 .site-header-container {
@@ -478,8 +484,10 @@ ul#menu-primary-menu {
   box-sizing: border-box;
   clear: both;
   color: var(--button-text-color);
+  /*
   font-size: 26px;
   line-height: 37px;
+  */
   padding: 50px 0;
 }
 
@@ -494,7 +502,7 @@ ul#menu-primary-menu {
 }
 
 .intro-banner-container {  
-  max-width: var(--site-max-width);
+  max-width: var(--intro-banner-max-width);
   margin: 0 auto;
 }
 
@@ -988,15 +996,19 @@ body.autoplay-off .entry-meta-controls .crossfade-control {
 
 .entry-content p {
   margin-bottom: 35px;
+  /*
   font-size: 26px;
   line-height: 37px;
+  */
 }
 
 .entry-content ul {
   padding: 0;
   margin: 0 0 0 25px;
+  /*
   font-size: 26px;
   line-height: 37px;
+  */
 }
 
 .entry-content a.show-more {
@@ -1044,7 +1056,7 @@ figure.wp-block-embed {
 
 form, form input, form textarea, form select {
   font-family: Roboto, Helvetica, Arial, sans-serif;
-  font-size: 26px;
+  font-size: 25px;
   font-weight: 300;
 }
 
@@ -1265,6 +1277,10 @@ body.no-playback #site-header.sticky-nav-down {
 
   #site-content {
     max-width: 100%;
+  }
+
+  body.page #site-content {
+    max-width: calc(var(--site-max-width) + 150px);
   }
 
   article {

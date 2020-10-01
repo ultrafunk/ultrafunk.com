@@ -5,28 +5,30 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.12.3';
-import { snackbar }     from '../common/utils.js?ver=1.12.3';
-import * as settings    from '../common/settings.js?ver=1.12.3';
+import * as debugLogger from '../common/debuglogger.js?ver=1.12.4';
+import { snackbar }     from '../common/utils.js?ver=1.12.4';
+import * as settings    from '../common/settings.js?ver=1.12.4';
 import {
   KEY,
   deleteCookie,
   readJson,
   writeJson,
-} from '../common/storage.js?ver=1.12.3';
+} from '../common/storage.js?ver=1.12.4';
 
 
 const debug          = debugLogger.getInstance('settings');
 let playbackSettings = null;
 let siteSettings     = null;
 
-const moduleConfig = {
+const mConfig = {
   settingsContainerId:  'settings-container',
   settingsSaveResetId:  'settings-save-reset',
   settingsUpdatedEvent: 'settingsUpdated',
+  playbackIdPrefix:     'playback', // Used to prevent HTML element ID collisions
+  siteIdPrefix:         'site',     // Used to prevent HTML element ID collisions
 };
 
-const moduleElements = {
+const mElements = {
   settingsContainer: null,
 };
 
@@ -48,9 +50,9 @@ document.addEventListener('DOMContentLoaded', () =>
 { 
   debug.log('DOMContentLoaded');
 
-  moduleElements.settingsContainer = document.getElementById(moduleConfig.settingsContainerId);
+  mElements.settingsContainer = document.getElementById(mConfig.settingsContainerId);
 
-  if (moduleElements.settingsContainer !== null)
+  if (mElements.settingsContainer !== null)
   {
     // For quick access to the Clear All Settings page...
     if (document.URL.includes('?clear=true'))
@@ -67,10 +69,10 @@ document.addEventListener('DOMContentLoaded', () =>
       setCurrentValues(siteSettings.user, settings.siteSettingsSchema);
   
       insertSettingsHtml();
-      moduleElements.settingsContainer.style.opacity = 1;
+      mElements.settingsContainer.style.opacity = 1;
   
-      document.querySelector(`#${moduleConfig.settingsSaveResetId} .settings-save`).addEventListener('click', settingsSaveClick);
-      document.querySelector(`#${moduleConfig.settingsSaveResetId} .settings-reset`).addEventListener('click', settingsResetClick);
+      document.querySelector(`#${mConfig.settingsSaveResetId} .settings-save`).addEventListener('click', settingsSaveClick);
+      document.querySelector(`#${mConfig.settingsSaveResetId} .settings-reset`).addEventListener('click', settingsResetClick);
     }
     else
     {
@@ -79,18 +81,18 @@ document.addEventListener('DOMContentLoaded', () =>
   }
   else
   {
-    debug.error(`Unable to getElementById() for '#${moduleConfig.settingsContainerId}'`);
+    debug.error(`Unable to getElementById() for '#${mConfig.settingsContainerId}'`);
   }
 });
 
 function readSettingsError()
 {
-  document.getElementById(moduleConfig.settingsSaveResetId).style.display = 'none';
+  document.getElementById(mConfig.settingsSaveResetId).style.display = 'none';
 
-  moduleElements.settingsContainer.insertAdjacentHTML('afterbegin', settingsErrorTemplate);
-  moduleElements.settingsContainer.style.opacity = 1;
+  mElements.settingsContainer.insertAdjacentHTML('afterbegin', settingsErrorTemplate);
+  mElements.settingsContainer.style.opacity = 1;
 
-  document.querySelector(`#${moduleConfig.settingsContainerId} .settings-clear`).addEventListener('click', () =>
+  document.querySelector(`#${mConfig.settingsContainerId} .settings-clear`).addEventListener('click', () =>
   {
     localStorage.removeItem(KEY.UF_PLAYBACK_SETTINGS);
     localStorage.removeItem(KEY.UF_SITE_SETTINGS);
@@ -119,7 +121,7 @@ function writeSettings()
 {
   writeJson(KEY.UF_PLAYBACK_SETTINGS, playbackSettings);
   writeJson(KEY.UF_SITE_SETTINGS, siteSettings);
-  document.dispatchEvent(new Event(moduleConfig.settingsUpdatedEvent));
+  document.dispatchEvent(new Event(mConfig.settingsUpdatedEvent));
 }
 
 function resetSettings(settings, schema)
@@ -146,14 +148,14 @@ function setCurrentValues(settings, schema)
   });
 }
 
-function updateSettingsValues(settings, schema)
+function updateSettingsValues(settings, schema, idPrefix)
 {
   Object.keys(settings).forEach(key =>
   {
     if (key in schema)
     {
       const valueString = schema[key].valueStrings[getValueStringsIndex(schema[key], settings[key])];
-      document.getElementById(key).querySelector('.value-string').textContent = valueString;
+      document.getElementById(`${idPrefix}:${key}`).querySelector('.value-string').textContent = valueString;
     }
   });
 }
@@ -171,22 +173,22 @@ function getValueStringsIndex(schemaEntry, findValue)
 function insertSettingsHtml()
 {
   let html = `\n<h3>Playback</h3>\n<table class="playback-settings">\n<tbody>`;
-  Object.entries(settings.playbackSettingsSchema).forEach(entry => html += addTableRow(entry));
+  Object.entries(settings.playbackSettingsSchema).forEach(entry => html += addTableRow(mConfig.playbackIdPrefix, entry));
 
   html += `\n</tbody>\n</table>\n<h3>Site</h3>\n<table class="site-settings">\n<tbody>`;
-  Object.entries(settings.siteSettingsSchema).forEach(entry => html += addTableRow(entry));
+  Object.entries(settings.siteSettingsSchema).forEach(entry => html += addTableRow(mConfig.siteIdPrefix, entry));
 
   html += `\n</tbody>\n</table>\n`;
 
-  moduleElements.settingsContainer.insertAdjacentHTML('afterbegin', html);
-  Object.keys(settings.playbackSettingsSchema).forEach(key => document.getElementById(key).addEventListener('click', playbackSettingsClick));
-  Object.keys(settings.siteSettingsSchema).forEach(key => document.getElementById(key).addEventListener('click', siteSettingsClick));
+  mElements.settingsContainer.insertAdjacentHTML('afterbegin', html);
+  Object.keys(settings.playbackSettingsSchema).forEach(key => document.getElementById(`${mConfig.playbackIdPrefix}:${key}`).addEventListener('click', playbackSettingsClick));
+  Object.keys(settings.siteSettingsSchema).forEach(key => document.getElementById(`${mConfig.siteIdPrefix}:${key}`).addEventListener('click', siteSettingsClick));
 }
 
-function addTableRow(entry)
+function addTableRow(idPrefix, entry)
 {
   const html =
-    `\n<tr id="${entry[0]}" class="settings-entry">
+    `\n<tr id="${idPrefix}:${entry[0]}" class="settings-entry">
       <td class="description">${entry[1].description}</td>
       <td class="value-string">${entry[1].valueStrings[entry[1].current]}</td>
     </tr>`;
@@ -204,10 +206,11 @@ function siteSettingsClick(event)     { updateRowClicked(event, siteSettings.use
 
 function updateRowClicked(event, settings, schema)
 {
-  const element        = event.target.parentElement;
-  const schemaEntry    = schema[element.id];
-  schemaEntry.current  = ((schemaEntry.current + 1) < schemaEntry.values.length) ? schemaEntry.current + 1 : schemaEntry.current = 0;
-  settings[element.id] = schemaEntry.values[schemaEntry.current];
+  const element         = event.target.parentElement;
+  const settingsKey     = element.id.split(':')[1];
+  const schemaEntry     = schema[settingsKey];
+  schemaEntry.current   = ((schemaEntry.current + 1) < schemaEntry.values.length) ? schemaEntry.current + 1 : schemaEntry.current = 0;
+  settings[settingsKey] = schemaEntry.values[schemaEntry.current];
 
   element.querySelector('.value-string').textContent = schemaEntry.valueStrings[schemaEntry.current];
 }
@@ -221,10 +224,10 @@ function settingsSaveClick()
 function settingsResetClick()
 {
   resetSettings(playbackSettings.user, settings.playbackSettingsSchema);
-  updateSettingsValues(playbackSettings.user, settings.playbackSettingsSchema);
+  updateSettingsValues(playbackSettings.user, settings.playbackSettingsSchema, mConfig.playbackIdPrefix);
 
   resetSettings(siteSettings.user, settings.siteSettingsSchema);
-  updateSettingsValues(siteSettings.user, settings.siteSettingsSchema);
+  updateSettingsValues(siteSettings.user, settings.siteSettingsSchema, mConfig.siteIdPrefix);
 
-  snackbar.show('All settings reset', 5, 'Undo', () => location.reload(true), () => writeSettings());
+  snackbar.show('All settings reset', 5, 'Undo', () => location.reload(), () => writeSettings());
 }

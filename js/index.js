@@ -5,23 +5,23 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.12.3';
-import * as storage     from './common/storage.js?ver=1.12.3';
-import { siteSettings } from './common/settings.js?ver=1.12.3';
-import * as utils       from './common/utils.js?ver=1.12.3';
+import * as debugLogger from './common/debuglogger.js?ver=1.12.4';
+import * as storage     from './common/storage.js?ver=1.12.4';
+import { siteSettings } from './common/settings.js?ver=1.12.4';
+import * as utils       from './common/utils.js?ver=1.12.4';
 
 
 const debug  = debugLogger.getInstance('index');
 let settings = {};
 
-// Shared config for all, submodules can have local const config = {...}
-const moduleConfig = {
+// Module config, submodules can have local const config = {...}
+const mConfig = {
   smoothScrolling:      false,
   settingsUpdatedEvent: 'settingsUpdated',
 };
 
-// Shared DOM elements for all, submodules can have local const elements = {...}
-const moduleElements = {
+// Module DOM elements, submodules can have local const elements = {...}
+const mElements = {
   siteHeader:        null,
   introBanner:       null,
   siteContent:       null,
@@ -30,7 +30,7 @@ const moduleElements = {
 
 
 // ************************************************************************************************
-//  Document ready, keyboard events and event listeners
+//  Document ready and document / window event listeners
 // ************************************************************************************************
 
 document.addEventListener('DOMContentLoaded', () =>
@@ -40,13 +40,13 @@ document.addEventListener('DOMContentLoaded', () =>
   readSettings();
   initIndex();
   
-  if (moduleElements.introBanner !== null)
+  if (mElements.introBanner !== null)
     showIntroBanner();
   
   if (document.querySelector('#site-content form.search-form') !== null)
   {
-    moduleElements.siteContentSearch.focus();
-    moduleElements.siteContentSearch.setSelectionRange(9999, 9999);
+    mElements.siteContentSearch.focus();
+    mElements.siteContentSearch.setSelectionRange(9999, 9999);
   }
 
   resize.setTopMargin();
@@ -55,42 +55,7 @@ document.addEventListener('DOMContentLoaded', () =>
   setPreviousPageTitle();
 });
 
-document.addEventListener('keydown', (event) =>
-{
-  if ((event.ctrlKey === false) && (event.altKey === false))
-  {
-    switch (event.key)
-    {
-      case 's':
-      case 'S':
-        if ((navSearch.isVisible() === false) && (moduleElements.siteContentSearch !== document.activeElement))
-        {
-          event.preventDefault();
-          navSearch.toggle();
-        }
-        break;
-
-      case 'c':
-      case 'C':
-        if ((navSearch.isVisible() === false) && (moduleElements.siteContentSearch !== document.activeElement))
-        {
-          event.preventDefault();
-          navMenu.toggle();
-        }
-        break;
-
-      case 'Escape':
-        if (navMenu.isVisible())
-        {
-          event.preventDefault();
-          navMenu.toggle();
-        }
-        break;
-    }
-  }
-});
-
-document.addEventListener(moduleConfig.settingsUpdatedEvent, () =>
+document.addEventListener(mConfig.settingsUpdatedEvent, () =>
 {
   readSettings();
   siteTheme.setCurrent();
@@ -103,7 +68,7 @@ window.addEventListener('storage', windowEventStorage);
 
 
 // ************************************************************************************************
-// Index init and setup
+// Read settings and index init
 // ************************************************************************************************
 
 function readSettings()
@@ -117,10 +82,10 @@ function initIndex()
 {
   debug.log('initIndex()');
 
-  moduleElements.siteHeader        = document.getElementById('site-header');
-  moduleElements.introBanner       = document.getElementById('intro-banner');
-  moduleElements.siteContent       = document.getElementById('site-content');
-  moduleElements.siteContentSearch = document.querySelector('#site-content form input.search-field');
+  mElements.siteHeader        = document.getElementById('site-header');
+  mElements.introBanner       = document.getElementById('intro-banner');
+  mElements.siteContent       = document.getElementById('site-content');
+  mElements.siteContentSearch = document.querySelector('#site-content form input.search-field');
 
   trackShare.addEventListeners();
   resize.addEventListener();
@@ -130,6 +95,79 @@ function initIndex()
   navMenu.init();
   siteTheme.init();
   trackLayout.init();
+}
+
+
+// ************************************************************************************************
+// Keyboard events handling
+// ************************************************************************************************
+
+document.addEventListener('keydown', (event) =>
+{
+  // UI keyboard events (cannot be disable by the user)
+  if ((event.ctrlKey === false) && (event.altKey === false))
+  {
+    switch (event.key)
+    {
+      case 'Escape':
+        if (navMenu.isVisible())
+        {
+          event.preventDefault();
+          navMenu.toggle();
+        }
+        return;
+    }
+  }
+
+  // User enabled keyboard shortcuts (on by default)
+  if (settings.user.keyboardShortcuts && (event.ctrlKey === false) && (event.altKey === false))
+  {
+    switch (event.key)
+    {
+      case 'c':
+      case 'C':
+        if (searchNotFocused())
+        {
+          event.preventDefault();
+          navMenu.toggle();
+        }
+        break;
+
+      case 'L':
+        if (searchNotFocused() && notSettingsPage())
+        {
+          trackLayout.toggle(event, false);
+          resize.setTopMargin();
+        }
+        break;
+
+      case 's':
+      case 'S':
+        if (searchNotFocused())
+        {
+          event.preventDefault();
+          navSearch.toggle();
+        }
+        break;
+
+      case 'T':
+        if (searchNotFocused() && notSettingsPage())
+        {
+          siteTheme.toggle(event);
+        }
+        break;
+    }
+  }
+});
+
+function searchNotFocused()
+{
+  return ((navSearch.isVisible() === false) && (mElements.siteContentSearch !== document.activeElement));
+}
+
+function notSettingsPage()
+{
+  return (document.body.classList.contains('page-template-page-settings') === false);
 }
 
 
@@ -151,7 +189,7 @@ function windowEventStorage(event)
       readSettings();
   
       // Check what has changed (old settings vs. new settings) and update data / UI where needed
-      if (settings.user.siteTheme !== oldSettings.user.siteTheme)
+      if (settings.user.theme !== oldSettings.user.theme)
         siteTheme.setCurrent();
   
       if (settings.user.trackLayout !== oldSettings.user.trackLayout)
@@ -169,11 +207,11 @@ function showIntroBanner()
     {
       if (settings.priv.banners[bannerProperty]) // eslint-disable-line no-undef
       {
-        moduleElements.introBanner.style.display = 'block';
+        mElements.introBanner.style.display = 'block';
   
         utils.addEventListeners('#intro-banner .intro-banner-close-button', 'click', () =>
         {
-          moduleElements.introBanner.style.display = '';
+          mElements.introBanner.style.display = '';
           resize.setTopMargin();
           settings.priv.banners[bannerProperty] = false; // eslint-disable-line no-undef
         });
@@ -343,6 +381,7 @@ const siteTheme = (() =>
   return {
     init,
     setCurrent,
+    toggle,
   };
 
   function init()
@@ -356,7 +395,7 @@ const siteTheme = (() =>
   
   function setCurrent()
   {
-    currentTheme = getCurrentSetting(themes, settings.user.siteTheme, themes.auto);
+    currentTheme = getCurrentSetting(themes, settings.user.theme, themes.auto);
     updateData();
   }
   
@@ -370,7 +409,7 @@ const siteTheme = (() =>
   {
     event.preventDefault();
     currentTheme = getNextSetting(themes, currentTheme);
-    settings.user.siteTheme = currentTheme.id;
+    settings.user.theme = currentTheme.id;
     updateData();  
   }
   
@@ -425,6 +464,7 @@ const trackLayout = (() =>
   return {
     init,
     setCurrent,
+    toggle,
   };
 
   function init()
@@ -448,13 +488,13 @@ const trackLayout = (() =>
     event.matches ? document.documentElement.classList.remove(currentLayout.class) : document.documentElement.classList.add(currentLayout.class);
   }
   
-  function toggle(event)
+  function toggle(event, scrollIntoView = false)
   {
     event.preventDefault();
     currentLayout = getNextSetting(layouts, currentLayout);
     settings.user.trackLayout = currentLayout.id;
     updateData();
-    elements.toggle.scrollIntoView();
+    if (scrollIntoView) elements.toggle.scrollIntoView();
   }
   
   function updateData()
@@ -511,14 +551,14 @@ const navMenu = (() =>
 
   function toggle()
   {
-    if (moduleElements.siteHeader.classList.contains('sticky-nav-up'))
+    if (mElements.siteHeader.classList.contains('sticky-nav-up'))
     {
       isVisible ? elements.navMenu.style.display = 'none' : elements.navMenu.style.display = 'flex';
     }
     else
     {
-      if (moduleElements.siteHeader.classList.contains('sticky-nav-down') === false)
-        moduleElements.siteHeader.classList.toggle('hide-nav-menu');
+      if (mElements.siteHeader.classList.contains('sticky-nav-down') === false)
+        mElements.siteHeader.classList.toggle('hide-nav-menu');
     }
   }
 
@@ -600,7 +640,7 @@ const navSearch = (() =>
         {
           top:      0,
           left:     0,
-          behavior: (moduleConfig.smoothScrolling ? 'smooth' : 'auto'),
+          behavior: (mConfig.smoothScrolling ? 'smooth' : 'auto'),
         });
       }
   
@@ -700,17 +740,17 @@ const resize = (() =>
   {
     const contentMarginTop = utils.getCssPropValue('--site-content-margin-top');
     
-    if (moduleElements.siteHeader.classList.contains('hide-nav-menu'))
-      headerHeight = moduleElements.siteHeader.offsetHeight;
+    if (mElements.siteHeader.classList.contains('hide-nav-menu'))
+      headerHeight = mElements.siteHeader.offsetHeight;
 
-    if ((moduleElements.introBanner !== null) && (moduleElements.introBanner.style.display.length !== 0))
+    if ((mElements.introBanner !== null) && (mElements.introBanner.style.display.length !== 0))
     {
-      moduleElements.introBanner.style.marginTop = `${headerHeight}px`;
-      moduleElements.siteContent.style.marginTop = `${contentMarginTop}px`;
+      mElements.introBanner.style.marginTop = `${headerHeight}px`;
+      mElements.siteContent.style.marginTop = `${contentMarginTop}px`;
     }
     else
     {
-      moduleElements.siteContent.style.marginTop = `${headerHeight + contentMarginTop}px`;
+      mElements.siteContent.style.marginTop = `${headerHeight + contentMarginTop}px`;
     }
   }
 })();
@@ -753,8 +793,8 @@ const scroll = (() =>
 
   function scrolledTop()
   {
-    moduleElements.siteHeader.classList.remove('sticky-nav-down', 'sticky-nav-up');
-    moduleElements.siteHeader.classList.add('hide-nav-menu');
+    mElements.siteHeader.classList.remove('sticky-nav-down', 'sticky-nav-up');
+    mElements.siteHeader.classList.add('hide-nav-menu');
     navMenu.scrolledTop();
     resize.setTopMargin();
   }
@@ -764,7 +804,7 @@ const scroll = (() =>
     if (isScrolledDown === false)
     {
       isScrolledDown = true;
-      utils.replaceClass(moduleElements.siteHeader, 'sticky-nav-up', 'sticky-nav-down');
+      utils.replaceClass(mElements.siteHeader, 'sticky-nav-up', 'sticky-nav-down');
     }
   }
 
@@ -773,7 +813,7 @@ const scroll = (() =>
     if (isScrolledDown === true)
     {
       isScrolledDown = false;
-      utils.replaceClass(moduleElements.siteHeader, 'sticky-nav-down', 'sticky-nav-up');
+      utils.replaceClass(mElements.siteHeader, 'sticky-nav-down', 'sticky-nav-up');
     }
 
     if (navMenu.isVisible())

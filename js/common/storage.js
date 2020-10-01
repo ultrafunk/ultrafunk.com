@@ -6,7 +6,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.12.3';
+import * as debugLogger from '../common/debuglogger.js?ver=1.12.4';
 
 
 export {

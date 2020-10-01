@@ -18,6 +18,7 @@ export {
 // ************************************************************************************************
 
 const playbackSettingsSchema = {
+  keyboardShortcuts:      { description: 'Keyboard Shortcuts',                 values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
   masterVolume:           { description: 'Master Volume',                      values: [0, 25, 50, 75, 100],    default: 100,   valueStrings: ['0%', '25%', '50%', '75%', '100%'] },
   masterMute:             { description: 'Master Mute',                        values: [true, false],           default: false, valueStrings: ['ON', 'OFF'] },
   autoPlay:               { description: 'Autoplay next track',                values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
@@ -42,10 +43,11 @@ const playbackSettingsSchema = {
 
 const playbackSettings = {
   // Incremental version to check for new properties
-  version:           20,
+  version:           21,
   storageChangeSync: false,
   // User (public) settings
   user: {
+    keyboardShortcuts:      playbackSettingsSchema.keyboardShortcuts.default,
     masterVolume:           playbackSettingsSchema.masterVolume.default,
     masterMute:             playbackSettingsSchema.masterMute.default,
     autoPlay:               playbackSettingsSchema.autoPlay.default,
@@ -84,20 +86,22 @@ const playbackSettings = {
 // ************************************************************************************************
 
 const siteSettingsSchema = {
-  siteTheme:     { description: 'Theme',                                    values: ['light', 'dark', 'auto'],             default: 'auto',     valueStrings: ['LIGHT', 'DARK', 'AUTO / SYSTEM']         },
-  trackLayout:   { description: 'Track Layout',                             values: ['list', '2-column', '3-column'],      default: '3-column', valueStrings: ['LIST', '2 COLUMN', '3 / 4 COLUMN']       },
-  tracksPerPage: { description: 'Tracks Per Page for Search &amp; Shuffle', values: [...Array(22).keys()].map(i => i + 3), default: 12,         valueStrings: [...Array(22).keys()].map(i => `${i + 3}`) },
+  theme:             { description: 'Theme',                                    values: ['light', 'dark', 'auto'],             default: 'auto',     valueStrings: ['LIGHT', 'DARK', 'AUTO / SYSTEM']         },
+  trackLayout:       { description: 'Track Layout',                             values: ['list', '2-column', '3-column'],      default: '3-column', valueStrings: ['LIST', '2 COLUMN', '3 / 4 COLUMN']       },
+  tracksPerPage:     { description: 'Tracks Per Page for Search &amp; Shuffle', values: [...Array(22).keys()].map(i => i + 3), default: 12,         valueStrings: [...Array(22).keys()].map(i => `${i + 3}`) },
+  keyboardShortcuts: { description: 'Keyboard Shortcuts',                       values: [true, false],                         default: true,       valueStrings: ['ON', 'OFF']                              },
 };
 
 const siteSettings = {
   // Incremental version to check for new properties
-  version:           5,
+  version:           6,
   storageChangeSync: false,
   // User (public) settings
   user: {
-    siteTheme:     siteSettingsSchema.siteTheme.default,
-    trackLayout:   siteSettingsSchema.trackLayout.default,
-    tracksPerPage: siteSettingsSchema.tracksPerPage.default,
+    theme:             siteSettingsSchema.theme.default,
+    trackLayout:       siteSettingsSchema.trackLayout.default,
+    tracksPerPage:     siteSettingsSchema.tracksPerPage.default,
+    keyboardShortcuts: siteSettingsSchema.keyboardShortcuts.default,
   },
   // Priv (private / internal) settings
   priv: {
