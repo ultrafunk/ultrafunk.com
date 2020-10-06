@@ -27,6 +27,9 @@ function pre_wp_head()
   $version      = get_version();
   $template_uri = esc_url(get_template_directory_uri());
 
+  if (is_shuffle())
+    echo '<meta name="robots" content="noindex">' . PHP_EOL;
+
   ?>
   <script>
     const siteTheme        = localStorage.getItem('UF_SITE_THEME');

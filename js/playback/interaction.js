@@ -5,13 +5,13 @@
 //
 
 
-import * as debugLogger          from '../common/debuglogger.js?ver=1.12.4';
-import * as storage              from '../common/storage.js?ver=1.12.4';
-import { playbackSettings }      from '../common/settings.js?ver=1.12.4';
-import * as utils                from '../common/utils.js?ver=1.12.4';
-import * as eventLogger          from './eventlogger.js?ver=1.12.4';
-import * as playback             from './playback.js?ver=1.12.4';
-import { updateProgressPercent } from './playback-controls.js?ver=1.12.4';
+import * as debugLogger          from '../common/debuglogger.js?ver=1.12.5';
+import * as storage              from '../common/storage.js?ver=1.12.5';
+import { playbackSettings }      from '../common/settings.js?ver=1.12.5';
+import * as utils                from '../common/utils.js?ver=1.12.5';
+import * as eventLogger          from './eventlogger.js?ver=1.12.5';
+import * as playback             from './playback.js?ver=1.12.5';
+import { updateProgressPercent } from './playback-controls.js?ver=1.12.5';
 
 
 const debug              = debugLogger.getInstance('interaction');

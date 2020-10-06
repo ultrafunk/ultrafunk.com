@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.12.4';
+import * as debugLogger from '../common/debuglogger.js?ver=1.12.5';
 
 
 export {
@@ -97,6 +97,14 @@ function replaceClass(element, removeClass, addClass)
   element.classList.add(addClass);
 }
 
+function disablePageScrolling(disable)
+{
+  const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+  document.body.style.overflow     = disable ? 'hidden' : '';
+  document.body.style.paddingRight = disable ? `${scrollbarWidth}px` : '';
+  document.getElementById('site-header').style.paddingRight = disable ? `${scrollbarWidth}px` : '';
+}
+
 
 // ************************************************************************************************
 // Modal dialog UI module
@@ -138,6 +146,7 @@ const modal = (() =>
     elements.overlay.classList.add('show');
     elements.overlay.addEventListener('keydown', keyDown);
     elements.overlay.focus();
+    disablePageScrolling(true);
   }
 
   function init()
@@ -159,7 +168,10 @@ const modal = (() =>
       elements.overlay.addEventListener('animationend', () =>
       {
         if (elements.overlay.classList.contains('hide'))
+        {
           elements.overlay.className = '';
+          disablePageScrolling(false);
+        }
       });
 
       elements.overlay.querySelector(`.${config.id}-close-button`).addEventListener('click', close);
@@ -188,7 +200,7 @@ const modal = (() =>
 
     if (event.key === 'Escape')
       close();
-}
+  }
 
   function close()
   {

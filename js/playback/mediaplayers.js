@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.12.4';
+import * as debugLogger from '../common/debuglogger.js?ver=1.12.5';
 
 
 export {
@@ -114,15 +114,15 @@ class YouTube extends MediaPlayer
 
   //
   // ToDo: Remove if no longer needed??
-  // Handles YouTube iframe API edge case that causes embedded playback errors that only happen on Firefox...
+  // Handles YouTube iframe API edge case that causes playVideo() to silently fail with no API errors
   //
-  playbackError(errorHandler)
+  isPlaybackError(errorHandler)
   {
     debug.log(`YouTube.play() - current playerState: ${this.embeddedPlayer.getPlayerState()} - previous playerState: ${this.previousPlayerState} - playable: ${this.playable}`);
 
     if ((this.embeddedPlayer.getPlayerState() === -1) && (this.previousPlayerState === -1) && (this.playable === true))
     {
-      debug.warn(`YouTube.play() - Unable to play track: ${this.getArtist()} - "${this.getTitle()}" with videoId: ${this.embeddedPlayer.getVideoData().video_id} -- No YouTube API error given!`);
+      debug.warn(`MediaPlayer.YouTube.play() - Unable to play track: ${this.getArtist()} - "${this.getTitle()}" with videoId: ${this.embeddedPlayer.getVideoData().video_id} -- No YouTube API error given!`);
 
       this.playable = false;
       errorHandler(this, this.embeddedPlayer.getVideoUrl());
@@ -137,7 +137,7 @@ class YouTube extends MediaPlayer
 
   play(errorHandler)
   {
-    if (this.playbackError(errorHandler) === false)
+    if (this.isPlaybackError(errorHandler) === false)
     {
       if (this.playable === true)
         this.embeddedPlayer.playVideo();

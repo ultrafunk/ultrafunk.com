@@ -168,8 +168,18 @@ class Request
 //
 function set_cookie($uid)
 {
-  if (!isset($_COOKIE['ultrafunk_uid']))
-    setcookie('ultrafunk_uid', $uid, (time() + (60 * 60 * 24 * 30)), '/shuffle/'); // 1 month expiry time + /shuffle/ path
+  if (!isset($_COOKIE['UF_SHUFFLE_UID']))
+  {
+    $options = array(
+      'expires'  => (time() + (60 * 60 * 24 * 30)),
+      'path'     => '/shuffle/',
+      'secure'   => true,
+      'httponly' => false,
+      'samesite' => 'Strict',
+    );
+    
+    setcookie('UF_SHUFFLE_UID', $uid, $options);
+  }
 }
 
 //
@@ -177,9 +187,9 @@ function set_cookie($uid)
 //
 function get_transient_name()
 {
-  if (isset($_COOKIE['ultrafunk_uid']))
+  if (isset($_COOKIE['UF_SHUFFLE_UID']))
   {
-    $cookie = sanitize_user(wp_unslash($_COOKIE['ultrafunk_uid']), true);
+    $cookie = sanitize_user(wp_unslash($_COOKIE['UF_SHUFFLE_UID']), true);
     
     if (strlen($cookie) < 50)
       return sprintf('random_shuffle_%s', $cookie);
