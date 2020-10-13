@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.12.5';
+import * as debugLogger from '../common/debuglogger.js';
 
 
 export {
@@ -16,6 +16,9 @@ export {
   Interaction,
   Playback,
 };
+
+
+/*************************************************************************************************/
 
 
 const debug = debugLogger.getInstance('eventlogger');

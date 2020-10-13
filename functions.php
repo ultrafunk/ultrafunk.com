@@ -94,11 +94,10 @@ function ultrafunk_scripts()
   
   wp_enqueue_style('google-fonts-material-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons&display=block', array(), null);
   wp_enqueue_script('soundcloud-api-script', 'https://w.soundcloud.com/player/api.js', array(), null);
-  wp_enqueue_style('playback-controls-style', get_theme_file_uri('/js/playback/playback-controls.css'), array(), $version);
-  wp_enqueue_style('utils-style', get_theme_file_uri('/js/common/utils.css'), array(), $version);
-  wp_enqueue_script('interaction-script', get_theme_file_uri('/js/playback/interaction.js'), array(), $version);
-  wp_enqueue_style('ultrafunk-style', get_stylesheet_uri(), array(), $version);
-  wp_enqueue_script('ultrafunk-script', get_theme_file_uri('/js/index.js'), array(), $version);
+  wp_enqueue_style('js-bundle-style', get_theme_file_uri('/js/dist/css/bundle.min.css'), array(), $version);
+  wp_enqueue_script('interaction-script', get_theme_file_uri('/js/dist/playback/interaction.js'), array(), $version);
+  wp_enqueue_style('ultrafunk-style', get_theme_file_uri('style.min.css'), array(), $version);
+  wp_enqueue_script('ultrafunk-script', get_theme_file_uri('/js/dist/index.js'), array(), $version);
   \Ultrafunk\ThemeFunctions\enqueue_style_track_layout($version);
   wp_localize_script('interaction-script', 'navigationVars', \Ultrafunk\ThemeFunctions\get_prev_next_urls());
 }

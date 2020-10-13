@@ -6,7 +6,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.12.5';
+import * as debugLogger from '../common/debuglogger.js';
 
 
 export {
@@ -24,6 +24,9 @@ export {
   addSettingsObserver,
   parseEventData,
 };
+
+
+/*************************************************************************************************/
 
 
 const debug     = debugLogger.getInstance('storage');

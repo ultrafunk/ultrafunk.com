@@ -5,9 +5,9 @@
 //
 
 
-import * as debugLogger        from '../common/debuglogger.js?ver=1.12.5';
-import { addSettingsObserver } from '../common/storage.js?ver=1.12.5';
-import { replaceClass }        from '../common/utils.js?ver=1.12.5';
+import * as debugLogger        from '../common/debuglogger.js';
+import { addSettingsObserver } from '../common/storage.js';
+import { replaceClass }        from '../common/utils.js';
 
 
 export {
@@ -24,6 +24,9 @@ export {
   blinkPlayPause,
   updateNextState,
 };
+
+
+/*************************************************************************************************/
 
 
 const debug  = debugLogger.getInstance('playback-ctrls');
@@ -60,9 +63,6 @@ function init(playbackConfig, playbackSettings, seekClickCallback, crossfadeClic
 {
   config   = playbackConfig;
   settings = playbackSettings;
-
-  // Quick'n'dirty preload of this single CSS background image...
-  new Image().src = "/wp-content/themes/ultrafunk/inc/img/play_pause_bg_filler.png";
 
   const playbackProgress = document.getElementById(config.progressControlsId);
 

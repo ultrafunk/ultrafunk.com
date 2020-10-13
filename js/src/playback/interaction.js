@@ -5,13 +5,21 @@
 //
 
 
-import * as debugLogger          from '../common/debuglogger.js?ver=1.12.5';
-import * as storage              from '../common/storage.js?ver=1.12.5';
-import { playbackSettings }      from '../common/settings.js?ver=1.12.5';
-import * as utils                from '../common/utils.js?ver=1.12.5';
-import * as eventLogger          from './eventlogger.js?ver=1.12.5';
-import * as playback             from './playback.js?ver=1.12.5';
-import { updateProgressPercent } from './playback-controls.js?ver=1.12.5';
+import * as debugLogger          from '../common/debuglogger.js';
+import * as eventLogger          from './eventlogger.js';
+import * as playback             from './playback.js';
+import * as utils                from '../common/utils.js';
+import { updateProgressPercent } from './playback-controls.js';
+import { playbackSettings }      from '../common/settings.js';
+
+import {
+  KEY,
+  readWriteSettingsProxy,
+  parseEventData,
+} from '../common/storage.js';
+
+
+/*************************************************************************************************/
 
 
 const debug              = debugLogger.getInstance('interaction');
@@ -73,7 +81,7 @@ document.addEventListener(mConfig.denyKeyboardShortcutsEvent,  () => { if (setti
 function readSettings()
 {
   debug.log('readSettings()');
-  settings = storage.readWriteSettingsProxy(storage.KEY.UF_PLAYBACK_SETTINGS, playbackSettings);
+  settings = readWriteSettingsProxy(KEY.UF_PLAYBACK_SETTINGS, playbackSettings);
   debug.log(settings);
 }
 
@@ -621,7 +629,7 @@ function windowEventStorage(event)
 {
   if (settings.storageChangeSync)
   {
-    const oldSettings = storage.parseEventData(event, storage.KEY.UF_PLAYBACK_SETTINGS);
+    const oldSettings = parseEventData(event, KEY.UF_PLAYBACK_SETTINGS);
 
     if (oldSettings !== null)
     {

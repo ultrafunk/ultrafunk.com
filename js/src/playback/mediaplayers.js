@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js?ver=1.12.5';
+import * as debugLogger from '../common/debuglogger.js';
 
 
 export {
@@ -18,6 +18,9 @@ export {
   getPlayers,
   setArtistTitle,
 };
+
+
+/*************************************************************************************************/
 
 
 const debug  = debugLogger.getInstance('mediaplayers');

@@ -1,7 +1,9 @@
 /*
- * Theme CSS when JavaScript is disabled or not available, tries to degrade gracefully when possible
- *
- */
+* Theme CSS when JavaScript is disabled or not available, tries to degrade gracefully when possible
+*
+* https://ultrafunk.com
+*
+*/
 
 :root {
   --site-header-full: 0px;

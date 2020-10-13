@@ -56,14 +56,6 @@ function pre_wp_head()
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://s.ytimg.com" crossorigin>
-  <link rel="preload" href="<?php echo $template_uri . '/js/common/debuglogger.js?ver='         . $version; ?>" as="script" crossorigin>
-  <link rel="preload" href="<?php echo $template_uri . '/js/common/settings.js?ver='            . $version; ?>" as="script" crossorigin>
-  <link rel="preload" href="<?php echo $template_uri . '/js/common/storage.js?ver='             . $version; ?>" as="script" crossorigin>
-  <link rel="preload" href="<?php echo $template_uri . '/js/common/utils.js?ver='               . $version; ?>" as="script" crossorigin>
-  <link rel="preload" href="<?php echo $template_uri . '/js/playback/eventlogger.js?ver='       . $version; ?>" as="script" crossorigin>
-  <link rel="preload" href="<?php echo $template_uri . '/js/playback/mediaplayers.js?ver='      . $version; ?>" as="script" crossorigin>
-  <link rel="preload" href="<?php echo $template_uri . '/js/playback/playback-controls.js?ver=' . $version; ?>" as="script" crossorigin>
-  <link rel="preload" href="<?php echo $template_uri . '/js/playback/playback.js?ver='          . $version; ?>" as="script" crossorigin>
   <?php
 }
 

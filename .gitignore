@@ -1,11 +1,5 @@
 .git/
 .vscode/
 .VSCodeCounter/
-dist/
-docs/
 /img/
 node_modules/
-plugins/
-scripts/
-src/
-package-lock.json

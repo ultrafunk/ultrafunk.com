@@ -5,10 +5,13 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js?ver=1.12.5';
-import * as storage     from './common/storage.js?ver=1.12.5';
-import { siteSettings } from './common/settings.js?ver=1.12.5';
-import * as utils       from './common/utils.js?ver=1.12.5';
+import * as debugLogger from './common/debuglogger.js';
+import * as storage     from './common/storage.js';
+import * as utils       from './common/utils.js';
+import { siteSettings } from './common/settings.js';
+
+
+/*************************************************************************************************/
 
 
 const debug  = debugLogger.getInstance('index');

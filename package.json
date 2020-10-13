@@ -1,13 +1,17 @@
 {
   "name": "ultrafunk.com",
-  "version": "1.12.5",
-  "description": "WordPress theme",
+  "version": "1.13.0",
+  "description": "WordPress theme / PWA",
   "homepage": "https://github.com/ultrafunk/ultrafunk.com",
   "repository": "git@github.com:ultrafunk/ultrafunk.com.git",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "minify": "scripts\\minify.bat"
+    "build-js": "node_modules\\.bin\\esbuild --outdir=js\\dist --bundle --minify --format=esm --sourcemap js\\src\\index.js js\\src\\playback\\interaction.js js\\src\\common\\settings-ui.js",
+    "build-js-css": "node_modules\\.bin\\esbuild --outfile=js\\dist\\css\\bundle.min.css --bundle --minify --loader:.png=dataurl js\\src\\css\\bundle.css",
+    "build-css": "node_modules\\.bin\\esbuild --outfile=style.min.css --bundle --minify --external:inc/img/iframe_placeholder_light.png --external:inc/img/iframe_placeholder_dark.png style.css",
+    "build": "start /min cmd /c npm run build-js && start /min cmd /c npm run build-js-css && start /min cmd /c npm run build-css",
+    "linux-build": "npm run build-js & npm run build-js-css & npm run build-css"
   },
   "keywords": [],
   "author": {
@@ -16,6 +20,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "eslint": "^7.10.0"
+    "esbuild": "^0.7.14",
+    "eslint": "^7.11.0"
   }
 }

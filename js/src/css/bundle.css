@@ -1,0 +1,10 @@
+/*
+* Used to bundle all JS-CSS files on build
+*
+* https://ultrafunk.com
+*
+*/
+
+@import '..\\js\\src\\css\\playback-controls.css';
+@import '..\\js\\src\\css\\settings-ui.css';
+@import '..\\js\\src\\css\\utils.css';

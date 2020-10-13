@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger  from '../common/debuglogger.js?ver=1.12.5';
-import * as mediaPlayers from './mediaplayers.js?ver=1.12.5';
-import * as controls     from './playback-controls.js?ver=1.12.5';
-import * as eventLogger  from './eventlogger.js?ver=1.12.5';
+import * as debugLogger  from '../common/debuglogger.js';
+import * as mediaPlayers from './mediaplayers.js';
+import * as controls     from './playback-controls.js';
+import * as eventLogger  from './eventlogger.js';
 
 
 export {
@@ -28,6 +28,9 @@ export {
   getStatus,
   resumeAutoPlay,
 };
+
+
+/*************************************************************************************************/
 
 
 const debug           = debugLogger.getInstance('playback');
