@@ -7,7 +7,7 @@
 
 import * as debugLogger from '../common/debuglogger.js';
 import * as settings    from '../common/settings.js';
-import { snackbar }     from '../common/utils.js';
+import { showSnackbar } from '../common/snackbar.js';
 
 import {
   KEY,
@@ -20,7 +20,7 @@ import {
 /*************************************************************************************************/
 
 
-const debug          = debugLogger.getInstance('settings');
+const debug          = debugLogger.getInstance('settings-ui');
 let playbackSettings = null;
 let siteSettings     = null;
 
@@ -105,9 +105,9 @@ function readSettingsError()
     readSettings();
 
     if ((playbackSettings !== null) && (siteSettings !== null))
-      snackbar.show('All settings have been cleared', 5, 'Reload', () => { window.location.href = '/settings/'; }, () => { window.location.href = '/settings/'; });
+      showSnackbar('All settings have been cleared', 5, 'Reload', () => { window.location.href = '/settings/'; }, () => { window.location.href = '/settings/'; });
     else
-      snackbar.show('Sorry, unable to clear all settings', 5);
+      showSnackbar('Sorry, unable to clear all settings', 5);
   });
 }
 
@@ -117,8 +117,8 @@ function readSettingsError()
 
 function readSettings()
 {
-  playbackSettings = readJson(KEY.UF_PLAYBACK_SETTINGS, settings.playbackSettings);
-  siteSettings     = readJson(KEY.UF_SITE_SETTINGS, settings.siteSettings);
+  playbackSettings = readJson(KEY.UF_PLAYBACK_SETTINGS, null, false);
+  siteSettings     = readJson(KEY.UF_SITE_SETTINGS,     null, false);
 }
 
 function writeSettings()
@@ -222,7 +222,7 @@ function updateRowClicked(event, settings, schema)
 function settingsSaveClick()
 {
   writeSettings();
-  snackbar.show('Settings saved successfully', 3);
+  showSnackbar('Settings saved successfully', 3);
 }
 
 function settingsResetClick()
@@ -233,5 +233,5 @@ function settingsResetClick()
   resetSettings(siteSettings.user, settings.siteSettingsSchema);
   updateSettingsValues(siteSettings.user, settings.siteSettingsSchema, mConfig.siteIdPrefix);
 
-  snackbar.show('All settings reset', 5, 'Undo', () => location.reload(), () => writeSettings());
+  showSnackbar('All settings reset', 5, 'Undo', () => location.reload(), () => writeSettings());
 }

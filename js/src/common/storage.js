@@ -94,7 +94,7 @@ function deleteCookie(keyName, path = '/')
 // get / set local storage key => value pairs
 // ************************************************************************************************
 
-function getValue(keyName, defaultValue = null, setDefault = true)
+function getValue(keyName, defaultValue = null, setDefault = false)
 {
   const keyValue = localStorage.getItem(keyName);
 
@@ -102,7 +102,7 @@ function getValue(keyName, defaultValue = null, setDefault = true)
   {
     if (setDefault && (defaultValue !== null))
       setValue(keyName, defaultValue);
-    
+
     return defaultValue;
   }
   
@@ -126,7 +126,7 @@ function setValue(keyName, keyValue)
 // Read (parse) and write (stringify) JSON data from local storage
 // ************************************************************************************************
 
-function readJson(keyName, defaultValue = null, setDefault = true)
+function readJson(keyName, defaultValue = null, setDefault = false)
 {
   debug.log(`readJson(): ${keyName} - ${defaultValue} - ${setDefault}`);
   
@@ -149,6 +149,10 @@ function readJson(keyName, defaultValue = null, setDefault = true)
     catch(exception)
     {
       debug.error(exception);
+
+      // ToDo: Return error state to specify (for the user) that default settings are used??
+      if (defaultValue !== null)
+        parsedKeyValue = defaultValue;
     }
   }
 
@@ -227,7 +231,7 @@ function removeOrphanedObjectProps(oldObject, newObject, keyName)
 // Read and write settings proxy
 // ************************************************************************************************
 
-function readWriteSettingsProxy(settingsKey, defaultSettings = null, setDefault = true)
+function readWriteSettingsProxy(settingsKey, defaultSettings = null, setDefault = false)
 {
   const parsedJson = readJson(settingsKey, defaultSettings, setDefault);
 

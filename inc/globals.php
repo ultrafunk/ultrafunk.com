@@ -8,9 +8,13 @@
 namespace Ultrafunk\Globals;
 
 
+// Overridden in preload-chunk.php, this is the fallback value
+$ultrafunk_is_prod_build = false;
+
+
 class Globals
 {
-  public static $version = '1.13.0';
+  public static $version = '1.13.2';
 
   public static $dev_prod_consts = array(
     'menu_item_all_id'         => WP_DEBUG ?  115 :  115,

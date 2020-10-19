@@ -9,7 +9,6 @@ namespace Ultrafunk\ThemeTags;
 
 
 use function Ultrafunk\Globals\ {
-  get_version,
   is_shuffle,
   get_dev_prod_const,
   get_perf_data
@@ -24,9 +23,6 @@ use function Ultrafunk\ThemeFunctions\ {
 
 function pre_wp_head()
 {
-  $version      = get_version();
-  $template_uri = esc_url(get_template_directory_uri());
-
   if (is_shuffle())
     echo '<meta name="robots" content="noindex">' . PHP_EOL;
 
@@ -57,6 +53,11 @@ function pre_wp_head()
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://s.ytimg.com" crossorigin>
   <?php
+
+  global $ultrafunk_is_prod_build, $ultrafunk_js_preload_chunk;
+
+  if (!empty($ultrafunk_js_preload_chunk) && (true === $ultrafunk_is_prod_build))
+    echo '<link rel="preload" href="' . esc_url(get_template_directory_uri()) . $ultrafunk_js_preload_chunk . '" as="script" crossorigin>' . PHP_EOL;
 }
 
 function head()
@@ -401,11 +402,12 @@ function content_widgets()
 
 function perf_results()
 {
+  global $ultrafunk_is_prod_build;
   $perf_data = get_perf_data();
 
   if (true === $perf_data['display_perf_results'])
   {
-    $results = get_num_queries() . ' queries in ' . timer_stop(0) . ' seconds';
+    $results = ((true === $ultrafunk_is_prod_build) ? 'PROD - ' : 'DEV - ') . get_num_queries() . ' queries in ' . timer_stop(0) . ' seconds';
 
     if (is_shuffle())
       $results .= ' - cRndTrans: ' . $perf_data['create_rnd_transient'] . ' ms - gRndTrans: ' . $perf_data['get_rnd_transient'] . ' ms';

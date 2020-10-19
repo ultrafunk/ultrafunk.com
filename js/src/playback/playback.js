@@ -5,10 +5,11 @@
 //
 
 
-import * as debugLogger  from '../common/debuglogger.js';
-import * as mediaPlayers from './mediaplayers.js';
-import * as controls     from './playback-controls.js';
-import * as eventLogger  from './eventlogger.js';
+import * as debugLogger   from '../common/debuglogger.js';
+import * as mediaPlayers  from './mediaplayers.js';
+import * as controls      from './playback-controls.js';
+import * as eventLogger   from './eventlogger.js';
+import { CROSSFADE_TYPE } from './crossfade.js';
 
 
 export {
@@ -81,7 +82,9 @@ function init(playbackSettings)
   settings = playbackSettings;
 
   controls.init(mConfig, settings, seekClick, trackCrossfadeClick);
-  players = mediaPlayers.getPlayers(mConfig, settings, playTrack);
+  
+  players = mediaPlayers.getInstance();
+  players.init(mConfig, settings, playTrack);
 
   initYouTubeAPI();
   initSoundCloudAPI();
@@ -340,7 +343,7 @@ function trackCrossfadeClick(fadeInIframeId)
         const timeRemaining = players.current.getDuration() - (positionMilliseconds / 1000);
 
         if (timeRemaining >= (mConfig.minTrackCrossfadeTime + mConfig.maxBufferingDelay))
-          crossfadeInit(mediaPlayers.CROSSFADE_TYPE.TRACK, settings.trackCrossfadeCurve, fadeInUid);
+          crossfadeInit(CROSSFADE_TYPE.TRACK, settings.trackCrossfadeCurve, fadeInUid);
       });
     }
   }
@@ -503,7 +506,7 @@ const playbackTimer = (() =>
       if ((durationSeconds - positionSeconds) === (settings.autoCrossfadeLength + mConfig.maxBufferingDelay))
       {
         if ((players.getCurrentTrack() + 1) <= players.getNumTracks())
-          crossfadeInit(mediaPlayers.CROSSFADE_TYPE.AUTO, settings.autoCrossfadeCurve);
+          crossfadeInit(CROSSFADE_TYPE.AUTO, settings.autoCrossfadeCurve);
       }
     }
   }

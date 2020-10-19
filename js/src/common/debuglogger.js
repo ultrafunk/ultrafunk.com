@@ -5,7 +5,10 @@
 //
 
 
-export { getInstance, logErrorOnServer };
+export {
+  getInstance,
+  logErrorOnServer,
+};
 
 
 /*************************************************************************************************/

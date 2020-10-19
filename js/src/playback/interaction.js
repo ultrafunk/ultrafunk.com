@@ -5,12 +5,13 @@
 //
 
 
-import * as debugLogger          from '../common/debuglogger.js';
-import * as eventLogger          from './eventlogger.js';
-import * as playback             from './playback.js';
-import * as utils                from '../common/utils.js';
-import { updateProgressPercent } from './playback-controls.js';
-import { playbackSettings }      from '../common/settings.js';
+import * as debugLogger               from '../common/debuglogger.js';
+import * as eventLogger               from './eventlogger.js';
+import * as playback                  from './playback.js';
+import * as utils                     from '../common/utils.js';
+import { showSnackbar }               from '../common/snackbar.js';
+import { updateProgressPercent }      from './playback-controls.js';
+import { playbackSettings, validate } from '../common/settings.js';
 
 import {
   KEY,
@@ -81,7 +82,8 @@ document.addEventListener(mConfig.denyKeyboardShortcutsEvent,  () => { if (setti
 function readSettings()
 {
   debug.log('readSettings()');
-  settings = readWriteSettingsProxy(KEY.UF_PLAYBACK_SETTINGS, playbackSettings);
+  settings = readWriteSettingsProxy(KEY.UF_PLAYBACK_SETTINGS, playbackSettings, true);
+  validate(settings.user, KEY.UF_PLAYBACK_SETTINGS);
   debug.log(settings);
 }
 
@@ -151,7 +153,7 @@ document.addEventListener('keydown', (event) =>
       case 'M':
         event.preventDefault();
         playback.toggleMute();
-        utils.snackbar.show(settings.user.masterMute ? 'Volume is muted (<b>m</b> to unmute)' : 'Volume is unmuted (<b>m</b> to mute)', 3);
+        showSnackbar(settings.user.masterMute ? 'Volume is muted (<b>m</b> to unmute)' : 'Volume is unmuted (<b>m</b> to mute)', 3);
         break;
 
       case 'x':
@@ -253,7 +255,7 @@ function showInteractionHint(hintProperty, hintText, snackbarTimeout = 0)
 {
   if (settings.priv[hintProperty])
   {
-    utils.snackbar.show(hintText, snackbarTimeout);
+    showSnackbar(hintText, snackbarTimeout);
     settings.priv[hintProperty] = false;
   }
 }
@@ -414,7 +416,7 @@ const playbackEvents = (() =>
   {
     debugEvent(playbackEvent);
   
-    utils.snackbar.show('Autoplay was blocked, click or tap Play to continue...', 30, 'play', () =>
+    showSnackbar('Autoplay was blocked, click or tap Play to continue...', 30, 'play', () =>
     {
       if (playback.getStatus().isPlaying === false)
         playback.togglePlayPause();
@@ -425,7 +427,7 @@ const playbackEvents = (() =>
   {
     debugEvent(playbackEvent, eventData);
   
-    utils.snackbar.show('Unable to play track, skipping to next...', 5);
+    showSnackbar('Unable to play track, skipping to next...', 5);
     playbackEventErrorTryNext(eventData, 5);
   }
   
@@ -435,12 +437,12 @@ const playbackEvents = (() =>
   
     if (isPremiumTrack(eventData.postId))
     {
-      utils.snackbar.show('YouTube Premium track, skipping...', 5, 'help',  () => { window.location.href = '/channel/premium/'; });
+      showSnackbar('YouTube Premium track, skipping...', 5, 'help',  () => { window.location.href = '/channel/premium/'; });
       playbackEventErrorTryNext(eventData, 5);
     }
     else
     {
-      utils.snackbar.show('Unable to play track, skipping to next...', 5);
+      showSnackbar('Unable to play track, skipping to next...', 5);
       debugLogger.logErrorOnServer('EVENT_MEDIA_UNAVAILABLE', eventData);
       playbackEventErrorTryNext(eventData, 5);
     }
@@ -533,14 +535,14 @@ const screenWakeLock = (() =>
         if (await request() !== true)
         {
           debug.log('screenWakeLock.enable(): Screen Wake Lock request failed');
-        //utils.snackbar.show('Keep Screen On failed', 3);
+        //showSnackbar('Keep Screen On failed', 3);
         }
       }
     }
     else
     {
       debug.log('screenWakeLock.enable(): Screen Wake Lock is not supported');
-      utils.snackbar.show('Keep Screen On is not supported', 5, 'Turn Off', () => settings.user.keepMobileScreenOn = false);
+      showSnackbar('Keep Screen On is not supported', 5, 'Turn Off', () => settings.user.keepMobileScreenOn = false);
     }
   }
 
@@ -569,12 +571,12 @@ const screenWakeLock = (() =>
       wakeLock = await navigator.wakeLock.request('screen');
 
       debug.log('screenWakeLock.request(): Screen Wake Lock is Enabled');
-    //utils.snackbar.show('Keep Screen On success', 3);
+    //showSnackbar('Keep Screen On success', 3);
 
       wakeLock.addEventListener('release', () =>
       {
         debug.log('screenWakeLock.request(): Screen Wake Lock was Released');
-      //utils.snackbar.show('Keep Screen On was released', 3);
+      //showSnackbar('Keep Screen On was released', 3);
         wakeLock = null;
       });
 
@@ -642,18 +644,6 @@ function windowEventStorage(event)
       // Check what has changed (old settings vs. new settings) and update data / UI where needed
       if (settings.user.autoPlay !== oldSettings.user.autoPlay)
         updateAutoPlayData(settings.user.autoPlay);
-  
-      // ToDo: This probably needs to update UI as well...
-      if (settings.user.masterVolume !== oldSettings.user.masterVolume)
-      {
-        // Do stuff...
-      }
-  
-      // ToDo: This probably needs to update UI as well...
-      if (settings.user.masterMute !== oldSettings.user.masterMute)
-      {
-        // Do stuff...
-      }
       */
     }
   }
@@ -753,7 +743,7 @@ function autoPlayToggle(event)
 {
   event.preventDefault();
   settings.user.autoPlay = (settings.user.autoPlay === true) ? false : true;
-  utils.snackbar.show(settings.user.autoPlay ? 'Autoplay enabled (<b>Shift</b> + <b>A</b> to disable)' : 'Autoplay disabled (<b>Shift</b> + <b>A</b> to enable)', 5);
+  showSnackbar(settings.user.autoPlay ? 'Autoplay enabled (<b>Shift</b> + <b>A</b> to disable)' : 'Autoplay disabled (<b>Shift</b> + <b>A</b> to enable)', 5);
   updateAutoPlayDOM(settings.user.autoPlay);
 }
 
@@ -785,7 +775,7 @@ function crossfadeToggle(event)
 {
   event.preventDefault();
   settings.user.autoCrossfade = (settings.user.autoCrossfade === true) ? false : true;
-  utils.snackbar.show(settings.user.autoCrossfade ? 'Auto Crossfade enabled (<b>x</b> to disable)' : 'Auto Crossfade disabled (<b>x</b> to enable)', 5);
+  showSnackbar(settings.user.autoCrossfade ? 'Auto Crossfade enabled (<b>x</b> to disable)' : 'Auto Crossfade disabled (<b>x</b> to enable)', 5);
   updateCrossfadeDOM(settings.user.autoCrossfade);
 }
 

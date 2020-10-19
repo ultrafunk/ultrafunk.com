@@ -1,17 +1,22 @@
 {
   "name": "ultrafunk.com",
-  "version": "1.13.0",
+  "version": "1.13.2",
   "description": "WordPress theme / PWA",
   "homepage": "https://github.com/ultrafunk/ultrafunk.com",
   "repository": "git@github.com:ultrafunk/ultrafunk.com.git",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-js": "node_modules\\.bin\\esbuild --outdir=js\\dist --bundle --minify --format=esm --sourcemap js\\src\\index.js js\\src\\playback\\interaction.js js\\src\\common\\settings-ui.js",
-    "build-js-css": "node_modules\\.bin\\esbuild --outfile=js\\dist\\css\\bundle.min.css --bundle --minify --loader:.png=dataurl js\\src\\css\\bundle.css",
-    "build-css": "node_modules\\.bin\\esbuild --outfile=style.min.css --bundle --minify --external:inc/img/iframe_placeholder_light.png --external:inc/img/iframe_placeholder_dark.png style.css",
-    "build": "start /min cmd /c npm run build-js && start /min cmd /c npm run build-js-css && start /min cmd /c npm run build-css",
-    "linux-build": "npm run build-js & npm run build-js-css & npm run build-css"
+    "build-js": "node_modules\\.bin\\esbuild --bundle --format=esm --splitting --minify --sourcemap js\\src\\index.js js\\src\\playback\\interaction.js --outdir=js\\dist",
+    "build-js-debug": "node_modules\\.bin\\esbuild --bundle --format=esm --splitting js\\src\\index.js js\\src\\playback\\interaction.js --outdir=js\\dist",
+    "build-js-css": "node_modules\\.bin\\esbuild --bundle --minify --loader:.png=dataurl js\\src\\css\\bundle.css --outfile=js\\dist\\css\\bundle.min.css",
+    "build-css": "node_modules\\.bin\\esbuild --bundle --minify --external:inc/img/iframe_placeholder_light.png --external:inc/img/iframe_placeholder_dark.png style.css --outfile=style.min.css",
+    "build-chunk-php": "node scripts\\php-chunk-include.mjs",
+    "build": "scripts\\build-js.bat & npm run build-js-css & npm run build-css",
+    "build-debug": "scripts\\build-js-debug.bat & npm run build-js-css & npm run build-css",
+    "build-win": "start /min cmd /c scripts\\build-js.bat && start /min cmd /c npm run build-js-css && start /min cmd /c npm run build-css",
+    "build-linux": "npm run build-js & npm run build-js-css & npm run build-css & npm run build-chunk-php",
+    "build-debug-linux": "npm run build-js-debug & npm run build-js-css & npm run build-css & npm run build-chunk-php"
   },
   "keywords": [],
   "author": {
@@ -20,7 +25,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "esbuild": "^0.7.14",
+    "esbuild": "^0.7.17",
     "eslint": "^7.11.0"
   }
 }

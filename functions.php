@@ -90,14 +90,29 @@ add_filter('widget_archives_args', 'ultrafunk_limit_archives');
 //
 function ultrafunk_scripts()
 {
+  global $ultrafunk_is_prod_build;
   $version = \Ultrafunk\Globals\get_version();
-  
+
   wp_enqueue_style('google-fonts-material-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons&display=block', array(), null);
   wp_enqueue_script('soundcloud-api-script', 'https://w.soundcloud.com/player/api.js', array(), null);
-  wp_enqueue_style('js-bundle-style', get_theme_file_uri('/js/dist/css/bundle.min.css'), array(), $version);
-  wp_enqueue_script('interaction-script', get_theme_file_uri('/js/dist/playback/interaction.js'), array(), $version);
-  wp_enqueue_style('ultrafunk-style', get_theme_file_uri('style.min.css'), array(), $version);
-  wp_enqueue_script('ultrafunk-script', get_theme_file_uri('/js/dist/index.js'), array(), $version);
+
+  if (true === $ultrafunk_is_prod_build)
+  {
+    wp_enqueue_style('js-bundle-style', get_theme_file_uri('/js/dist/css/bundle.min.css'), array(), $version);
+    wp_enqueue_script('interaction-script', get_theme_file_uri('/js/dist/playback/interaction.js'), array(), $version);
+    wp_enqueue_style('ultrafunk-style', get_theme_file_uri('style.min.css'), array(), $version);
+    wp_enqueue_script('ultrafunk-script', get_theme_file_uri('/js/dist/index.js'), array(), $version);
+  }
+  else
+  {
+    wp_enqueue_style('modal-style', get_theme_file_uri('/js/src/common/modal.css'), array(), $version);
+    wp_enqueue_style('snackbar-style', get_theme_file_uri('/js/src/common/snackbar.css'), array(), $version);
+    wp_enqueue_style('playback-controls-style', get_theme_file_uri('/js/src/playback/playback-controls.css'), array(), $version);
+    wp_enqueue_script('interaction-script', get_theme_file_uri('/js/src/playback/interaction.js'), array(), $version);
+    wp_enqueue_style('ultrafunk-style', get_stylesheet_uri(), array(), $version);
+    wp_enqueue_script('ultrafunk-script', get_theme_file_uri('/js/src/index.js'), array(), $version);
+  }
+
   \Ultrafunk\ThemeFunctions\enqueue_style_track_layout($version);
   wp_localize_script('interaction-script', 'navigationVars', \Ultrafunk\ThemeFunctions\get_prev_next_urls());
 }
@@ -153,6 +168,7 @@ add_action('admin_menu', 'ultrafunk_reusable_blocks_admin_menu');
 //
 // Get theme functions and tags
 //
+require get_template_directory() . '/inc/preload-chunk.php';
 require get_template_directory() . '/inc/request.php';
 require get_template_directory() . '/inc/theme-functions.php';
 require get_template_directory() . '/inc/theme-tags.php';

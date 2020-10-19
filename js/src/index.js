@@ -5,10 +5,12 @@
 //
 
 
-import * as debugLogger from './common/debuglogger.js';
-import * as storage     from './common/storage.js';
-import * as utils       from './common/utils.js';
-import { siteSettings } from './common/settings.js';
+import * as debugLogger           from './common/debuglogger.js';
+import * as storage               from './common/storage.js';
+import * as utils                 from './common/utils.js';
+import { showModal }              from './common/modal.js';
+import { showSnackbar }           from './common/snackbar.js';
+import { siteSettings, validate } from './common/settings.js';
 
 
 /*************************************************************************************************/
@@ -77,7 +79,8 @@ window.addEventListener('storage', windowEventStorage);
 function readSettings()
 {
   debug.log('readSettings()');
-  settings = storage.readWriteSettingsProxy(storage.KEY.UF_SITE_SETTINGS, siteSettings);
+  settings = storage.readWriteSettingsProxy(storage.KEY.UF_SITE_SETTINGS, siteSettings, true);
+  validate(settings.user, storage.KEY.UF_SITE_SETTINGS);
   debug.log(settings);
 }
 
@@ -292,7 +295,7 @@ const trackShare = (() =>
   {
     trackTitle = event.target.getAttribute('data-entry-track-title');
     trackUrl   = event.target.getAttribute('data-entry-track-url');
-    utils.modal.show('Share / Play Track', singleChoiceList, singleChoiceListClick);
+    showModal('Share / Play Track', singleChoiceList, singleChoiceListClick);
   }
 
   function singleChoiceListClick(clickId)
@@ -306,12 +309,12 @@ const trackShare = (() =>
       case 'copyToClipboard':
         navigator.clipboard.writeText(trackUrl).then(() =>
         {
-          utils.snackbar.show('Track link copied to the clipboard', 3);
+          showSnackbar('Track link copied to the clipboard', 3);
         },
         (reason) =>
         {
           debug.error(`trackShare.copyToClipboard() failed because ${reason}`);
-          utils.snackbar.show('Failed to copy Track link to the clipboard', 5);
+          showSnackbar('Failed to copy Track link to the clipboard', 5);
         });
         break;
 
