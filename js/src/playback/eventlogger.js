@@ -5,14 +5,12 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js';
+import * as debugLogger from '../shared/debuglogger.js';
 
 
 export {
-//Constants
   SOURCE,
   EVENT,
-//Classes
   Interaction,
   Playback,
 };

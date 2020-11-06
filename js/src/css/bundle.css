@@ -5,6 +5,6 @@
 *
 */
 
-@import '..\\js\\src\\common\\modal.css';
-@import '..\\js\\src\\common\\snackbar.css';
+@import '..\\js\\src\\shared\\modal.css';
+@import '..\\js\\src\\shared\\snackbar.css';
 @import '..\\js\\src\\playback\\playback-controls.css';

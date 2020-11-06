@@ -25,7 +25,7 @@ class DebugLog
 {
   constructor(caller = 'unknown')
   {
-    this.caller = padString(caller.toUpperCase(), 15, '.');
+    this.caller = padString(caller.toUpperCase(), 20, '.');
   }
   
   isDebug()   { return DEBUG;                           }
@@ -95,7 +95,7 @@ function logErrorOnServer(errorCategory, errorData)
 {
   const eventAction = errorData.mediaUrl + ' | ' + errorData.mediaTitle;
   
-  console.log(`DEBUGLOGGER....: logErrorOnServer(): ${errorCategory} - ${eventAction}`);
+  console.log(`DEBUGLOGGER.........: logErrorOnServer(): ${errorCategory} - ${eventAction}`);
   
   gtag('event', eventAction, // eslint-disable-line no-undef
   {

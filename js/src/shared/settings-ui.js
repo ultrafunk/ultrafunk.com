@@ -5,16 +5,16 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js';
-import * as settings    from '../common/settings.js';
-import { showSnackbar } from '../common/snackbar.js';
+import * as debugLogger from '../shared/debuglogger.js';
+import * as settings    from '../shared/settings.js';
+import { showSnackbar } from '../shared/snackbar.js';
 
 import {
   KEY,
   deleteCookie,
   readJson,
   writeJson,
-} from '../common/storage.js';
+} from '../shared/storage.js';
 
 
 /*************************************************************************************************/
@@ -69,8 +69,8 @@ document.addEventListener('DOMContentLoaded', () =>
 
     if ((playbackSettings !== null) && (siteSettings !== null))
     {
-      setCurrentValues(playbackSettings.user, settings.playbackSettingsSchema);
-      setCurrentValues(siteSettings.user, settings.siteSettingsSchema);
+      setCurrentValues(playbackSettings.user, settings.playbackUserSchema);
+      setCurrentValues(siteSettings.user, settings.siteUserSchema);
   
       insertSettingsHtml();
       mElements.settingsContainer.style.opacity = 1;
@@ -94,6 +94,7 @@ function readSettingsError()
   document.getElementById(mConfig.settingsSaveResetId).style.display = 'none';
 
   mElements.settingsContainer.insertAdjacentHTML('afterbegin', settingsErrorTemplate);
+  mElements.settingsContainer.style.minHeight = '100%';
   mElements.settingsContainer.style.opacity = 1;
 
   document.querySelector(`#${mConfig.settingsContainerId} .settings-clear`).addEventListener('click', () =>
@@ -177,16 +178,16 @@ function getValueStringsIndex(schemaEntry, findValue)
 function insertSettingsHtml()
 {
   let html = `\n<h3>Playback</h3>\n<table class="playback-settings">\n<tbody>`;
-  Object.entries(settings.playbackSettingsSchema).forEach(entry => html += addTableRow(mConfig.playbackIdPrefix, entry));
+  Object.entries(settings.playbackUserSchema).forEach(entry => html += addTableRow(mConfig.playbackIdPrefix, entry));
 
   html += `\n</tbody>\n</table>\n<h3>Site</h3>\n<table class="site-settings">\n<tbody>`;
-  Object.entries(settings.siteSettingsSchema).forEach(entry => html += addTableRow(mConfig.siteIdPrefix, entry));
+  Object.entries(settings.siteUserSchema).forEach(entry => html += addTableRow(mConfig.siteIdPrefix, entry));
 
   html += `\n</tbody>\n</table>\n`;
 
   mElements.settingsContainer.insertAdjacentHTML('afterbegin', html);
-  Object.keys(settings.playbackSettingsSchema).forEach(key => document.getElementById(`${mConfig.playbackIdPrefix}:${key}`).addEventListener('click', playbackSettingsClick));
-  Object.keys(settings.siteSettingsSchema).forEach(key => document.getElementById(`${mConfig.siteIdPrefix}:${key}`).addEventListener('click', siteSettingsClick));
+  Object.keys(settings.playbackUserSchema).forEach(key => document.getElementById(`${mConfig.playbackIdPrefix}:${key}`).addEventListener('click', playbackSettingsClick));
+  Object.keys(settings.siteUserSchema).forEach(key => document.getElementById(`${mConfig.siteIdPrefix}:${key}`).addEventListener('click', siteSettingsClick));
 }
 
 function addTableRow(idPrefix, entry)
@@ -205,8 +206,8 @@ function addTableRow(idPrefix, entry)
 // Update data on UI-events (click), save and reset settings
 // ************************************************************************************************
 
-function playbackSettingsClick(event) { updateRowClicked(event, playbackSettings.user, settings.playbackSettingsSchema); }
-function siteSettingsClick(event)     { updateRowClicked(event, siteSettings.user,     settings.siteSettingsSchema);     }
+function playbackSettingsClick(event) { updateRowClicked(event, playbackSettings.user, settings.playbackUserSchema); }
+function siteSettingsClick(event)     { updateRowClicked(event, siteSettings.user,     settings.siteUserSchema);     }
 
 function updateRowClicked(event, settings, schema)
 {
@@ -227,11 +228,11 @@ function settingsSaveClick()
 
 function settingsResetClick()
 {
-  resetSettings(playbackSettings.user, settings.playbackSettingsSchema);
-  updateSettingsValues(playbackSettings.user, settings.playbackSettingsSchema, mConfig.playbackIdPrefix);
+  resetSettings(playbackSettings.user, settings.playbackUserSchema);
+  updateSettingsValues(playbackSettings.user, settings.playbackUserSchema, mConfig.playbackIdPrefix);
 
-  resetSettings(siteSettings.user, settings.siteSettingsSchema);
-  updateSettingsValues(siteSettings.user, settings.siteSettingsSchema, mConfig.siteIdPrefix);
+  resetSettings(siteSettings.user, settings.siteUserSchema);
+  updateSettingsValues(siteSettings.user, settings.siteUserSchema, mConfig.siteIdPrefix);
 
   showSnackbar('All settings reset', 5, 'Undo', () => location.reload(), () => writeSettings());
 }

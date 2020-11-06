@@ -6,13 +6,11 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js';
+import * as debugLogger from '../shared/debuglogger.js';
 
 
 export {
-//Constants
   KEY,
-//Functions
   isAvailable,
   setCookie,
   deleteCookie,
@@ -30,7 +28,7 @@ export {
 
 
 const debug     = debugLogger.getInstance('storage');
-const observers = [];
+const observers = {};
 
 const KEY = {
   UF_PLAYBACK_SETTINGS: 'UF_PLAYBACK_SETTINGS',
@@ -317,25 +315,26 @@ const onSettingsChange = (settingsKey, settingsObject) =>
 
 
 // ************************************************************************************************
-// Add and call settings observers on changes
+// Add and call settings observers on property changes
 // ************************************************************************************************
 
 function addSettingsObserver(property, observer)
 {
   debug.log(`addSettingsObserver() for property: ${property}`);
-  observers.push({ property: property, observer: observer });
+
+  if ((property in observers) === false)
+    observers[property] = [];
+
+  observers[property].push(observer);
 }
 
 function callSettingsObservers(property, oldValue, newValue)
 {
-  observers.forEach(entry =>
+  if (property in observers)
   {
-    if (entry.property === property)
-    {
-      debug.log(`callSettingsObserver() for property: ${property} - oldValue: ${oldValue} - newValue: ${newValue}`);
-      entry.observer(oldValue, newValue);
-    }
-  });
+    debug.log(`callSettingsObserver() for property: ${property} - oldValue: ${oldValue} - newValue: ${newValue}`);
+    observers[property].forEach((observer) => observer(oldValue, newValue));
+  }
 }
 
 

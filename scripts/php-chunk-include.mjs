@@ -17,33 +17,35 @@ const jsChunkFilesRegEx = /chunk\..*\.js$/i;
 
 
 // ************************************************************************************************
-//
+// Get newest ESBuild chunk file
 // ************************************************************************************************
 
-const getMostRecentFile = (dir) =>
+function getMostRecentFile(dir)
 {
   const files = orderReccentFiles(dir);
-  return files.length ? files[0] : undefined;
-};
+  return ((files.length !== 0) ? files[0] : undefined);
+}
 
-const orderReccentFiles = (dir) =>
+function orderReccentFiles(dir)
 {
   return readdirSync(dir)
     .filter((file) => lstatSync(join(dir, file)).isFile())
     .filter((file) => file.match(jsChunkFilesRegEx))
     .map((file) => ({ file, mtime: lstatSync(join(dir, file)).mtime }))
     .sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
-};
+}
 
 
 // ************************************************************************************************
-//
+// Create preload-chunck.php
 // ************************************************************************************************
 
 const newestChunk = getMostRecentFile(jsChunksPath);
-const isProdBuild = (process.argv[2].toLowerCase() === 'prod') ? true : false; // eslint-disable-line no-undef
 
-const template =
+if ((newestChunk !== undefined) && (process.argv.length === 3)) // eslint-disable-line no-undef
+{
+  const isProdBuild = (process.argv[2].toLowerCase() === 'prod') ? true : false; // eslint-disable-line no-undef
+  const template =
 `<?php
 
 $ultrafunk_is_prod_build    = ${isProdBuild};
@@ -52,8 +54,6 @@ $ultrafunk_js_preload_chunk = '/js/dist/${newestChunk['file']}';
 ?>
 `;
 
-if ((newestChunk !== undefined) && (process.argv.length === 3)) // eslint-disable-line no-undef
-{
   writeFile('./inc/preload-chunk.php', template, (error) =>
   {
     if (error)

@@ -6,7 +6,11 @@ module.exports = {
   },
   "rules": {
     "semi": ["error", "always"],
-    "eqeqeq": ["error", "always", {"null": "always"}]
+    "eqeqeq": ["error", "always", {"null": "always"}],
+    "no-var": 2,
+    "prefer-const": ["error"],
+    "default-param-last": ["error"],
+    "no-label-var": ["error"],
   },
   "env": {
     "browser": true,

@@ -5,16 +5,17 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js';
-import { KEY }          from '../common/storage.js';
+import * as debugLogger from '../shared/debuglogger.js';
 
 
 export {
-  playbackSettingsSchema,
+  playbackUserSchema,
+  playbackPrivSchema,
   playbackSettings,
-  siteSettingsSchema,
+  siteUserSchema,
+  siteBannersSchema,
   siteSettings,
-  validate,
+  validateSettings,
 };
 
 
@@ -34,7 +35,7 @@ const TYPE = {
 // Playback
 // ************************************************************************************************
 
-const playbackSettingsSchema = {
+const playbackUserSchema = {
   keyboardShortcuts:      { description: 'Keyboard Shortcuts',                 type: TYPE.BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
   masterVolume:           { description: 'Master Volume',                      type: TYPE.INTEGER, values: [0, 25, 50, 75, 100],    default: 100,   valueStrings: ['0%', '25%', '50%', '75%', '100%'] },
   masterMute:             { description: 'Master Mute',                        type: TYPE.BOOLEAN, values: [true, false],           default: false, valueStrings: ['ON', 'OFF'] },
@@ -58,42 +59,50 @@ const playbackSettingsSchema = {
   trackThumbnailOnMobile: { description: 'Show Track Thumbnail on mobile',     type: TYPE.BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
 };
 
+const playbackPrivSchema = {
+  continueAutoPlay:   { description: '', type: TYPE.BOOLEAN, values: [true, false], default: false, valueStrings: [] },
+  showLeftArrowHint:  { description: '', type: TYPE.BOOLEAN, values: [true, false], default: true,  valueStrings: [] },
+  showRightArrowHint: { description: '', type: TYPE.BOOLEAN, values: [true, false], default: true,  valueStrings: [] },
+  showDetailsHint:    { description: '', type: TYPE.BOOLEAN, values: [true, false], default: true,  valueStrings: [] },
+  showTrackImageHint: { description: '', type: TYPE.BOOLEAN, values: [true, false], default: true,  valueStrings: [] },
+};
+
 const playbackSettings = {
   // Incremental version to check for new properties
-  version:           21,
+  version:           22,
   storageChangeSync: false,
   // User (public) settings
   user: {
-    keyboardShortcuts:      playbackSettingsSchema.keyboardShortcuts.default,
-    masterVolume:           playbackSettingsSchema.masterVolume.default,
-    masterMute:             playbackSettingsSchema.masterMute.default,
-    autoPlay:               playbackSettingsSchema.autoPlay.default,
-    autoCrossfade:          playbackSettingsSchema.autoCrossfade.default,
-    autoCrossfadeLength:    playbackSettingsSchema.autoCrossfadeLength.default,
-    autoCrossfadeCurve:     playbackSettingsSchema.autoCrossfadeCurve.default,
-    autoScroll:             playbackSettingsSchema.autoScroll.default,
-    smoothScrolling:        playbackSettingsSchema.smoothScrolling.default,
-    autoExitFullscreen:     playbackSettingsSchema.autoExitFullscreen.default,
-    animateNowPlayingIcon:  playbackSettingsSchema.animateNowPlayingIcon.default,
-    autoResumePlayback:     playbackSettingsSchema.autoResumePlayback.default,
-    trackCrossfade:         playbackSettingsSchema.trackCrossfade.default,
-    trackCrossfadeLength:   playbackSettingsSchema.trackCrossfadeLength.default,     
-    trackCrossfadeCurve:    playbackSettingsSchema.trackCrossfadeCurve.default,
-    timeRemainingWarning:   playbackSettingsSchema.timeRemainingWarning.default,
-    timeRemainingSeconds:   playbackSettingsSchema.timeRemainingSeconds.default,
-    autoExitFsOnWarning:    playbackSettingsSchema.autoExitFsOnWarning.default,
-    keepMobileScreenOn:     playbackSettingsSchema.keepMobileScreenOn.default,
-    trackTimesOnMobile:     playbackSettingsSchema.trackTimesOnMobile.default,
-    trackThumbnailOnMobile: playbackSettingsSchema.trackThumbnailOnMobile.default,
-    blurFocusBgChange:      false,
+    keyboardShortcuts:      playbackUserSchema.keyboardShortcuts.default,
+    masterVolume:           playbackUserSchema.masterVolume.default,
+    masterMute:             playbackUserSchema.masterMute.default,
+    autoPlay:               playbackUserSchema.autoPlay.default,
+    autoCrossfade:          playbackUserSchema.autoCrossfade.default,
+    autoCrossfadeLength:    playbackUserSchema.autoCrossfadeLength.default,
+    autoCrossfadeCurve:     playbackUserSchema.autoCrossfadeCurve.default,
+    autoScroll:             playbackUserSchema.autoScroll.default,
+    smoothScrolling:        playbackUserSchema.smoothScrolling.default,
+    autoExitFullscreen:     playbackUserSchema.autoExitFullscreen.default,
+    animateNowPlayingIcon:  playbackUserSchema.animateNowPlayingIcon.default,
+    autoResumePlayback:     playbackUserSchema.autoResumePlayback.default,
+    trackCrossfade:         playbackUserSchema.trackCrossfade.default,
+    trackCrossfadeLength:   playbackUserSchema.trackCrossfadeLength.default,     
+    trackCrossfadeCurve:    playbackUserSchema.trackCrossfadeCurve.default,
+    timeRemainingWarning:   playbackUserSchema.timeRemainingWarning.default,
+    timeRemainingSeconds:   playbackUserSchema.timeRemainingSeconds.default,
+    autoExitFsOnWarning:    playbackUserSchema.autoExitFsOnWarning.default,
+    keepMobileScreenOn:     playbackUserSchema.keepMobileScreenOn.default,
+    trackTimesOnMobile:     playbackUserSchema.trackTimesOnMobile.default,
+    trackThumbnailOnMobile: playbackUserSchema.trackThumbnailOnMobile.default,
+  //blurFocusBgChange:      false,
   },
   // Priv (private / internal) settings
   priv: {
-    continueAutoPlay:   false,
-    showLeftArrowHint:  true,
-    showRightArrowHint: true,
-    showDetailsHint:    true,
-    showTrackImageHint: true,
+    continueAutoPlay:   playbackPrivSchema.continueAutoPlay.default,
+    showLeftArrowHint:  playbackPrivSchema.showLeftArrowHint.default,
+    showRightArrowHint: playbackPrivSchema.showRightArrowHint.default,
+    showDetailsHint:    playbackPrivSchema.showDetailsHint.default,
+    showTrackImageHint: playbackPrivSchema.showTrackImageHint.default,
   },
 };
 
@@ -102,11 +111,17 @@ const playbackSettings = {
 // Site
 // ************************************************************************************************
 
-const siteSettingsSchema = {
+const siteUserSchema = {
   theme:             { description: 'Theme',                                    type: TYPE.STRING,  values: ['light', 'dark', 'auto'],             default: 'auto',     valueStrings: ['LIGHT', 'DARK', 'AUTO / SYSTEM']         },
   trackLayout:       { description: 'Track Layout',                             type: TYPE.STRING,  values: ['list', '2-column', '3-column'],      default: '3-column', valueStrings: ['LIST', '2 COLUMN', '3 / 4 COLUMN']       },
   tracksPerPage:     { description: 'Tracks Per Page for Search &amp; Shuffle', type: TYPE.INTEGER, values: [...Array(22).keys()].map(i => i + 3), default: 12,         valueStrings: [...Array(22).keys()].map(i => `${i + 3}`) },
   keyboardShortcuts: { description: 'Keyboard Shortcuts',                       type: TYPE.BOOLEAN, values: [true, false],                         default: true,       valueStrings: ['ON', 'OFF']                              },
+};
+
+const siteBannersSchema = {
+  showFrontpageIntro: { description: '', type: TYPE.BOOLEAN, values: [true, false], default: true, valueStrings: [] },
+  showPremiumIntro:   { description: '', type: TYPE.BOOLEAN, values: [true, false], default: true, valueStrings: [] },
+  showPromoIntro:     { description: '', type: TYPE.BOOLEAN, values: [true, false], default: true, valueStrings: [] },
 };
 
 const siteSettings = {
@@ -115,17 +130,17 @@ const siteSettings = {
   storageChangeSync: false,
   // User (public) settings
   user: {
-    theme:             siteSettingsSchema.theme.default,
-    trackLayout:       siteSettingsSchema.trackLayout.default,
-    tracksPerPage:     siteSettingsSchema.tracksPerPage.default,
-    keyboardShortcuts: siteSettingsSchema.keyboardShortcuts.default,
+    theme:             siteUserSchema.theme.default,
+    trackLayout:       siteUserSchema.trackLayout.default,
+    tracksPerPage:     siteUserSchema.tracksPerPage.default,
+    keyboardShortcuts: siteUserSchema.keyboardShortcuts.default,
   },
   // Priv (private / internal) settings
   priv: {
     banners: {
-      showFrontpageIntro: true,
-      showPremiumIntro:   true,
-      showPromoIntro:     true,
+      showFrontpageIntro: siteBannersSchema.showFrontpageIntro.default,
+      showPremiumIntro:   siteBannersSchema.showPremiumIntro.default,
+      showPromoIntro:     siteBannersSchema.showPromoIntro.default,
     },
   },
 };
@@ -135,12 +150,8 @@ const siteSettings = {
 // Validation
 // ************************************************************************************************
 
-function validate(settings, storageKey)
+function validateSettings(settings, schema)
 {
-  debug.log(`validate(): ${storageKey}`);
-
-  const schema = (storageKey === KEY.UF_PLAYBACK_SETTINGS) ? playbackSettingsSchema : siteSettingsSchema;
-
   Object.entries(settings).forEach(([key, value]) =>
   {
     if (key in schema)
@@ -150,7 +161,7 @@ function validate(settings, storageKey)
         case TYPE.INTEGER:
           if ((Number.isInteger(value) === false) || (value < schema[key].values[0]) || (value > schema[key].values[schema[key].values.length - 1]))
           {
-            debug.warn(`validate() - ${key} has invalid value: ${value} (${key} is type: ${schema[key].type} - min: ${schema[key].values[0]} - max: ${schema[key].values[schema[key].values.length - 1]}) -- setting default value: ${schema[key].default}`);
+            debug.warn(`validateSettings() - ${key} has invalid value: ${value} (${key} is type: ${schema[key].type} - min: ${schema[key].values[0]} - max: ${schema[key].values[schema[key].values.length - 1]}) -- setting default value: ${schema[key].default}`);
             settings[key] = schema[key].default;
           }
           break;
@@ -158,7 +169,7 @@ function validate(settings, storageKey)
         case TYPE.BOOLEAN:
           if ((value !== true) && (value !== false))
           {
-            debug.warn(`validate() - ${key} has invalid value: ${value} (${key} is type: ${schema[key].type}) -- setting default value: ${schema[key].default}`);
+            debug.warn(`validateSettings() - ${key} has invalid value: ${value} (${key} is type: ${schema[key].type}) -- setting default value: ${schema[key].default}`);
             settings[key] = schema[key].default;
           }
           break;
@@ -167,8 +178,12 @@ function validate(settings, storageKey)
           break;
 
         default:
-          debug.warn(`validate() - ${key} has unknown type: ${schema[key].type}`);
+          debug.warn(`validateSettings() - ${key} has unknown type: ${schema[key].type}`);
       }
+    }
+    else
+    {
+      debug.warn(`validateSettings() - ${key} with value: ${value} is not in schema`);
     }
   });
 }

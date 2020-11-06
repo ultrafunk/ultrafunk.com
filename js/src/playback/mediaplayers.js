@@ -5,15 +5,13 @@
 //
 
 
-import * as debugLogger     from '../common/debuglogger.js';
+import * as debugLogger     from '../shared/debuglogger.js';
 import * as crossfadeModule from './crossfade.js';
 
 
 export {
-//Classes
   YouTube,
   SoundCloud,
-//Functions
   setArtistTitle,
   getInstance,
 };
@@ -41,9 +39,9 @@ class MediaPlayer
     this.embeddedPlayer = embeddedPlayer;
     this.playable       = true;
 
-    this.duration    = 0;
-    this.artist      = null;
-    this.title       = null;
+    this.duration = 0;
+    this.artist   = null;
+    this.title    = null;
 
     this.thumbnailSrc       = null;
     this.thumbnail          = new Image();
@@ -71,6 +69,12 @@ class MediaPlayer
 
   seekTo(position)      { this.embeddedPlayer.seekTo(position);  }
   setVolume(volume)     { this.embeddedPlayer.setVolume(volume); }
+
+  setThumbnail(thumbnailSrc)
+  {
+    this.thumbnailSrc  = thumbnailSrc;
+    this.thumbnail.src = thumbnailSrc;
+  }
 }
 
 
@@ -80,16 +84,22 @@ class MediaPlayer
 
 class YouTube extends MediaPlayer
 {
-  constructor(postId, iframeId, embeddedPlayer)
+  constructor(postId, iframeId, embeddedPlayer, iframeSrc)
   {
     super(postId, iframeId, embeddedPlayer);
     this.previousPlayerState = -1;
+    this.setThumbnail(iframeSrc);
   }
 
-  setThumbnail(videoId)
+  setThumbnail(iframeSrc)
   {
-    this.thumbnailSrc  = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-    this.thumbnail.src = this.thumbnailSrc;
+    const iframeSrcParts = new URL(decodeURIComponent(iframeSrc));
+    const pathnameParts  = iframeSrcParts.pathname.split('/embed/');
+
+    if ((pathnameParts.length === 2) && (pathnameParts[1].length === 11))
+      super.setThumbnail(`https://img.youtube.com/vi/${pathnameParts[1]}/mqdefault.jpg`);
+    else
+      debug.warn(`MediaPlayer.YouTube.setThumbnail() failed for: ${this.iframeId}`);
   }
 
   pause() { this.embeddedPlayer.pauseVideo(); }
@@ -155,12 +165,37 @@ class YouTube extends MediaPlayer
 
 class SoundCloud extends MediaPlayer
 {
-  constructor(postId, iframeId, embeddedPlayer, soundId)
+  constructor(postId, iframeId, embeddedPlayer, iframeSrc)
   {
     super(postId, iframeId, embeddedPlayer);
-    this.soundId = soundId;
+    this.soundId = this.getSoundId(iframeSrc);
     this.volume  = crossfadeModule.VOLUME.MAX;
     this.muted   = false;
+  }
+
+  getSoundId(iframeSrc)
+  {
+    if (iframeSrc !== undefined)
+    {
+      const iframeSrcParts = new URL(decodeURIComponent(iframeSrc));
+      const trackUrl       = iframeSrcParts.searchParams.get('url');
+      
+      if (trackUrl !== null)
+      {
+        const trackUrlParts = trackUrl.split('/');
+        const tracksString  = 'tracks'.toUpperCase();
+  
+        for (let i = 0; i < trackUrlParts.length; i++)
+        {
+          if (trackUrlParts[i].toUpperCase() === tracksString)
+            return parseInt(trackUrlParts[i + 1]);
+        }
+      }
+    }
+    
+    debug.error(`MediaPlayer.SoundCloud.getSoundId() failed for: ${this.iframeId}`);
+
+    return null;
   }
 
   setThumbnail()
@@ -170,10 +205,7 @@ class SoundCloud extends MediaPlayer
       const thumbnailUrl = (soundObject.artwork_url !== null) ? soundObject.artwork_url : soundObject.user.avatar_url;
 
       if ((thumbnailUrl !== null) && (thumbnailUrl !== undefined))
-      {
-        this.thumbnailSrc  = thumbnailUrl;
-        this.thumbnail.src = thumbnailUrl;
-      }
+        super.setThumbnail(thumbnailUrl);
     });
   }
 
@@ -305,11 +337,13 @@ const getInstance = (() =>
     jumpToTrack,
   };
 
-  function init(playbackConfig, playbackSettings, playTrackCallback)
+  function init(playbackSettings, playTrackCallback)
   {
+    debug.log('init()');
+
     settings  = playbackSettings;
     playTrack = playTrackCallback;
-    crossfade = crossfadeModule.getInstance(playbackConfig, playbackSettings, this);
+    crossfade = crossfadeModule.getInstance(playbackSettings, this);
   }
 
   function add(player)
@@ -345,6 +379,7 @@ const getInstance = (() =>
       artist:       this.current.getArtist(),
       title:        this.current.getTitle(),
       thumbnailSrc: this.current.getThumbnailSrc(),
+    //uId:          this.current.getUid(),
     };
   }
 

@@ -17,7 +17,7 @@
 
 #settings-container {
   width: 100%;
-  min-height: 450px;
+  min-height: 75vh;
   opacity: 0;
   transition: opacity 250ms;
 }

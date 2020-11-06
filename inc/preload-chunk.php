@@ -1,6 +1,6 @@
 <?php
 
 $ultrafunk_is_prod_build    = true;
-$ultrafunk_js_preload_chunk = '/js/dist/chunk.QI6SGURP.js';
+$ultrafunk_js_preload_chunk = '/js/dist/chunk.DDMECWGI.js';
 
 ?>

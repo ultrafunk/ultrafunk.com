@@ -5,13 +5,11 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js';
+import * as debugLogger from '../shared/debuglogger.js';
 
 
 export {
-//Constants
   MATCH,
-//Functions
   addEventListeners,
   getCssPropString,
   getCssPropValue,

@@ -5,15 +5,13 @@
 //
 
 
-import * as debugLogger from '../common/debuglogger.js';
+import * as debugLogger from '../shared/debuglogger.js';
 
 
 export {
-//Constants
   VOLUME,
   CROSSFADE_TYPE,
   CROSSFADE_CURVE,
-//Functions
   getInstance,
 };
 
@@ -40,16 +38,19 @@ const CROSSFADE_CURVE = {
   LINEAR:       1,
 };
 
+const mConfig = {
+  updateCrossfadeInterval: 50, // Milliseconds between each crossfade event
+};
+
 
 // ************************************************************************************************
 // Crossfade closure
 // ************************************************************************************************
 
-const getInstance = ((playbackConfig, playbackSettings, mediaPlayers) =>
+const getInstance = ((playbackSettings, mediaPlayers) =>
 {
-  let config   = playbackConfig;
-  let settings = playbackSettings;
-  let players  = mediaPlayers;
+  const settings = playbackSettings;
+  const players  = mediaPlayers;
 
   let isFading        = false;
   let intervalId      = -1;
@@ -99,9 +100,9 @@ const getInstance = ((playbackConfig, playbackSettings, mediaPlayers) =>
     {
       fadeOutPlayer.getPosition((positionMilliseconds) =>
       {
-        fadeStartTime       = ((positionMilliseconds + config.updateCrossfadeInterval) / 1000);
+        fadeStartTime       = ((positionMilliseconds + mConfig.updateCrossfadeInterval) / 1000);
         const timeRemaining = fadeOutPlayer.getDuration() - fadeStartTime;
-        const fadeRemaining = timeRemaining - (config.updateCrossfadeInterval / 1000);
+        const fadeRemaining = timeRemaining - (mConfig.updateCrossfadeInterval / 1000);
   
         if (fadeType === CROSSFADE_TYPE.AUTO)
           fadeLength = fadeRemaining;
@@ -110,7 +111,7 @@ const getInstance = ((playbackConfig, playbackSettings, mediaPlayers) =>
   
         debug.log(`start() - fadeStartTime: ${fadeStartTime.toFixed(2)} sec - timeRemaining: ${timeRemaining.toFixed(2)} sec - fadeLength: ${fadeLength.toFixed(2)} sec - fadeInUid: ${fadeInUid}`);
   
-        intervalId = setInterval((fadeCurve === CROSSFADE_CURVE.EQUAL_POWER) ? equalPowerFade : linearFade, config.updateCrossfadeInterval);
+        intervalId = setInterval((fadeCurve === CROSSFADE_CURVE.EQUAL_POWER) ? equalPowerFade : linearFade, mConfig.updateCrossfadeInterval);
       });
     }
   }

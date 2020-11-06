@@ -5,32 +5,37 @@
 //
 
 
-import * as debugLogger               from '../common/debuglogger.js';
-import * as eventLogger               from './eventlogger.js';
-import * as playback                  from './playback.js';
-import * as utils                     from '../common/utils.js';
-import { showSnackbar }               from '../common/snackbar.js';
-import { updateProgressPercent }      from './playback-controls.js';
-import { playbackSettings, validate } from '../common/settings.js';
+import * as debugLogger    from '../shared/debuglogger.js';
+import * as eventLogger    from './eventlogger.js';
+import * as playback       from './playback.js';
+import * as playbackEvents from './playback-events.js';
+import * as utils          from '../shared/utils.js';
+import { showSnackbar }    from '../shared/snackbar.js';
+
+import {
+  playbackSettings,
+  playbackUserSchema,
+  playbackPrivSchema,
+  validateSettings,
+} from '../shared/settings.js';
 
 import {
   KEY,
   readWriteSettingsProxy,
   parseEventData,
-} from '../common/storage.js';
+} from '../shared/storage.js';
 
 
 /*************************************************************************************************/
 
 
-const debug              = debugLogger.getInstance('interaction');
+const debug              = debugLogger.getInstance('playback-interaction');
 const eventLog           = new eventLogger.Interaction(10);
-let settings             = {};
+let mSettings            = {};
 let useKeyboardShortcuts = false;
+let isPlaybackReady      = false;
 
-// Module config, submodules can have local const config = {...}
 const mConfig = {
-  nowPlayingIconsSelector:     'h2.entry-title',
   autoPlayToggleId:            'footer-autoplay-toggle',
   crossfadeToggleId:           'footer-crossfade-toggle',
   allowKeyboardShortcutsEvent: 'allowKeyboardShortcuts',
@@ -38,18 +43,16 @@ const mConfig = {
   doubleClickDelay:            500,
 };
 
-// Module DOM elements, submodules can have local const elements = {...}
 const mElements = {
   playbackControls: { details: null, thumbnail: null, statePlaying: false },
   fullscreenTarget: null,
-  nowPlayingIcons:  null,
   autoPlayToggle:   null,
   crossfadeToggle:  null,
 };
 
 
 // ************************************************************************************************
-//  Document ready and document / window event listeners
+// Document ready and document / window event listeners
 // ************************************************************************************************
 
 document.addEventListener('DOMContentLoaded', () =>
@@ -61,18 +64,15 @@ document.addEventListener('DOMContentLoaded', () =>
   if (playback.hasEmbeddedPlayers())
   {
     initInteraction();
-    
-    playbackEvents.setHandlers();
-    playback.init(settings.user);
-
-    updateAutoPlayDOM(settings.user.autoPlay);
-    updateCrossfadeDOM(settings.user.autoCrossfade);
+    initPlayback();
+    updateAutoPlayDOM(mSettings.user.autoPlay);
+    updateCrossfadeDOM(mSettings.user.autoCrossfade);
   }
 });
 
 // Listen for triggered events to toggle keyboard capture = allow other input elements to use shortcut keys
-document.addEventListener(mConfig.allowKeyboardShortcutsEvent, () => { if (settings.user.keyboardShortcuts) useKeyboardShortcuts = true;  });
-document.addEventListener(mConfig.denyKeyboardShortcutsEvent,  () => { if (settings.user.keyboardShortcuts) useKeyboardShortcuts = false; });
+document.addEventListener(mConfig.allowKeyboardShortcutsEvent, () => { if (mSettings.user.keyboardShortcuts) useKeyboardShortcuts = true;  });
+document.addEventListener(mConfig.denyKeyboardShortcutsEvent,  () => { if (mSettings.user.keyboardShortcuts) useKeyboardShortcuts = false; });
 
 
 // ************************************************************************************************
@@ -82,24 +82,24 @@ document.addEventListener(mConfig.denyKeyboardShortcutsEvent,  () => { if (setti
 function readSettings()
 {
   debug.log('readSettings()');
-  settings = readWriteSettingsProxy(KEY.UF_PLAYBACK_SETTINGS, playbackSettings, true);
-  validate(settings.user, KEY.UF_PLAYBACK_SETTINGS);
-  debug.log(settings);
+  mSettings = readWriteSettingsProxy(KEY.UF_PLAYBACK_SETTINGS, playbackSettings, true);
+  validateSettings(mSettings.user, playbackUserSchema);
+  validateSettings(mSettings.priv, playbackPrivSchema);
+  debug.log(mSettings);
 }
 
 function initInteraction()
 {
   debug.log('initInteraction()');
 
-  useKeyboardShortcuts                 = settings.user.keyboardShortcuts;
+  useKeyboardShortcuts                 = mSettings.user.keyboardShortcuts;
   mElements.playbackControls.details   = document.getElementById('playback-controls').querySelector('.details-control');
   mElements.playbackControls.thumbnail = document.getElementById('playback-controls').querySelector('.thumbnail-control');
-  mElements.nowPlayingIcons            = document.querySelectorAll(mConfig.nowPlayingIconsSelector);
   mElements.autoPlayToggle             = document.getElementById(mConfig.autoPlayToggleId);
   mElements.crossfadeToggle            = document.getElementById(mConfig.crossfadeToggleId);
 
   window.addEventListener('blur',    windowEventBlur);
-  window.addEventListener('focus',   windowEventFocus);
+//window.addEventListener('focus',   windowEventFocus);
   window.addEventListener('storage', windowEventStorage);
   
   document.addEventListener('fullscreenchange',       documentEventFullscreenChange);
@@ -109,6 +109,14 @@ function initInteraction()
   utils.addEventListeners('i.nav-bar-arrow-fwd',  'click', subPaginationClick, navigationVars.nextUrl); // eslint-disable-line no-undef
 }
 
+function initPlayback()
+{
+  playback.init(mSettings);
+  playbackEvents.addListener(playbackEvents.EVENT.READY,                playbackEventReady);
+  playbackEvents.addListener(playbackEvents.EVENT.MEDIA_ENDED,          playbackEventMediaEnded);
+  playbackEvents.addListener(playbackEvents.EVENT.MEDIA_TIME_REMAINING, playbackEventMediaTimeRemaining);
+}
+
 
 // ************************************************************************************************
 // Keyboard events handler and functions
@@ -116,7 +124,7 @@ function initInteraction()
 
 document.addEventListener('keydown', (event) =>
 {
-  if (playbackEvents.isPlaybackReady() && useKeyboardShortcuts && (event.ctrlKey === false) && (event.altKey === false))
+  if (isPlaybackReady && useKeyboardShortcuts && (event.ctrlKey === false) && (event.altKey === false))
   {
     switch(event.code)
     {
@@ -146,14 +154,14 @@ document.addEventListener('keydown', (event) =>
 
       case 'f':
       case 'F':
-        fullscreenToggle(event);
+        fullscreenTrackToggle(event);
         break;
 
       case 'm':
       case 'M':
         event.preventDefault();
         playback.toggleMute();
-        showSnackbar(settings.user.masterMute ? 'Volume is muted (<b>m</b> to unmute)' : 'Volume is unmuted (<b>m</b> to mute)', 3);
+        showSnackbar(mSettings.user.masterMute ? 'Volume is muted (<b>m</b> to unmute)' : 'Volume is unmuted (<b>m</b> to mute)', 3);
         break;
 
       case 'x':
@@ -167,7 +175,7 @@ document.addEventListener('keydown', (event) =>
   }
 });
 
-function fullscreenToggle(event)
+function fullscreenTrackToggle(event)
 {
   event.preventDefault();
 
@@ -205,7 +213,7 @@ function doubleTapNavPrev(prevUrl, playbackStatus)
 
       if (eventLog.doubleClicked(eventLogger.SOURCE.KEYBOARD, eventLogger.EVENT.KEY_ARROW_LEFT, mConfig.doubleClickDelay))
       {
-        navigateTo(prevUrl, false);
+        playbackEvents.navigateTo(prevUrl, false);
         return true;
       }
     }
@@ -242,7 +250,7 @@ function doubleTapNavNext(nextUrl, playbackStatus)
 
       if (eventLog.doubleClicked(eventLogger.SOURCE.KEYBOARD, eventLogger.EVENT.KEY_ARROW_RIGHT, mConfig.doubleClickDelay))
       {
-        navigateTo(nextUrl, playbackStatus.isPlaying);
+        playbackEvents.navigateTo(nextUrl, playbackStatus.isPlaying);
         return true;
       }
     }
@@ -253,257 +261,16 @@ function doubleTapNavNext(nextUrl, playbackStatus)
 
 function showInteractionHint(hintProperty, hintText, snackbarTimeout = 0)
 {
-  if (settings.priv[hintProperty])
+  if (mSettings.priv[hintProperty])
   {
     showSnackbar(hintText, snackbarTimeout);
-    settings.priv[hintProperty] = false;
-  }
-}
-
-function navigateTo(destUrl, continueAutoPlay = false)
-{
-  debug.log(`navigateTo(): ${destUrl} - continueAutoPlay: ${continueAutoPlay}`);
-  
-  if ((destUrl !== null) && (destUrl.length > 0))
-  {
-    if (continueAutoPlay)
-      settings.priv.continueAutoPlay = true;
-    
-    window.location.href = destUrl;
+    mSettings.priv[hintProperty] = false;
   }
 }
 
 
 // ************************************************************************************************
-// Playback event handler module
-// ************************************************************************************************
-
-const playbackEvents = (() =>
-{
-  let isPlaybackReady = false;
-
-  return {
-    isPlaybackReady() { return isPlaybackReady; },
-    setHandlers,
-  };
-
-  function setHandlers()
-  {
-    playback.setEventHandlers({
-      [playback.EVENT.LOADING]:              loading,
-      [playback.EVENT.READY]:                ready,
-      [playback.EVENT.MEDIA_PLAYING]:        mediaPlaying,
-      [playback.EVENT.MEDIA_PAUSED]:         mediaPaused,
-      [playback.EVENT.MEDIA_ENDED]:          mediaEnded,
-      [playback.EVENT.MEDIA_TIME_REMAINING]: mediaTimeRemaining,
-      [playback.EVENT.MEDIA_SHOW]:           mediaShow,
-      [playback.EVENT.CONTINUE_AUTOPLAY]:    continueAutoplay,
-      [playback.EVENT.RESUME_AUTOPLAY]:      resumeAutoplay,
-      [playback.EVENT.AUTOPLAY_BLOCKED]:     autoplayBlocked,
-      [playback.EVENT.PLAYBACK_BLOCKED]:     playbackBlocked,
-      [playback.EVENT.MEDIA_UNAVAILABLE]:    mediaUnavailable,
-    });
-  }
-
-  function loading(playbackEvent, eventData)
-  {
-  //debugEvent(playbackEvent, eventData);
-    updateProgressPercent(eventData.loadingPercent);
-  }
-  
-  function ready(playbackEvent)
-  {
-    debugEvent(playbackEvent);
-
-    updateProgressPercent(0);
-    mElements.playbackControls.details.addEventListener('click', playbackDetailsClick);
-    mElements.playbackControls.thumbnail.addEventListener('click', playbackDetailsClick);
-    mElements.autoPlayToggle.addEventListener('click', autoPlayToggle);
-    mElements.crossfadeToggle.addEventListener('click', crossfadeToggle);
-    document.addEventListener('visibilitychange', documentEventVisibilityChange);
-
-    if (settings.user.keepMobileScreenOn)
-      screenWakeLock.enable();
-
-    isPlaybackReady = true;
-  }
-  
-  function mediaPlaying(playbackEvent, eventData)
-  {
-    debugEvent(playbackEvent, eventData);
-  
-    if (playback.getStatus().numTracks > 1)
-    {
-      const nowPlayingIcon = document.querySelector(`#${eventData.postId} ${mConfig.nowPlayingIconsSelector}`);
-  
-      resetNowPlayingIcons(nowPlayingIcon);
-      utils.replaceClass(nowPlayingIcon, 'playing-paused', 'now-playing-icon');
-  
-      if (settings.user.animateNowPlayingIcon)
-        nowPlayingIcon.classList.add('playing-animate');
-    }
-
-    /*
-    if (settings.user.keepMobileScreenOn)
-      screenWakeLock.enable();
-    */
-  }
-  
-  function mediaPaused(playbackEvent, eventData)
-  {
-    debugEvent(playbackEvent, eventData);
-  
-    if (playback.getStatus().numTracks > 1)
-      document.querySelector(`#${eventData.postId} ${mConfig.nowPlayingIconsSelector}`).classList.add('playing-paused');
-
-    /*
-    if (settings.user.keepMobileScreenOn)
-      screenWakeLock.disable();
-    */
-  }
-
-  function mediaEnded(playbackEvent)
-  {
-    debugEvent(playbackEvent);
-  
-    if (settings.user.autoExitFullscreen)
-      exitFullscreenTrack();
-  
-    updateProgressPercent(0);
-
-    if (playback.getStatus().numTracks > 1)
-      resetNowPlayingIcons();
-  }
-  
-  function mediaTimeRemaining(playbackEvent, eventData)
-  {
-  //debugEvent(playbackEvent, eventData);
-  
-    if (settings.user.autoExitFsOnWarning && (eventData.timeRemainingSeconds <= settings.user.timeRemainingSeconds))
-      exitFullscreenTrack();
-  }
-  
-  function mediaShow(playbackEvent, eventData)
-  {
-    debugEvent(playbackEvent, eventData);
-  
-    mediaEnded();
-
-    if (eventData.scrollToMedia)
-      scrollTo.id(eventData.postId);
-  }
-  
-  function continueAutoplay(playbackEvent)
-  {
-    debugEvent(playbackEvent);
-  
-    navigateTo(navigationVars.nextUrl, true); // eslint-disable-line no-undef
-  }
-  
-  function resumeAutoplay(playbackEvent)
-  {
-    debugEvent(playbackEvent);
-    debug.log(`playbackEvents.RESUME_AUTOPLAY: ${settings.priv.continueAutoPlay}`);
-  
-    if (settings.priv.continueAutoPlay)
-    {
-      settings.priv.continueAutoPlay = false;
-      playback.resumeAutoPlay();
-    }
-  }
-  
-  function autoplayBlocked(playbackEvent)
-  {
-    debugEvent(playbackEvent);
-  
-    showSnackbar('Autoplay was blocked, click or tap Play to continue...', 30, 'play', () =>
-    {
-      if (playback.getStatus().isPlaying === false)
-        playback.togglePlayPause();
-    });
-  }
-  
-  function playbackBlocked(playbackEvent, eventData)
-  {
-    debugEvent(playbackEvent, eventData);
-  
-    showSnackbar('Unable to play track, skipping to next...', 5);
-    playbackEventErrorTryNext(eventData, 5);
-  }
-  
-  function mediaUnavailable(playbackEvent, eventData)
-  {
-    debugEvent(playbackEvent, eventData);
-  
-    if (isPremiumTrack(eventData.postId))
-    {
-      showSnackbar('YouTube Premium track, skipping...', 5, 'help',  () => { window.location.href = '/channel/premium/'; });
-      playbackEventErrorTryNext(eventData, 5);
-    }
-    else
-    {
-      showSnackbar('Unable to play track, skipping to next...', 5);
-      debugLogger.logErrorOnServer('EVENT_MEDIA_UNAVAILABLE', eventData);
-      playbackEventErrorTryNext(eventData, 5);
-    }
-  }
-
-
-  // ************************************************************************************************
-  // Misc. playback event handler functions
-  // ************************************************************************************************
-  
-  function debugEvent(playbackEvent = null, eventData = null)
-  {
-    if (debug.isDebug() && (playbackEvent !== null))
-    {
-      debug.log(`playbackEvents.${debug.getObjectKeyForValue(playback.EVENT, playbackEvent)} (${playbackEvent})`);
-    
-      if (eventData !== null)
-        debug.log(eventData);
-    }
-  }
-
-  function resetNowPlayingIcons(nowPlayingElement)
-  {
-    mElements.nowPlayingIcons.forEach(element =>
-    {
-      if (element !== nowPlayingElement)
-        element.classList.remove('now-playing-icon', 'playing-animate', 'playing-paused');
-    });
-  }
-  
-  function playbackEventErrorTryNext(eventData, timeout = 5)
-  {
-    setTimeout(() =>
-    {
-      if (eventData.currentTrack < eventData.numTracks)
-      {
-        // Only supports skipping FORWARD for now...
-        playback.skipToTrack(eventData.currentTrack + 1, true);
-      }
-      else
-      {
-        if (navigationVars.nextUrl !== null)        // eslint-disable-line no-undef
-          navigateTo(navigationVars.nextUrl, true); // eslint-disable-line no-undef
-      }
-    }, ((timeout * 1000) + 250));
-  }
-  
-  function isPremiumTrack(postId)
-  {
-    const postWithId = document.getElementById(postId);
-  
-    if (postWithId !== null)
-      return postWithId.classList.contains('category-premium');
-    
-    return false;
-  }
-})();
-
-
-// ************************************************************************************************
-//  Experimental Screen Wake Lock API support: https://web.dev/wakelock/
+// Experimental Screen Wake Lock API support: https://web.dev/wakelock/
 // ************************************************************************************************
 
 const screenWakeLock = (() =>
@@ -542,7 +309,7 @@ const screenWakeLock = (() =>
     else
     {
       debug.log('screenWakeLock.enable(): Screen Wake Lock is not supported');
-      showSnackbar('Keep Screen On is not supported', 5, 'Turn Off', () => settings.user.keepMobileScreenOn = false);
+      showSnackbar('Keep Screen On is not supported', 5, 'Turn Off', () => mSettings.user.keepMobileScreenOn = false);
     }
   }
 
@@ -593,7 +360,38 @@ const screenWakeLock = (() =>
 
 
 // ************************************************************************************************
-//  Window and document event handlers
+// playbackEvent listeners
+// ************************************************************************************************
+
+function playbackEventReady()
+{
+  mElements.playbackControls.details.addEventListener('click', playbackDetailsClick);
+  mElements.playbackControls.thumbnail.addEventListener('click', playbackDetailsClick);
+  mElements.autoPlayToggle.addEventListener('click', autoPlayToggle);
+  mElements.crossfadeToggle.addEventListener('click', crossfadeToggle);
+  document.addEventListener('visibilitychange', documentEventVisibilityChange);
+  
+  if (mSettings.user.keepMobileScreenOn)
+    screenWakeLock.enable();
+
+  isPlaybackReady = true;
+}
+
+function playbackEventMediaEnded()
+{
+  if (mSettings.user.autoExitFullscreen)
+    exitFullscreenTrack();
+}
+
+function playbackEventMediaTimeRemaining(playbackEvent)
+{
+  if (mSettings.user.autoExitFsOnWarning && (playbackEvent.data.timeRemainingSeconds <= mSettings.user.timeRemainingSeconds))
+    exitFullscreenTrack();
+}
+
+
+// ************************************************************************************************
+// Window and document event handlers
 // ************************************************************************************************
 
 function windowEventBlur()
@@ -615,21 +413,25 @@ function windowEventBlur()
     }
     else // normal window blur (lost focus)
     {
-      if ((settings.user.autoPlay === false) && settings.user.blurFocusBgChange)
+      /*
+      if ((mSettings.user.autoPlay === false) && mSettings.user.blurFocusBgChange)
         document.body.classList.add('blurred');
+      */
     }
   }, 0);
 }
 
+/*
 function windowEventFocus()
 {
-  if ((settings.user.autoPlay === false) && settings.user.blurFocusBgChange)
+  if ((mSettings.user.autoPlay === false) && mSettings.user.blurFocusBgChange)
     document.body.classList.remove('blurred');
 }
+*/
 
 function windowEventStorage(event)
 {
-  if (settings.storageChangeSync)
+  if (mSettings.storageChangeSync)
   {
     const oldSettings = parseEventData(event, KEY.UF_PLAYBACK_SETTINGS);
 
@@ -660,7 +462,7 @@ function documentEventVisibilityChange()
 
   if (document.visibilityState === 'visible')
   {
-    if (settings.user.autoResumePlayback && mElements.playbackControls.statePlaying)
+    if (mSettings.user.autoResumePlayback && mElements.playbackControls.statePlaying)
     {
       if (playback.getStatus().isPlaying === false)
         playback.togglePlayPause();
@@ -671,12 +473,12 @@ function documentEventVisibilityChange()
       screenWakeLock.stateVisible();
     */
     
-    if (settings.user.keepMobileScreenOn)
+    if (mSettings.user.keepMobileScreenOn)
       screenWakeLock.stateVisible();
   }
   else if (document.visibilityState === 'hidden')
   {
-    if (settings.user.autoResumePlayback && playback.getStatus().isPlaying)
+    if (mSettings.user.autoResumePlayback && playback.getStatus().isPlaying)
       mElements.playbackControls.statePlaying = true;
     else
       mElements.playbackControls.statePlaying = false;
@@ -709,14 +511,14 @@ function subPaginationClick(event, destUrl)
   if ((event !== null) && (destUrl !== null))
   {
     event.preventDefault();
-    navigateTo(destUrl, playback.getStatus().isPlaying);
+    playbackEvents.navigateTo(destUrl, playback.getStatus().isPlaying);
   }
 }
 
 function showCurrentTrack(event)
 {
   event.preventDefault();
-  scrollTo.id(playback.getStatus().postId);
+  playbackEvents.scrollTo.id(playback.getStatus().postId);
 }
 
 function enterFullscreenTrack()
@@ -742,9 +544,9 @@ function exitFullscreenTrack()
 function autoPlayToggle(event)
 {
   event.preventDefault();
-  settings.user.autoPlay = (settings.user.autoPlay === true) ? false : true;
-  showSnackbar(settings.user.autoPlay ? 'Autoplay enabled (<b>Shift</b> + <b>A</b> to disable)' : 'Autoplay disabled (<b>Shift</b> + <b>A</b> to enable)', 5);
-  updateAutoPlayDOM(settings.user.autoPlay);
+  mSettings.user.autoPlay = (mSettings.user.autoPlay === true) ? false : true;
+  showSnackbar(mSettings.user.autoPlay ? 'Autoplay enabled (<b>Shift</b> + <b>A</b> to disable)' : 'Autoplay disabled (<b>Shift</b> + <b>A</b> to enable)', 5);
+  updateAutoPlayDOM(mSettings.user.autoPlay);
 }
 
 function updateAutoPlayDOM(autoPlay)
@@ -755,15 +557,17 @@ function updateAutoPlayDOM(autoPlay)
   autoPlay ? utils.replaceClass(document.body, 'autoplay-off', 'autoplay-on') : utils.replaceClass(document.body, 'autoplay-on', 'autoplay-off');
   autoPlay ? mElements.crossfadeToggle.classList.remove('disabled')           : mElements.crossfadeToggle.classList.add('disabled');
 
+  /*
   if (autoPlay)
   {
     document.body.classList.remove('blurred');
   }
   else
   {
-    if ((document.hasFocus() === false) && settings.user.blurFocusBgChange)
+    if ((document.hasFocus() === false) && mSettings.user.blurFocusBgChange)
       document.body.classList.add('blurred');
   }
+  */
 }
 
 
@@ -774,9 +578,9 @@ function updateAutoPlayDOM(autoPlay)
 function crossfadeToggle(event)
 {
   event.preventDefault();
-  settings.user.autoCrossfade = (settings.user.autoCrossfade === true) ? false : true;
-  showSnackbar(settings.user.autoCrossfade ? 'Auto Crossfade enabled (<b>x</b> to disable)' : 'Auto Crossfade disabled (<b>x</b> to enable)', 5);
-  updateCrossfadeDOM(settings.user.autoCrossfade);
+  mSettings.user.autoCrossfade = (mSettings.user.autoCrossfade === true) ? false : true;
+  showSnackbar(mSettings.user.autoCrossfade ? 'Auto Crossfade enabled (<b>x</b> to disable)' : 'Auto Crossfade disabled (<b>x</b> to enable)', 5);
+  updateCrossfadeDOM(mSettings.user.autoCrossfade);
 }
 
 function updateCrossfadeDOM(autoCrossfade)
@@ -784,60 +588,3 @@ function updateCrossfadeDOM(autoCrossfade)
   debug.log(`updateCrossfadeDOM() - autoCrossfade: ${autoCrossfade}`);
   mElements.crossfadeToggle.querySelector('.crossfade-on-off').textContent = autoCrossfade ? 'ON' : 'OFF';
 }
-
-
-// ************************************************************************************************
-// Scrolling to specified # (track)
-// ************************************************************************************************
-
-const scrollTo = (() =>
-{
-  // Get CSS variables (px heigth) for multistate sticky top nav menu
-  const siteHeaderDownPx       = utils.getCssPropValue('--site-header-down');
-  const siteHeaderDownMobilePx = utils.getCssPropValue('--site-header-down-mobile');
-  const siteHeaderUpPx         = utils.getCssPropValue('--site-header-up');
-  const siteHeaderUpMobilePx   = utils.getCssPropValue('--site-header-up-mobile');
-
-  return {
-    id,
-  };
-
-  function id(postId)
-  {
-    if (settings.user.autoScroll)
-    {
-      // Actual functional 'offsetTop' calculation: https://stackoverflow.com/a/52477551
-      const offsetTop    = Math.round(window.scrollY + document.getElementById(postId).getBoundingClientRect().top);
-      const scrollTop    = Math.round(window.pageYOffset); // Don't want float results that can cause jitter
-      let   headerHeight = getScrollHeaderHeight(offsetTop > scrollTop);
-
-      // If we get obscured by the sticky header menu, recalculate headerHeight to account for that
-      if ((scrollTop + headerHeight + getMarginTop()) > offsetTop)
-        headerHeight = getScrollHeaderHeight(false);
-
-      // ToDo: This will not be smooth on iOS... Needs polyfill
-      window.scroll(
-      {
-        top:      (offsetTop - (headerHeight + getMarginTop())),
-        left:     0,
-        behavior: (settings.user.smoothScrolling ? 'smooth' : 'auto'),
-      });
-    }
-  }
-
-  function getScrollHeaderHeight(directionDown)
-  {
-    const matchesMaxWidthMobile = utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE);
-    
-    if (directionDown)
-      return ((matchesMaxWidthMobile === true) ? siteHeaderDownMobilePx : siteHeaderDownPx);
-    else
-      return ((matchesMaxWidthMobile === true) ? siteHeaderUpMobilePx : siteHeaderUpPx);
-  }
-
-  function getMarginTop()
-  {
-    // -1 because of fractional pixels on HiDPI displays (iframe bottom 1 px would show on top)
-    return (utils.getCssPropValue('--site-content-margin-top') - 1);
-  }
-})();

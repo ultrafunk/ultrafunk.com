@@ -5,9 +5,9 @@
 //
 
 
-import * as debugLogger        from '../common/debuglogger.js';
-import { addSettingsObserver } from '../common/storage.js';
-import { replaceClass }        from '../common/utils.js';
+import * as debugLogger        from '../shared/debuglogger.js';
+import { addSettingsObserver } from '../shared/storage.js';
+import { replaceClass }        from '../shared/utils.js';
 
 
 export {
@@ -19,8 +19,8 @@ export {
   setTimer,
   isPlaying,
   updatePrevState,
-  updatePlayState,
-  updatePauseState,
+  setPlayState,
+  setPauseState,
   blinkPlayPause,
   updateNextState,
 };
@@ -29,9 +29,14 @@ export {
 /*************************************************************************************************/
 
 
-const debug  = debugLogger.getInstance('playback-ctrls');
-let config   = {};
+const debug  = debugLogger.getInstance('playback-controls');
 let settings = {};
+
+const mConfig = {
+  progressControlsId:        'progress-controls',
+  playbackControlsId:        'playback-controls',
+  entryMetaControlsSelector: '.entry-meta-controls .crossfade-control',
+};
 
 const STATE = {
   DISABLED: 'state-disabled',
@@ -41,7 +46,7 @@ const STATE = {
 };
 
 const controls = {
-  progressSeek:   { element:  null, state: STATE.DISABLED, clickCallback: null },
+  progressSeek:   { element:  null, state: STATE.DISABLED, click: null },
   progressBar:    { element:  null, state: STATE.DISABLED },
   details:        { element:  null, state: STATE.DISABLED, artistElement: null, titleElement: null },
   thumbnail:      { element:  null, state: STATE.DISABLED, img: null },
@@ -51,7 +56,7 @@ const controls = {
   nextTrack:      { element:  null, state: STATE.DISABLED },
   shuffle:        { element:  null, state: STATE.DISABLED },
   mute:           { element:  null, state: STATE.DISABLED, iconElement: null },
-  trackCrossfade: { elements: null, clickCallback: null },
+  trackCrossfade: { elements: null, click: null },
 };
 
 
@@ -59,25 +64,26 @@ const controls = {
 // Init and make ready all controls
 // ************************************************************************************************
 
-function init(playbackConfig, playbackSettings, seekClickCallback, crossfadeClickCallback)
+function init(playbackSettings, seekClickCallback, crossfadeClickCallback)
 {
-  config   = playbackConfig;
+  debug.log('init()');
+
   settings = playbackSettings;
 
-  const playbackProgress = document.getElementById(config.progressControlsId);
+  const playbackProgress = document.getElementById(mConfig.progressControlsId);
 
   if (playbackProgress !== null)
   {
-    controls.progressSeek.element       = playbackProgress.querySelector('.seek-control');
-    controls.progressSeek.clickCallback = seekClickCallback;
-    controls.progressBar.element        = playbackProgress.querySelector('.bar-control');
+    controls.progressSeek.element = playbackProgress.querySelector('.seek-control');
+    controls.progressSeek.click   = seekClickCallback;
+    controls.progressBar.element  = playbackProgress.querySelector('.bar-control');
   }
   else
   {
-    debug.error(`playbackControls.init(): Unable to getElementById() for '#${config.progressControlsId}'`);
+    debug.error(`playbackControls.init(): Unable to getElementById() for '#${mConfig.progressControlsId}'`);
   }
 
-  const playbackControls = document.getElementById(config.playbackControlsId);
+  const playbackControls = document.getElementById(mConfig.playbackControlsId);
 
   if (playbackControls !== null)
   {
@@ -99,17 +105,19 @@ function init(playbackConfig, playbackSettings, seekClickCallback, crossfadeClic
   }
   else
   {
-    debug.error(`playbackControls.init(): Unable to getElementById() for '#${config.playbackControlsId}'`);
+    debug.error(`playbackControls.init(): Unable to getElementById() for '#${mConfig.playbackControlsId}'`);
   }
 
-  controls.trackCrossfade.elements = document.querySelectorAll(config.entryMetaControlsSelector);
+  controls.trackCrossfade.elements = document.querySelectorAll(mConfig.entryMetaControlsSelector);
 
   if (controls.trackCrossfade.elements.length !== 0)
-    controls.trackCrossfade.clickCallback = crossfadeClickCallback;
+    controls.trackCrossfade.click = crossfadeClickCallback;
 }
 
 function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks)
 {
+  debug.log('ready()');
+
   setState(controls.progressSeek, STATE.ENABLED);
   controls.progressSeek.element.addEventListener('click', progressSeekClick);
   setState(controls.progressBar, STATE.ENABLED);
@@ -187,7 +195,7 @@ function progressSeekClick(event)
   {
     const progressPercent = ((event.clientX / document.documentElement.clientWidth) * 100);
     const seekPosSeconds  = Math.round((controls.timer.durationSeconds * progressPercent) / 100);
-    controls.progressSeek.clickCallback(seekPosSeconds);
+    controls.progressSeek.click(seekPosSeconds);
 
     if (isPlaying() === false)
     {
@@ -204,6 +212,9 @@ function progressSeekClick(event)
 
 function setDetails(playbackStatus)
 {
+//debug.log('setDetails()');
+//debug.log(playbackStatus);
+
   controls.details.artistElement.textContent = playbackStatus.artist || ''; // Artist will contain the post title if all else fails
   controls.details.titleElement.textContent  = playbackStatus.title  || '';
   setThumbnail(playbackStatus.thumbnailSrc);
@@ -212,14 +223,17 @@ function setDetails(playbackStatus)
 
 function setThumbnail(thumbnailSrc)
 {
-  controls.thumbnail.element.classList.add('loading');
+  if (thumbnailSrc !== controls.thumbnail.img.src)
+  {
+    controls.thumbnail.element.classList.add('loading');
 
-  if (thumbnailSrc !== null)
-    controls.thumbnail.img.src = thumbnailSrc;
-  else
-    controls.thumbnail.img.src = '/wp-content/themes/ultrafunk/inc/img/photo_filled_grey.png';
-
-  controls.thumbnail.img.decode().then(() => { controls.thumbnail.element.classList.remove('loading'); });
+    if (thumbnailSrc !== null)
+      controls.thumbnail.img.src = thumbnailSrc;
+    else
+      controls.thumbnail.img.src = '/wp-content/themes/ultrafunk/inc/img/photo_filled_grey.png';
+  
+    controls.thumbnail.img.decode().then(() => { controls.thumbnail.element.classList.remove('loading'); });
+  }
 }
 
 function setTimer(positionSeconds, durationSeconds)
@@ -284,7 +298,7 @@ function updatePrevState(playbackStatus)
     setState(controls.nextTrack, STATE.ENABLED);
 }
 
-function updatePlayState(playbackStatus)
+function setPlayState(playbackStatus)
 {
   setState(controls.playPause, STATE.PAUSE);
   setState(controls.prevTrack, STATE.ENABLED);
@@ -292,7 +306,7 @@ function updatePlayState(playbackStatus)
   updateTrackCrossfadeState(true, playbackStatus.currentTrack);
 }
 
-function updatePauseState()
+function setPauseState()
 {
   setState(controls.playPause, STATE.PLAY);
   updateTrackCrossfadeState(false);
@@ -328,7 +342,7 @@ function trackCrossfadeClick(event)
     const element = event.target.closest('article').querySelector('iframe');
 
     if (element !== null)
-      controls.trackCrossfade.clickCallback(element.id);
+      controls.trackCrossfade.click(element.id);
   }
 }
 
@@ -350,7 +364,7 @@ function updateTrackCrossfadeState(isPlaying, currentTrack = -1)
 
 function updateAutoPlayState()
 {
-  if ((isPlaying() === false) && (controls.timer.positionSeconds > 0))
+  if ((isPlaying() === false) && (controls.timer.positionSeconds !== -1) && ((controls.timer.durationSeconds !== -1)))
   {
     setTimerText(controls.timer.positionElement, settings.autoPlay ? controls.timer.positionSeconds : (controls.timer.durationSeconds - controls.timer.positionSeconds));
     setTimerText(controls.timer.durationElement, controls.timer.durationSeconds);
