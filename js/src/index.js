@@ -338,7 +338,7 @@ const navSearch = (() =>
 {
   const allowKeyboardShortcuts = new Event('allowKeyboardShortcuts');
   const denyKeyboardShortcuts  = new Event('denyKeyboardShortcuts');
-  const elements = { searchContainer: null, searchField: null };
+  const elements = { searchContainer: null, searchField: null, brandingContainer: null };
   let isVisible  = false;
 
   return {
@@ -350,8 +350,9 @@ const navSearch = (() =>
 
   function init()
   {
-    elements.searchContainer = document.getElementById('search-container');
-    elements.searchField     = elements.searchContainer.querySelector('.search-field');
+    elements.searchContainer   = document.getElementById('search-container');
+    elements.searchField       = elements.searchContainer.querySelector('.search-field');
+    elements.brandingContainer = mElements.siteHeader.querySelector('div.site-branding-container');
 
     utils.addEventListeners('.nav-search-toggle', 'click', toggle);
     // To prevent extra 'blur' event before 'click' event
@@ -374,17 +375,16 @@ const navSearch = (() =>
   {
     if (elements.searchContainer.style.display.length === 0)
     {
-      if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE) && (scroll.getLastScrollTop() > 0))
+      if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
       {
-        // ToDo: This will not be smooth on iOS... Needs polyfill
-        window.scroll(
+        // Is mobile with no visible nav bar, bail out...
+        if ((mElements.siteHeader.querySelector('.nav-bar-container-mobile-top').offsetHeight === 0) &&
+            (mElements.siteHeader.querySelector('.nav-bar-container-mobile-up').offsetHeight  === 0))
         {
-          top:      0,
-          left:     0,
-          behavior: (mConfig.smoothScrolling ? 'smooth' : 'auto'),
-        });
+          return;
+        }
       }
-  
+
       show();
     }
     else
@@ -401,18 +401,10 @@ const navSearch = (() =>
   
   function show()
   {
-    if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE) && (scroll.getLastScrollTop() !== 0))
-    {
-      // Wait until we are at the top before showing search bar, quick & dirty...
-      window.requestAnimationFrame(show);
-    }
-    else
-    {
-      setPosSize();
-      setProps(true, denyKeyboardShortcuts, 'flex', 'clear');
-      elements.searchField.focus();
-      elements.searchField.setSelectionRange(9999, 9999);    
-    }
+    setPosSize();
+    setProps(true, denyKeyboardShortcuts, 'flex', 'clear');
+    elements.searchField.focus();
+    elements.searchField.setSelectionRange(9999, 9999);    
   }
   
   function setProps(visible, keyboardShortcuts, display, icon)
@@ -429,14 +421,19 @@ const navSearch = (() =>
   
     if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
     {
-      position.top    = document.body.classList.contains('no-playback') ? 15 : 21;
-      position.left   = 68;
-      position.right  = document.body.clientWidth - 65;
+      if (elements.brandingContainer.offsetHeight !== 0)
+        position.top = elements.brandingContainer.offsetTop;
+      else
+        position.top = mElements.siteHeader.querySelector('.nav-bar-container-mobile-up').offsetTop;
+
+      position.top   += 3;
+      position.left   = 63;
+      position.right  = document.body.clientWidth - 63;
       position.height = 30;
     }
     else
     {
-      position = document.querySelector('div.site-branding-container').getBoundingClientRect();
+      position = elements.brandingContainer.getBoundingClientRect();
     }
   
     elements.searchContainer.style.top    = `${position.top}px`;
@@ -507,7 +504,6 @@ const scroll = (() =>
   let isScrolledDown = false;
 
   return {
-    getLastScrollTop() { return lastScrollTop; },
     addEventListener,
   };
 
