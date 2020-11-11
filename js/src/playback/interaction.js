@@ -40,6 +40,7 @@ const mConfig = {
   crossfadeToggleId:           'footer-crossfade-toggle',
   allowKeyboardShortcutsEvent: 'allowKeyboardShortcuts',
   denyKeyboardShortcutsEvent:  'denyKeyboardShortcuts',
+  fullscreenTrackEvent:        new Event('fullscreenTrack'),
   doubleClickDelay:            500,
 };
 
@@ -454,6 +455,8 @@ function windowEventStorage(event)
 function documentEventFullscreenChange()
 {
   mElements.fullscreenTarget = (document.fullscreenElement !== null) ? document.fullscreenElement.id : null;
+  mConfig.fullscreenTrackEvent.fullscreenTarget = mElements.fullscreenTarget;
+  document.dispatchEvent(mConfig.fullscreenTrackEvent);
 }
 
 function documentEventVisibilityChange()

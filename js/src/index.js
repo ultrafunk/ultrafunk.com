@@ -27,6 +27,7 @@ let mSettings = {};
 const mConfig = {
   smoothScrolling:      false,
   settingsUpdatedEvent: 'settingsUpdated',
+  fullscreenTrackEvent: 'fullscreenTrack',
 };
 
 const mElements = {
@@ -34,6 +35,7 @@ const mElements = {
   introBanner:       null,
   siteContent:       null,
   siteContentSearch: null,
+  fullscreenTarget:  null,  
 };
 
 
@@ -69,6 +71,8 @@ document.addEventListener(mConfig.settingsUpdatedEvent, () =>
   interaction.settingsUpdated(mSettings);
   storage.setCookie(storage.KEY.UF_TRACKS_PER_PAGE, mSettings.user.tracksPerPage, (60 * 60 * 24 * 365 * 5));
 });
+
+document.addEventListener(mConfig.fullscreenTrackEvent, (event) => mElements.fullscreenTarget = event.fullscreenTarget);
 
 window.addEventListener('load', () => resize.setTopMargin());
 window.addEventListener('storage', windowEventStorage);
@@ -150,7 +154,7 @@ document.addEventListener('keydown', (event) =>
 
       case 's':
       case 'S':
-        if (searchNotFocused())
+        if (searchNotFocused() && notFullscreenTrack())
         {
           event.preventDefault();
           navSearch.toggle();
@@ -175,6 +179,11 @@ function searchNotFocused()
 function notSettingsPage()
 {
   return (document.body.classList.contains('page-template-page-settings') === false);
+}
+
+function notFullscreenTrack()
+{
+  return ((mElements.fullscreenTarget === null) ? true : false);
 }
 
 
@@ -336,8 +345,8 @@ const navMenu = (() =>
 
 const navSearch = (() =>
 {
-  const allowKeyboardShortcuts = new Event('allowKeyboardShortcuts');
-  const denyKeyboardShortcuts  = new Event('denyKeyboardShortcuts');
+  const allowKeyboardShortcutsEvent = new Event('allowKeyboardShortcuts');
+  const denyKeyboardShortcutsEvent  = new Event('denyKeyboardShortcuts');
   const elements = { searchContainer: null, searchField: null, brandingContainer: null };
   let isVisible  = false;
 
@@ -396,21 +405,21 @@ const navSearch = (() =>
   function hide()
   {
     if (isVisible)
-      setProps(false, allowKeyboardShortcuts, '', 'search');
+      setProps(false, allowKeyboardShortcutsEvent, '', 'search');
   }
   
   function show()
   {
     setPosSize();
-    setProps(true, denyKeyboardShortcuts, 'flex', 'clear');
+    setProps(true, denyKeyboardShortcutsEvent, 'flex', 'clear');
     elements.searchField.focus();
     elements.searchField.setSelectionRange(9999, 9999);    
   }
   
-  function setProps(visible, keyboardShortcuts, display, icon)
+  function setProps(visible, keyboardShortcutsEvent, display, icon)
   {
     isVisible = visible;
-    document.dispatchEvent(keyboardShortcuts);
+    document.dispatchEvent(keyboardShortcutsEvent);
     elements.searchContainer.style.display = display;
     document.querySelectorAll('div.nav-search-toggle i').forEach(element => element.textContent = icon);
   }

@@ -27,7 +27,7 @@ let siteSettings     = null;
 const mConfig = {
   settingsContainerId:  'settings-container',
   settingsSaveResetId:  'settings-save-reset',
-  settingsUpdatedEvent: 'settingsUpdated',
+  settingsUpdatedEvent:  new Event('settingsUpdated'),
   playbackIdPrefix:     'playback', // Used to prevent HTML element ID collisions
   siteIdPrefix:         'site',     // Used to prevent HTML element ID collisions
 };
@@ -126,7 +126,7 @@ function writeSettings()
 {
   writeJson(KEY.UF_PLAYBACK_SETTINGS, playbackSettings);
   writeJson(KEY.UF_SITE_SETTINGS, siteSettings);
-  document.dispatchEvent(new Event(mConfig.settingsUpdatedEvent));
+  document.dispatchEvent(mConfig.settingsUpdatedEvent);
 }
 
 function resetSettings(settings, schema)
