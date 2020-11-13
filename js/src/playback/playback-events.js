@@ -5,10 +5,10 @@
 //
 
 
-import * as debugLogger          from '../shared/debuglogger.js';
-import * as utils                from '../shared/utils.js';
-import { showSnackbar }          from '../shared/snackbar.js';
-import { updateProgressPercent } from './playback-controls.js';
+import * as debugLogger                  from '../shared/debuglogger.js';
+import * as utils                        from '../shared/utils.js';
+import { updateProgressPercent }         from './playback-controls.js';
+import { showSnackbar, dismissSnackbar } from '../shared/snackbar.js';
 
 
 export {
@@ -24,8 +24,9 @@ export {
 /*************************************************************************************************/
 
 
-const debug  = debugLogger.getInstance('playback-events');
-let settings = {};
+const debug    = debugLogger.getInstance('playback-events');
+let settings   = {};
+let snackbarId = 0;
 
 const mConfig = {
   nowPlayingIconsSelector: 'h2.entry-title',
@@ -116,6 +117,9 @@ function ready(playbackEvent)
 function mediaPlaying(playbackEvent)
 {
   debugEvent(playbackEvent);
+  
+  // If autoplayBlocked() snackbar is still visible, dismiss it when playback starts
+  dismissSnackbar(snackbarId);
 
   if (playbackEvent.data.numTracks > 1)
   {
@@ -194,7 +198,7 @@ function autoplayBlocked(playbackEvent)
 {
   debugEvent(playbackEvent);
 
-  showSnackbar('Autoplay was blocked, click or tap Play to continue...', 10, 'play', () =>
+  snackbarId = showSnackbar('Autoplay blocked, Play to continue...', 0, 'play', () =>
   {
     if (playbackEvent.data.isPlaying === false)
       playbackEvent.callback.togglePlayPause();

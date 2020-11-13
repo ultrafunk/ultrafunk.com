@@ -46,9 +46,9 @@ function addEventListeners(selectors, type, listener, data = null)
   elementList.forEach(element => { element.addEventListener(type, (event) => listener(event, data)); });
 }
 
-function getCssPropString(prop)
+function getCssPropString(prop, element = document.documentElement)
 {
-  let string = getComputedStyle(document.documentElement).getPropertyValue(prop);
+  let string = getComputedStyle(element).getPropertyValue(prop);
 
   if (string.length !== 0)
     string = string.replace(/'|"/g, '').trim();
@@ -58,9 +58,9 @@ function getCssPropString(prop)
   return string;
 }
 
-function getCssPropValue(prop)
+function getCssPropValue(prop, element = document.documentElement)
 {
-  const string = getCssPropString(prop);
+  const string = getCssPropString(prop, element);
   let value    = NaN;
 
   if (string.length !== 0)

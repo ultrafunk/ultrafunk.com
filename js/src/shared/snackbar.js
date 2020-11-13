@@ -11,6 +11,7 @@ import { MATCH, matchesMedia } from '../shared/utils.js';
 
 export {
   showSnackbar,
+  dismissSnackbar,
 };
 
 
@@ -39,6 +40,7 @@ const mElements = {
   closeButton:  null,
 };
 
+let snackbarId       = 0;
 let actionClick      = null;
 let afterClose       = null;
 let visibleTimeoutId = -1;
@@ -92,6 +94,8 @@ function showSnackbar(message, timeout = 5, actionText = null, actionClickCallba
     },
     (timeout * 1000));
   }
+
+  return ++snackbarId;
 }
 
 function init()
@@ -118,6 +122,23 @@ function actionButtonClick()
 {
   actionClick();
   reset(true);
+}
+
+function isShowing()
+{
+  return ((mElements.snackbar !== null) && (mElements.snackbar.classList.length === 1) && mElements.snackbar.classList.contains('show'));
+}
+
+function dismissSnackbar(dismissId = 0)
+{
+  if (isShowing())
+  {
+    if ((snackbarId === 0) || (snackbarId === dismissId))
+    {
+      mElements.snackbar.classList.add('hide');
+      fadeTimeoutId = setTimeout(() => mElements.snackbar.className = '', 450);
+    }
+  }
 }
 
 function reset(hideSnackbar = false)
