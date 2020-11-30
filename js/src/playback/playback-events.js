@@ -24,9 +24,8 @@ export {
 /*************************************************************************************************/
 
 
-const debug    = debugLogger.getInstance('playback-events');
+const debug    = debugLogger.newInstance('playback-events');
 let settings   = {};
-let snackbarId = 0;
 
 const mConfig = {
   nowPlayingIconsSelector: 'h2.entry-title',
@@ -34,6 +33,7 @@ const mConfig = {
 
 const mElements = {
   nowPlayingIcons: null,
+  snackbarId:      0,
 };
 
 const EVENT = {
@@ -119,7 +119,7 @@ function mediaPlaying(playbackEvent)
   debugEvent(playbackEvent);
   
   // If autoplayBlocked() snackbar is still visible, dismiss it when playback starts
-  dismissSnackbar(snackbarId);
+  dismissSnackbar(mElements.snackbarId);
 
   if (playbackEvent.data.numTracks > 1)
   {
@@ -134,7 +134,7 @@ function mediaPlaying(playbackEvent)
 
   /*
   if (settings.user.keepMobileScreenOn)
-    screenWakeLock.enable();
+    screenWakeLock.enable(settings);
   */
 }
 
@@ -198,7 +198,7 @@ function autoplayBlocked(playbackEvent)
 {
   debugEvent(playbackEvent);
 
-  snackbarId = showSnackbar('Autoplay blocked, Play to continue...', 0, 'play', () =>
+  mElements.snackbarId = showSnackbar('Autoplay blocked, Play to continue...', 0, 'play', () =>
   {
     if (playbackEvent.data.isPlaying === false)
       playbackEvent.callback.togglePlayPause();

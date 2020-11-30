@@ -11,9 +11,8 @@ import * as utils       from './shared/utils.js';
 import * as interaction from './site/interaction.js';
 
 import {
+  siteSchema,
   siteSettings,
-  siteUserSchema,
-  siteBannersSchema,
   validateSettings,
 } from './shared/settings.js';
 
@@ -21,7 +20,7 @@ import {
 /*************************************************************************************************/
 
 
-const debug   = debugLogger.getInstance('index');
+const debug   = debugLogger.newInstance('index');
 let mSettings = {};
 
 const mConfig = {
@@ -75,7 +74,7 @@ document.addEventListener(mConfig.settingsUpdatedEvent, () =>
 document.addEventListener(mConfig.fullscreenTrackEvent, (event) => mElements.fullscreenTarget = event.fullscreenTarget);
 
 window.addEventListener('load', () => resize.setTopMargin());
-window.addEventListener('storage', windowEventStorage);
+//window.addEventListener('storage', windowEventStorage);
 
 
 // ************************************************************************************************
@@ -86,8 +85,7 @@ function readSettings()
 {
   debug.log('readSettings()');
   mSettings = storage.readWriteSettingsProxy(storage.KEY.UF_SITE_SETTINGS, siteSettings, true);
-  validateSettings(mSettings.user, siteUserSchema);
-  validateSettings(mSettings.priv.banners, siteBannersSchema);
+  validateSettings(mSettings, siteSchema);
   debug.log(mSettings);
 }
 
@@ -191,9 +189,10 @@ function notFullscreenTrack()
 // Misc. support functions
 // ************************************************************************************************
 
+/*
 function windowEventStorage(event)
 {
-  if (mSettings.storageChangeSync)
+  if (mSettings.priv.storageChangeSync)
   {
     const oldSettings = storage.parseEventData(event, storage.KEY.UF_SITE_SETTINGS);
 
@@ -213,6 +212,7 @@ function windowEventStorage(event)
     }
   }
 }
+*/
 
 function showIntroBanner()
 {

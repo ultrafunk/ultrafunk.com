@@ -22,7 +22,7 @@ export {
 /*************************************************************************************************/
 
 
-const debug         = debugLogger.getInstance('embedded-players');
+const debug         = debugLogger.newInstance('embedded-players');
 const eventLog      = new eventLogger.Playback(10);
 let settings        = null;
 let players         = null;
@@ -222,12 +222,12 @@ function onYouTubePlayerReady()
 function onYouTubePlayerStateChange(event)
 {
   eventLog.add(eventLogger.SOURCE.YOUTUBE, event.data, event.target.f.id);
-  
+
   switch (event.data)
   {
     case YT.PlayerState.BUFFERING: // eslint-disable-line no-undef
       {
-        debug.log('onYouTubePlayerStateChange: BUFFERING');
+        debug.log(`onYouTubePlayerStateChange: BUFFERING (uID: ${event.target.f.id})`);
 
         if (players.crossfade.isFading() === false)
         {
@@ -239,13 +239,13 @@ function onYouTubePlayerStateChange(event)
       break;
 
     case YT.PlayerState.CUED: // eslint-disable-line no-undef
-      debug.log('onYouTubePlayerStateChange: CUED');
+      debug.log(`onYouTubePlayerStateChange: CUED      (uID: ${event.target.f.id})`);
       break;
 
     case YT.PlayerState.PLAYING: // eslint-disable-line no-undef
       {
-        debug.log('onYouTubePlayerStateChange: PLAYING');
-
+        debug.log(`onYouTubePlayerStateChange: PLAYING   (uID: ${event.target.f.id})`);
+        
         // Call order is important on play events for state handling: Always sync first!
         playbackState.syncAll(event.target.f.id, playbackState.STATE.PLAY);
 
@@ -256,7 +256,7 @@ function onYouTubePlayerStateChange(event)
 
     case YT.PlayerState.PAUSED: // eslint-disable-line no-undef
       {
-        debug.log(`onYouTubePlayerStateChange: PAUSED (uID: ${event.target.f.id})`);
+        debug.log(`onYouTubePlayerStateChange: PAUSED    (uID: ${event.target.f.id})`);
 
         if (players.isCurrent(event.target.f.id))
         {
@@ -272,7 +272,7 @@ function onYouTubePlayerStateChange(event)
 
     case YT.PlayerState.ENDED: // eslint-disable-line no-undef
       {
-        debug.log(`onYouTubePlayerStateChange: ENDED (uID: ${event.target.f.id})`);
+        debug.log(`onYouTubePlayerStateChange: ENDED     (uID: ${event.target.f.id})`);
 
         if (players.isCurrent(event.target.f.id))
         {
@@ -286,13 +286,17 @@ function onYouTubePlayerStateChange(event)
       }
       break;
 
-    default:
+    case YT.PlayerState.UNSTARTED: // eslint-disable-line no-undef
       {
-        debug.log('onYouTubePlayerStateChange: UNSTARTED (-1)');
+        debug.log(`onYouTubePlayerStateChange: UNSTARTED (uID: ${event.target.f.id})`);
         
         if (eventLog.ytAutoPlayBlocked(event.target.f.id, 3000))
           eventHandler(EVENT.AUTOPLAY_BLOCKED);
       }
+      break;
+
+    default:
+      debug.log(`onYouTubePlayerStateChange: Unknown state: ${event.data} for ${event.target.f.id}`);
   }
 }
 
@@ -325,7 +329,7 @@ function onSoundCloudPlayerEventReady()
 
 function onSoundCloudPlayerEventPlay(event)
 {
-  debug.log(`onSoundCloudPlayerEvent: PLAY (uID: ${event.soundId})`);
+  debug.log(`onSoundCloudPlayerEvent: PLAY   (uID: ${event.soundId})`);
   eventLog.add(eventLogger.SOURCE.SOUNDCLOUD, eventLogger.EVENT.STATE_PLAYING, event.soundId);
 
   if (players.crossfade.isFading() && players.isCurrent(event.soundId))
@@ -352,7 +356,7 @@ function onSoundCloudPlayerEventPlay(event)
 
 function onSoundCloudPlayerEventPause(event)
 {
-  debug.log(`onSoundCloudPlayerEvent: PAUSE (uID: ${event.soundId})`);
+  debug.log(`onSoundCloudPlayerEvent: PAUSE  (uID: ${event.soundId})`);
   eventLog.add(eventLogger.SOURCE.SOUNDCLOUD, eventLogger.EVENT.STATE_PAUSED, event.soundId);
   
   if (eventLog.scAutoPlayBlocked(event.soundId, 3000))

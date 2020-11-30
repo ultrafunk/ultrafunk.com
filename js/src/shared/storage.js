@@ -20,14 +20,14 @@ export {
   writeJson,
   readWriteSettingsProxy,
   addSettingsObserver,
-  parseEventData,
+//parseEventData,
 };
 
 
 /*************************************************************************************************/
 
 
-const debug     = debugLogger.getInstance('storage');
+const debug     = debugLogger.newInstance('storage');
 const observers = {};
 
 const KEY = {
@@ -173,54 +173,56 @@ function writeJson(keyName, keyData)
 
 
 // ************************************************************************************************
-// Merge and cleanup settings objects on new version
+// Recursive merge and cleanup for settings objects on new version
 // ************************************************************************************************
 
-function mergeObjectProps(oldObject, newObject, keyName)
+function mergeSettings(oldSettings, newSettings, settingsKey)
 {
-  debug.log(`mergeObjectProps(): Merging ${keyName} from version ${oldObject.version} to version ${newObject.version}`);
+  debug.log(`mergeSettings(): Merging ${settingsKey} from version ${oldSettings.version} to version ${newSettings.version}`);
 
-  const mergedObject = { ...oldObject,      ...newObject      };
-  mergedObject.user  = { ...newObject.user, ...oldObject.user };
-  mergedObject.priv  = { ...newObject.priv, ...oldObject.priv };
+  const mergedSettings = { version: newSettings.version };
 
-  if (keyName === KEY.UF_SITE_SETTINGS)
-  {
-    mergedObject.priv.banners = { ...newObject.priv.banners, ...oldObject.priv.banners };
-  }
-  else if (keyName === KEY.UF_PLAYBACK_SETTINGS)
-  {
-    // Handle playback settings only properties here
-  }
-  
-  return mergedObject;
+  mergeDeep(oldSettings, newSettings, mergedSettings);
+  cleanDeep(mergedSettings, newSettings);
+
+  return mergedSettings;
 }
 
-function deleteOrphanedKeys(oldObject, newObject)
+function mergeDeep(oldSettings, newSettings, destination)
 {
-  Object.keys(oldObject).forEach((key) => 
+  for (const key in newSettings)
   {
-    if ((key in newObject) === false)
+    if (typeof newSettings[key] === 'object')
     {
-      debug.log(`deleteOrphanedKeys(): Deleting '${key}'`);
-      delete oldObject[key];
+      if (oldSettings && (typeof oldSettings[key] === 'object'))
+      {
+        debug.log(`mergeDeep() - Merging: ${key}`);
+        destination[key] = { ...newSettings[key], ...oldSettings[key] };
+        mergeDeep(oldSettings[key], newSettings[key], destination[key]);
+      }
+      else
+      {
+        debug.log(`mergeDeep() - Copying: ${key}`);
+        destination[key] = { ...newSettings[key] };
+        mergeDeep({}, newSettings[key], destination[key]);
+      }
     }
-  });
+  }
 }
 
-function removeOrphanedObjectProps(oldObject, newObject, keyName)
+// Delete all orphaned Settings properties / objects that are no longer in use after merge
+function cleanDeep(mergedSettings, newSettings)
 {
-  deleteOrphanedKeys(oldObject,      newObject);
-  deleteOrphanedKeys(oldObject.user, newObject.user);
-  deleteOrphanedKeys(oldObject.priv, newObject.priv);
-
-  if (keyName === KEY.UF_SITE_SETTINGS)
+  for (const key in mergedSettings)
   {
-    deleteOrphanedKeys(oldObject.priv.banners, newObject.priv.banners);
-  }
-  else if (keyName === KEY.UF_PLAYBACK_SETTINGS)
-  {
-    // Handle playback settings only keys / properties here
+    if ((key in newSettings) === false)
+    {
+      debug.log(`cleanDeep() - Deleting: ${key} (${(typeof mergedSettings[key] === 'object') ? 'object' : 'property'})`);
+      delete mergedSettings[key];
+    }
+    
+    if (typeof mergedSettings[key] === 'object')
+      cleanDeep(mergedSettings[key], newSettings[key]);
   }
 }
 
@@ -241,8 +243,7 @@ function readWriteSettingsProxy(settingsKey, defaultSettings = null, setDefault 
     if (parsedJson.version < defaultSettings.version)
     {
       debug.log(parsedJson);
-      settingsObject = mergeObjectProps(parsedJson, defaultSettings, settingsKey);
-      removeOrphanedObjectProps(settingsObject, defaultSettings, settingsKey);
+      settingsObject = mergeSettings(parsedJson, defaultSettings, settingsKey);
       debug.log(settingsObject);
 
       writeJson(settingsKey, settingsObject);
@@ -342,6 +343,7 @@ function callSettingsObservers(property, oldValue, newValue)
 // Helper for windowEventStorage
 // ************************************************************************************************
 
+/*
 function parseEventData(event, keyName)
 {
   let oldData = null;
@@ -360,4 +362,4 @@ function parseEventData(event, keyName)
 
   return oldData;
 }
-
+*/

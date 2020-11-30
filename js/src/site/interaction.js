@@ -23,7 +23,7 @@ export {
 /*************************************************************************************************/
 
 
-const debug  = debugLogger.getInstance('site-interaction');
+const debug  = debugLogger.newInstance('site-interaction');
 let settings = {};
 
 

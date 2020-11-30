@@ -9,27 +9,26 @@ import * as debugLogger    from '../shared/debuglogger.js';
 import * as eventLogger    from './eventlogger.js';
 import * as playback       from './playback.js';
 import * as playbackEvents from './playback-events.js';
+import * as screenWakeLock from './screen-wakelock.js';
 import * as utils          from '../shared/utils.js';
 import { showSnackbar }    from '../shared/snackbar.js';
 
 import {
+  playbackSchema,
   playbackSettings,
-  playbackUserSchema,
-  playbackPrivSchema,
   validateSettings,
 } from '../shared/settings.js';
 
 import {
   KEY,
   readWriteSettingsProxy,
-  parseEventData,
 } from '../shared/storage.js';
 
 
 /*************************************************************************************************/
 
 
-const debug              = debugLogger.getInstance('playback-interaction');
+const debug              = debugLogger.newInstance('playback-interaction');
 const eventLog           = new eventLogger.Interaction(10);
 let mSettings            = {};
 let useKeyboardShortcuts = false;
@@ -71,10 +70,17 @@ document.addEventListener('DOMContentLoaded', () =>
   }
 });
 
+document.addEventListener('fullscreenchange',       documentEventFullscreenChange);
+document.addEventListener('webkitfullscreenchange', documentEventFullscreenChange);
+
 // Listen for triggered events to toggle keyboard capture = allow other input elements to use shortcut keys
 document.addEventListener(mConfig.allowKeyboardShortcutsEvent, () => { if (mSettings.user.keyboardShortcuts) useKeyboardShortcuts = true;  });
 document.addEventListener(mConfig.denyKeyboardShortcutsEvent,  () => { if (mSettings.user.keyboardShortcuts) useKeyboardShortcuts = false; });
 
+window.addEventListener('blur',    windowEventBlur);
+//window.addEventListener('storage', windowEventStorage);
+//window.addEventListener('focus',   windowEventFocus);
+ 
 
 // ************************************************************************************************
 // Read settings and interaction init
@@ -84,8 +90,7 @@ function readSettings()
 {
   debug.log('readSettings()');
   mSettings = readWriteSettingsProxy(KEY.UF_PLAYBACK_SETTINGS, playbackSettings, true);
-  validateSettings(mSettings.user, playbackUserSchema);
-  validateSettings(mSettings.priv, playbackPrivSchema);
+  validateSettings(mSettings, playbackSchema);
   debug.log(mSettings);
 }
 
@@ -99,15 +104,11 @@ function initInteraction()
   mElements.autoPlayToggle             = document.getElementById(mConfig.autoPlayToggleId);
   mElements.crossfadeToggle            = document.getElementById(mConfig.crossfadeToggleId);
 
-  window.addEventListener('blur',    windowEventBlur);
-//window.addEventListener('focus',   windowEventFocus);
-  window.addEventListener('storage', windowEventStorage);
-  
-  document.addEventListener('fullscreenchange',       documentEventFullscreenChange);
-  document.addEventListener('webkitfullscreenchange', documentEventFullscreenChange);
-  
   utils.addEventListeners('i.nav-bar-arrow-back', 'click', subPaginationClick, navigationVars.prevUrl); // eslint-disable-line no-undef
   utils.addEventListeners('i.nav-bar-arrow-fwd',  'click', subPaginationClick, navigationVars.nextUrl); // eslint-disable-line no-undef
+
+  utils.addEventListeners('nav.post-navigation .nav-previous a', 'click', subPaginationClick, navigationVars.prevUrl); // eslint-disable-line no-undef
+  utils.addEventListeners('nav.post-navigation .nav-next a',     'click', subPaginationClick, navigationVars.nextUrl); // eslint-disable-line no-undef
 }
 
 function initPlayback()
@@ -260,104 +261,14 @@ function doubleTapNavNext(nextUrl, playbackStatus)
   return false;
 }
 
-function showInteractionHint(hintProperty, hintText, snackbarTimeout = 0)
+function showInteractionHint(hintKey, hintText, snackbarTimeout = 0)
 {
-  if (mSettings.priv[hintProperty])
+  if (mSettings.priv.tips[hintKey])
   {
     showSnackbar(hintText, snackbarTimeout);
-    mSettings.priv[hintProperty] = false;
+    mSettings.priv.tips[hintKey] = false;
   }
 }
-
-
-// ************************************************************************************************
-// Experimental Screen Wake Lock API support: https://web.dev/wakelock/
-// ************************************************************************************************
-
-const screenWakeLock = (() =>
-{
-  let wakeLock = null;
-
-  return {
-    enable,
-  //disable,
-    stateVisible,
-  };
-
-  function isSupported()
-  {
-    return (('wakeLock' in navigator) && ('request' in navigator.wakeLock));
-  }
- 
-  async function enable()
-  {
-    if (isSupported())
-    {
-      if (document.visibilityState === 'visible')
-      {
-        /*
-        if (wakeLock !== null)
-          wakeLock.release();
-        */
-
-        if (await request() !== true)
-        {
-          debug.log('screenWakeLock.enable(): Screen Wake Lock request failed');
-        //showSnackbar('Keep Screen On failed', 3);
-        }
-      }
-    }
-    else
-    {
-      debug.log('screenWakeLock.enable(): Screen Wake Lock is not supported');
-      showSnackbar('Keep Screen On is not supported', 5, 'Turn Off', () => mSettings.user.keepMobileScreenOn = false);
-    }
-  }
-
-  /*
-  function disable()
-  {
-    debug.log('screenWakeLock.disable()');
-
-    if (wakeLock !== null)
-      wakeLock.release();
-  }
-  */
-
-  function stateVisible()
-  {
-    debug.log('screenWakeLock.stateVisible()');
-
-    if (isSupported() && (wakeLock === null))
-      request();
-  }
-
-  async function request()
-  {
-    try
-    {
-      wakeLock = await navigator.wakeLock.request('screen');
-
-      debug.log('screenWakeLock.request(): Screen Wake Lock is Enabled');
-    //showSnackbar('Keep Screen On success', 3);
-
-      wakeLock.addEventListener('release', () =>
-      {
-        debug.log('screenWakeLock.request(): Screen Wake Lock was Released');
-      //showSnackbar('Keep Screen On was released', 3);
-        wakeLock = null;
-      });
-
-      return true;
-    }
-    catch (exception)
-    {
-      debug.error(`screenWakeLock.request(): ${exception.name} - ${exception.message}`);
-    }
-
-    return false;
-  }
-})();
 
 
 // ************************************************************************************************
@@ -373,7 +284,7 @@ function playbackEventReady()
   document.addEventListener('visibilitychange', documentEventVisibilityChange);
   
   if (mSettings.user.keepMobileScreenOn)
-    screenWakeLock.enable();
+    screenWakeLock.enable(mSettings);
 
   isPlaybackReady = true;
 }
@@ -430,9 +341,10 @@ function windowEventFocus()
 }
 */
 
+/*
 function windowEventStorage(event)
 {
-  if (mSettings.storageChangeSync)
+  if (mSettings.priv.storageChangeSync)
   {
     const oldSettings = parseEventData(event, KEY.UF_PLAYBACK_SETTINGS);
 
@@ -443,14 +355,13 @@ function windowEventStorage(event)
       // Stored settings have changed, read updated settings from storage
       readSettings();
   
-      /*
       // Check what has changed (old settings vs. new settings) and update data / UI where needed
       if (settings.user.autoPlay !== oldSettings.user.autoPlay)
         updateAutoPlayData(settings.user.autoPlay);
-      */
     }
   }
 }
+*/
 
 function documentEventFullscreenChange()
 {
@@ -461,7 +372,7 @@ function documentEventFullscreenChange()
 
 function documentEventVisibilityChange()
 {
-//debug.log(`documentEventVisibilityChange() - visibilityState: ${document.visibilityState}`);
+//debug.log(`documentEventVisibilityChange(): ${document.visibilityState}`);
 
   if (document.visibilityState === 'visible')
   {

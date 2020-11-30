@@ -16,7 +16,7 @@ export {
 /*************************************************************************************************/
 
 
-const debug = debugLogger.getInstance('modal');
+const debug = debugLogger.newInstance('modal');
 
 const mConfig = {
   id: 'modal',
@@ -125,6 +125,7 @@ function close()
 function disablePageScrolling(disable)
 {
   const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+  document.body.style.touchAction  = disable ? 'none'   : '';
   document.body.style.overflow     = disable ? 'hidden' : '';
   document.body.style.paddingRight = disable ? `${scrollbarWidth}px` : '';
   document.getElementById('site-header').style.paddingRight = disable ? `${scrollbarWidth}px` : '';

@@ -20,7 +20,7 @@ export {
 /*************************************************************************************************/
 
 
-const debug = debugLogger.getInstance('mediaplayers');
+const debug = debugLogger.newInstance('mediaplayers');
 
 // Used to split details string into Artist and Title strings
 const artistTitleRegEx = /\s{1,}[–·-]\s{1,}/i;
@@ -234,7 +234,7 @@ class SoundCloud extends MediaPlayer
   
   stop()
   {
-    this.embeddedPlayer.pause();
+    this.pause();
     super.seekTo(0);
   }
 

@@ -1,5 +1,5 @@
 //
-// Create JS chunk name PHP file
+// Create build-env.php file
 //
 // https://ultrafunk.com
 //
@@ -54,7 +54,7 @@ $ultrafunk_js_preload_chunk = '/js/dist/${newestChunk['file']}';
 ?>
 `;
 
-  writeFile('./inc/preload-chunk.php', template, (error) =>
+  writeFile('./inc/build-env.php', template, (error) =>
   {
     if (error)
       return console.error(error);

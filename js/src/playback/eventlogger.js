@@ -19,7 +19,7 @@ export {
 /*************************************************************************************************/
 
 
-const debug = debugLogger.getInstance('eventlogger');
+const debug = debugLogger.newInstance('eventlogger');
 
 const SOURCE = {
 // Default source

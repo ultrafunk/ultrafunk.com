@@ -1,6 +1,6 @@
 {
   "name": "ultrafunk.com",
-  "version": "1.14.3",
+  "version": "1.15.0",
   "description": "WordPress theme / PWA",
   "homepage": "https://github.com/ultrafunk/ultrafunk.com",
   "repository": "git@github.com:ultrafunk/ultrafunk.com.git",
@@ -11,12 +11,12 @@
     "build-js-debug": "node_modules\\.bin\\esbuild --bundle --format=esm --splitting js\\src\\index.js js\\src\\playback\\interaction.js --outdir=js\\dist",
     "build-js-css": "node_modules\\.bin\\esbuild --bundle --minify --loader:.png=dataurl js\\src\\css\\bundle.css --outfile=js\\dist\\css\\bundle.min.css",
     "build-css": "node_modules\\.bin\\esbuild --minify style.css --outfile=style.min.css",
-    "build-chunk-php": "node scripts\\php-chunk-include.mjs",
+    "build-php-env": "node scripts\\build-php-env.mjs",
     "build-release": "scripts\\build-js.bat & npm run build-js-css & npm run build-css",
     "build-debug": "scripts\\build-js-debug.bat & npm run build-js-css & npm run build-css",
     "build-release-win": "start /min cmd /c scripts\\build-js.bat && start /min cmd /c npm run build-js-css && start /min cmd /c npm run build-css",
-    "build-release-linux": "npm run build-js & npm run build-js-css & npm run build-css & npm run build-chunk-php",
-    "build-debug-linux": "npm run build-js-debug & npm run build-js-css & npm run build-css & npm run build-chunk-php"
+    "build-release-linux": "npm run build-js & npm run build-js-css & npm run build-css & npm run build-php-env",
+    "build-debug-linux": "npm run build-js-debug & npm run build-js-css & npm run build-css & npm run build-php-env"
   },
   "keywords": [],
   "author": {
@@ -25,7 +25,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "esbuild": "^0.8.6",
-    "eslint": "^7.13.0"
+    "esbuild": "^0.8.17",
+    "eslint": "^7.14.0"
   }
 }

@@ -19,7 +19,7 @@ export {
 /*************************************************************************************************/
 
 
-const debug = debugLogger.getInstance('crossfade');
+const debug = debugLogger.newInstance('crossfade');
 
 const VOLUME = {
   MIN:   0,

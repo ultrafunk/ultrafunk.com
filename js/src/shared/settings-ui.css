@@ -80,6 +80,10 @@
   border-bottom-right-radius: var(--button-border-radius);
 }
 
+#settings-container table td.current-value-false {
+  opacity: 0.20;
+}
+
 #settings-container .settings-clear {
   clear: both;
   margin: 100px auto 100px auto;

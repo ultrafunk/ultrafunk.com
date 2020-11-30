@@ -21,7 +21,7 @@ export {
 /*************************************************************************************************/
 
 
-const debug = debugLogger.getInstance('utils');
+const debug = debugLogger.newInstance('utils');
 
 const MATCH = {
   SITE_MIN_WIDTH_WIDE:   1,

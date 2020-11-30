@@ -6,7 +6,7 @@
 
 
 export {
-  getInstance,
+  newInstance,
   logErrorOnServer,
 };
 
@@ -23,23 +23,23 @@ const DEBUG = false;
 
 class DebugLog
 {
-  constructor(caller = 'unknown')
+  constructor(moduleName = 'unknown')
   {
-    this.caller = padString(caller.toUpperCase(), 20, '.');
+    this.moduleName = padString(moduleName.toUpperCase(), 20, '.');
   }
   
-  isDebug()   { return DEBUG;                           }
-  warn(data)  { console.warn(`${this.caller}:`,  data); }
-  error(data) { console.error(`${this.caller}:`, data); }
+  isDebug()   { return DEBUG;                               }
+  warn(data)  { console.warn(`${this.moduleName}:`,  data); }
+  error(data) { console.error(`${this.moduleName}:`, data); }
 }
 
 class DevBuild extends DebugLog
 {
-  constructor(caller) { super(caller); }
+  constructor(moduleName) { super(moduleName); }
 
   log(data)
   {
-    console.log(`${this.caller}:`, data);
+    console.log(`${this.moduleName}:`, data);
   }
 
   logEventLog(eventLog, eventSource, eventType)
@@ -69,7 +69,7 @@ class DevBuild extends DebugLog
 
 class ProdBuild extends DebugLog
 {
-  constructor(caller) { super(caller); }
+  constructor(moduleName) { super(moduleName); }
 
   log()                  {}
   logEventLog()          {}
@@ -81,9 +81,9 @@ class ProdBuild extends DebugLog
 // DebugLog class support functions
 // ************************************************************************************************
 
-function getInstance(caller)
+function newInstance(moduleName)
 {
-  return ((DEBUG === true) ? new DevBuild(caller) : new ProdBuild(caller));
+  return ((DEBUG === true) ? new DevBuild(moduleName) : new ProdBuild(moduleName));
 }
 
 function padString(string, maxLength, padChar)

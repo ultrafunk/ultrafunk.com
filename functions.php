@@ -168,7 +168,7 @@ add_action('admin_menu', 'ultrafunk_reusable_blocks_admin_menu');
 //
 // Get theme functions and tags
 //
-require get_template_directory() . '/inc/preload-chunk.php';
+require get_template_directory() . '/inc/build-env.php';
 require get_template_directory() . '/inc/request.php';
 require get_template_directory() . '/inc/theme-functions.php';
 require get_template_directory() . '/inc/theme-tags.php';

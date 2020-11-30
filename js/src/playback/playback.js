@@ -28,7 +28,7 @@ export {
 /*************************************************************************************************/
 
 
-const debug  = debugLogger.getInstance('playback');
+const debug  = debugLogger.newInstance('playback');
 let eventLog = null;
 let settings = {};
 let players  = {};
@@ -303,6 +303,10 @@ const playbackTimer = (() =>
 {
   let intervalId     = -1;
   let lastPosSeconds = 0;
+  let isPageVisible  = true;
+
+  // Can be called on IIFE execution since it has no other dependencies
+  document.addEventListener('visibilitychange', visibilityChange);
 
   return {
     start,
@@ -334,9 +338,16 @@ const playbackTimer = (() =>
     controls.blinkPlayPause(false);
   }
   
+  function visibilityChange()
+  {
+    isPageVisible = (document.visibilityState === 'visible') ? true : false;
+  }
+  
   function update()
   {
-    players.current.getPosition(updateCallback);
+    // Save CPU & GPU resources by only updating the DOM if the document / page is visible
+    if (isPageVisible)
+      players.current.getPosition(updateCallback);
   }
   
   function updateCallback(positionMilliseconds, durationSeconds = 0)

@@ -18,7 +18,7 @@ export {
 /*************************************************************************************************/
 
 
-const debug = debugLogger.getInstance('snackbar');
+const debug = debugLogger.newInstance('snackbar');
 
 const mConfig = {
   id: 'snackbar',

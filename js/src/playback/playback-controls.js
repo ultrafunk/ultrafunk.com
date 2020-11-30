@@ -29,7 +29,7 @@ export {
 /*************************************************************************************************/
 
 
-const debug  = debugLogger.getInstance('playback-controls');
+const debug  = debugLogger.newInstance('playback-controls');
 let settings = {};
 
 const mConfig = {

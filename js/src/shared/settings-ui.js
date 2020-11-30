@@ -20,7 +20,7 @@ import {
 /*************************************************************************************************/
 
 
-const debug          = debugLogger.getInstance('settings-ui');
+const debug          = debugLogger.newInstance('settings-ui');
 let playbackSettings = null;
 let siteSettings     = null;
 
@@ -47,7 +47,7 @@ const settingsErrorTemplate = `<h3>An error occurred while reading Playback and 
 
 
 // ************************************************************************************************
-// Document load init + settings read error handling
+// Document loaded init + settings read error handling
 // ************************************************************************************************
 
 document.addEventListener('DOMContentLoaded', () =>
@@ -65,12 +65,12 @@ document.addEventListener('DOMContentLoaded', () =>
       return;
     }
 
-    readSettings();
+    readSettings(false);
 
     if ((playbackSettings !== null) && (siteSettings !== null))
     {
-      setCurrentValues(playbackSettings.user, settings.playbackUserSchema);
-      setCurrentValues(siteSettings.user, settings.siteUserSchema);
+      setCurrentSettings(playbackSettings.user, settings.playbackSchema.user);
+      setCurrentSettings(siteSettings.user,     settings.siteSchema.user);
   
       insertSettingsHtml();
       mElements.settingsContainer.style.opacity = 1;
@@ -103,7 +103,7 @@ function readSettingsError()
     localStorage.removeItem(KEY.UF_SITE_SETTINGS);
     deleteCookie(KEY.UF_TRACKS_PER_PAGE);
 
-    readSettings();
+    readSettings(true);
 
     if ((playbackSettings !== null) && (siteSettings !== null))
       showSnackbar('All settings have been cleared', 5, 'Reload', () => { window.location.href = '/settings/'; }, () => { window.location.href = '/settings/'; });
@@ -112,14 +112,15 @@ function readSettingsError()
   });
 }
 
+
 // ************************************************************************************************
-// Read and write settings JSON data from local storage + reset settings to default
+// Read and write settings JSON data
 // ************************************************************************************************
 
-function readSettings()
+function readSettings(setDefault = false)
 {
-  playbackSettings = readJson(KEY.UF_PLAYBACK_SETTINGS, null, false);
-  siteSettings     = readJson(KEY.UF_SITE_SETTINGS,     null, false);
+  playbackSettings = readJson(KEY.UF_PLAYBACK_SETTINGS, setDefault ? settings.playbackSettings : null, setDefault);
+  siteSettings     = readJson(KEY.UF_SITE_SETTINGS,     setDefault ? settings.siteSettings     : null, setDefault);
 }
 
 function writeSettings()
@@ -129,17 +130,12 @@ function writeSettings()
   document.dispatchEvent(mConfig.settingsUpdatedEvent);
 }
 
-function resetSettings(settings, schema)
-{
-  Object.keys(settings).forEach(key => { if (key in schema) settings[key] = schema[key].default; });
-}
-
 
 // ************************************************************************************************
-// Set current settings values and update values on UI interaction
+// Set current (read) and default settings values
 // ************************************************************************************************
 
-function setCurrentValues(settings, schema)
+function setCurrentSettings(settings, schema)
 {
   Object.entries(settings).forEach(([key, settingValue]) =>
   {
@@ -153,14 +149,14 @@ function setCurrentValues(settings, schema)
   });
 }
 
-function updateSettingsValues(settings, schema, idPrefix)
+function setDefaultSettings(settings, schema)
 {
   Object.keys(settings).forEach(key =>
   {
     if (key in schema)
     {
-      const valueString = schema[key].valueStrings[getValueStringsIndex(schema[key], settings[key])];
-      document.getElementById(`${idPrefix}:${key}`).querySelector('.value-string').textContent = valueString;
+      settings[key]       = schema[key].default;
+      schema[key].current = getValueStringsIndex(schema[key], schema[key].default);
     }
   });
 }
@@ -172,22 +168,23 @@ function getValueStringsIndex(schemaEntry, findValue)
 
 
 // ************************************************************************************************
-// Create HTML content for read settings
+// Create HTML table content for settings
 // ************************************************************************************************
 
 function insertSettingsHtml()
 {
   let html = `\n<h3>Playback</h3>\n<table class="playback-settings">\n<tbody>`;
-  Object.entries(settings.playbackUserSchema).forEach(entry => html += addTableRow(mConfig.playbackIdPrefix, entry));
+  Object.entries(settings.playbackSchema.user).forEach(entry => html += addTableRow(mConfig.playbackIdPrefix, entry));
 
   html += `\n</tbody>\n</table>\n<h3>Site</h3>\n<table class="site-settings">\n<tbody>`;
-  Object.entries(settings.siteUserSchema).forEach(entry => html += addTableRow(mConfig.siteIdPrefix, entry));
+  Object.entries(settings.siteSchema.user).forEach(entry => html += addTableRow(mConfig.siteIdPrefix, entry));
 
   html += `\n</tbody>\n</table>\n`;
 
   mElements.settingsContainer.insertAdjacentHTML('afterbegin', html);
-  Object.keys(settings.playbackUserSchema).forEach(key => document.getElementById(`${mConfig.playbackIdPrefix}:${key}`).addEventListener('click', playbackSettingsClick));
-  Object.keys(settings.siteUserSchema).forEach(key => document.getElementById(`${mConfig.siteIdPrefix}:${key}`).addEventListener('click', siteSettingsClick));
+
+  Object.keys(settings.playbackSchema.user).forEach(key => document.getElementById(`${mConfig.playbackIdPrefix}:${key}`).addEventListener('click', playbackSettingsClick));
+  Object.keys(settings.siteSchema.user).forEach(key => document.getElementById(`${mConfig.siteIdPrefix}:${key}`).addEventListener('click', siteSettingsClick));
 }
 
 function addTableRow(idPrefix, entry)
@@ -195,21 +192,28 @@ function addTableRow(idPrefix, entry)
   const html =
     `\n<tr id="${idPrefix}:${entry[0]}" class="settings-entry">
       <td class="description">${entry[1].description}</td>
-      <td class="value-string">${entry[1].valueStrings[entry[1].current]}</td>
+      <td class="${getTypeValueClasses(entry[1])}">${entry[1].valueStrings[entry[1].current]}</td>
     </tr>`;
 
   return html;
 }
 
+function getTypeValueClasses(entry)
+{
+  switch (entry.type)
+  {
+    case settings.TYPE_INTEGER: return 'value-string type-integer';
+    case settings.TYPE_BOOLEAN: return `value-string type-boolean current-value-${(entry.values[entry.current] === true) ? 'true' : 'false'}`;
+    case settings.TYPE_STRING:  return 'value-string type-string';
+  }
+}
+
 
 // ************************************************************************************************
-// Update data on UI-events (click), save and reset settings
+// Update row data and DOM
 // ************************************************************************************************
 
-function playbackSettingsClick(event) { updateRowClicked(event, playbackSettings.user, settings.playbackUserSchema); }
-function siteSettingsClick(event)     { updateRowClicked(event, siteSettings.user,     settings.siteUserSchema);     }
-
-function updateRowClicked(event, settings, schema)
+function updateRowData(event, settings, schema)
 {
   const element         = event.target.parentElement;
   const settingsKey     = element.id.split(':')[1];
@@ -217,8 +221,31 @@ function updateRowClicked(event, settings, schema)
   schemaEntry.current   = ((schemaEntry.current + 1) < schemaEntry.values.length) ? schemaEntry.current + 1 : schemaEntry.current = 0;
   settings[settingsKey] = schemaEntry.values[schemaEntry.current];
 
-  element.querySelector('.value-string').textContent = schemaEntry.valueStrings[schemaEntry.current];
+  updateRowDOM(element.querySelector('.value-string'), schemaEntry);
 }
+
+function updateRowDOM(element, schemaEntry)
+{
+  element.classList   = getTypeValueClasses(schemaEntry);
+  element.textContent = schemaEntry.valueStrings[schemaEntry.current];
+}
+
+function updateSettingsDOM(settings, schema, idPrefix)
+{
+  Object.keys(settings).forEach(key =>
+  {
+    if (key in schema)
+      updateRowDOM(document.getElementById(`${idPrefix}:${key}`).querySelector('.value-string'), schema[key]);
+  });
+}
+
+
+// ************************************************************************************************
+// Update data and DOM on UI-events (click)
+// ************************************************************************************************
+
+function playbackSettingsClick(event) { updateRowData(event, playbackSettings.user, settings.playbackSchema.user); }
+function siteSettingsClick(event)     { updateRowData(event, siteSettings.user,     settings.siteSchema.user);     }
 
 function settingsSaveClick()
 {
@@ -228,11 +255,11 @@ function settingsSaveClick()
 
 function settingsResetClick()
 {
-  resetSettings(playbackSettings.user, settings.playbackUserSchema);
-  updateSettingsValues(playbackSettings.user, settings.playbackUserSchema, mConfig.playbackIdPrefix);
+  setDefaultSettings(playbackSettings.user, settings.playbackSchema.user);
+  updateSettingsDOM(playbackSettings.user, settings.playbackSchema.user, mConfig.playbackIdPrefix);
 
-  resetSettings(siteSettings.user, settings.siteUserSchema);
-  updateSettingsValues(siteSettings.user, settings.siteUserSchema, mConfig.siteIdPrefix);
+  setDefaultSettings(siteSettings.user, settings.siteSchema.user);
+  updateSettingsDOM(siteSettings.user, settings.siteSchema.user, mConfig.siteIdPrefix);
 
   showSnackbar('All settings reset', 5, 'Undo', () => location.reload(), () => writeSettings());
 }
