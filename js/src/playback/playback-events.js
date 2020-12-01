@@ -24,8 +24,8 @@ export {
 /*************************************************************************************************/
 
 
-const debug    = debugLogger.newInstance('playback-events');
-let settings   = {};
+const debug  = debugLogger.newInstance('playback-events');
+let settings = {};
 
 const mConfig = {
   nowPlayingIconsSelector: 'h2.entry-title',

@@ -9,12 +9,7 @@ import * as debugLogger from './shared/debuglogger.js';
 import * as storage     from './shared/storage.js';
 import * as utils       from './shared/utils.js';
 import * as interaction from './site/interaction.js';
-
-import {
-  siteSchema,
-  siteSettings,
-  validateSettings,
-} from './shared/settings.js';
+import { siteSettings } from './shared/settings.js';
 
 
 /*************************************************************************************************/
@@ -85,7 +80,6 @@ function readSettings()
 {
   debug.log('readSettings()');
   mSettings = storage.readWriteSettingsProxy(storage.KEY.UF_SITE_SETTINGS, siteSettings, true);
-  validateSettings(mSettings, siteSchema);
   debug.log(mSettings);
 }
 

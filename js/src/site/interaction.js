@@ -279,12 +279,12 @@ const trackShare = (() =>
       case 'copyToClipboard':
         navigator.clipboard.writeText(trackUrl).then(() =>
         {
-          showSnackbar('Track link copied to the clipboard', 3);
+          showSnackbar('Track link copied to clipboard', 3);
         },
         (reason) =>
         {
           debug.error(`trackShare.copyToClipboard() failed because ${reason}`);
-          showSnackbar('Failed to copy Track link to the clipboard', 5);
+          showSnackbar('Unable to copy Track link to clipboard', 5);
         });
         break;
 

@@ -157,51 +157,69 @@ const siteSettings = {
 
 function validateSettings(settings, schema)
 {
-  for (const key in settings)
+  let invalidCount = 0;
+
+  validateRecursive(settings, schema);
+
+  return invalidCount;
+
+  function validateRecursive(settings, schema)
   {
-    if (settings && schema && (typeof settings[key] === 'object') && (typeof schema[key] === 'object'))
-      validateSettings(settings[key], schema[key]);
-    else
-      validate(settings, schema[key], settings[key], key);
+    for (const key in settings)
+    {
+      if (settings && schema && (typeof settings[key] === 'object') && (typeof schema[key] === 'object'))
+      {
+        validateRecursive(settings[key], schema[key]);
+      }
+      else
+      {
+        if (schema[key] !== undefined)
+        {
+          if (isEntryInvalid(settings, schema[key], settings[key], key))
+            invalidCount++;
+        }
+        else
+        {
+          throw(`'${key}' ${(typeof settings[key] === 'object') ? 'object' : 'property'} is not in schema`);
+        }
+      }
+    }
   }
 }
 
-function validate(settings, schemaEntry, settingValue, entryKey)
+function isEntryInvalid(settings, schemaEntry, settingValue, entryKey)
 {
-  if (schemaEntry !== undefined)
+  switch (schemaEntry.type)
   {
-    switch (schemaEntry.type)
-    {
-      case INTEGER:
-        if ((Number.isInteger(settingValue) === false) || (settingValue < schemaEntry.values[0]) || (settingValue > schemaEntry.values[schemaEntry.values.length - 1]))
-        {
-          debug.warn(`validate() - ${entryKey} has invalid value: ${settingValue} (${entryKey} is type: INTEGER - min: ${schemaEntry.values[0]} - max: ${schemaEntry.values[schemaEntry.values.length - 1]}) -- setting default value: ${schemaEntry.default}`);
-          settings[entryKey] = schemaEntry.default;
-        }
-        break;
-      
-      case BOOLEAN:
-        if ((settingValue !== true) && (settingValue !== false))
-        {
-          debug.warn(`validate() - ${entryKey} has invalid value: ${settingValue} (${entryKey} is type: BOOLEAN) -- setting default value: ${schemaEntry.default}`);
-          settings[entryKey] = schemaEntry.default;
-        }
-        break;
+    case INTEGER:
+      if ((Number.isInteger(settingValue) === false) || (settingValue < schemaEntry.values[0]) || (settingValue > schemaEntry.values[schemaEntry.values.length - 1]))
+      {
+        debug.warn(`validate() - '${entryKey}' has invalid value: ${settingValue} ('${entryKey}' is type: INTEGER - min: ${schemaEntry.values[0]} - max: ${schemaEntry.values[schemaEntry.values.length - 1]}) -- setting default value: ${schemaEntry.default}`);
+        settings[entryKey] = schemaEntry.default;
+        return true;
+      }
+      break;
+    
+    case BOOLEAN:
+      if ((settingValue !== true) && (settingValue !== false))
+      {
+        debug.warn(`validate() - '${entryKey}' has invalid value: ${settingValue} ('${entryKey}' is type: BOOLEAN) -- setting default value: ${schemaEntry.default}`);
+        settings[entryKey] = schemaEntry.default;
+        return true;
+      }
+      break;
 
-      case STRING:
-        if (typeof settingValue !== 'string')
-        {
-          debug.warn(`validate() - ${entryKey} has invalid value: ${settingValue} (${entryKey} is type: STRING) -- setting default value: ${schemaEntry.default}`);
-          settings[entryKey] = schemaEntry.default;
-        }
-        break;
+    case STRING:
+      if (typeof settingValue !== 'string')
+      {
+        debug.warn(`validate() - '${entryKey}' has invalid value: ${settingValue} ('${entryKey}' is type: STRING) -- setting default value: ${schemaEntry.default}`);
+        settings[entryKey] = schemaEntry.default;
+        return true;
+      }
+      break;
 
-      default:
-        debug.warn(`validate() - ${entryKey} has unknown type: ${schemaEntry.type}`);
-    }
-  }
-  else
-  {
-    debug.warn(`validate() - ${entryKey} with value: ${settingValue} is not in schema`);
+    default:
+      debug.warn(`validate() - '${entryKey}' has unknown type: ${schemaEntry.type}`);
+      return true;
   }
 }

@@ -5,19 +5,14 @@
 //
 
 
-import * as debugLogger    from '../shared/debuglogger.js';
-import * as eventLogger    from './eventlogger.js';
-import * as playback       from './playback.js';
-import * as playbackEvents from './playback-events.js';
-import * as screenWakeLock from './screen-wakelock.js';
-import * as utils          from '../shared/utils.js';
-import { showSnackbar }    from '../shared/snackbar.js';
-
-import {
-  playbackSchema,
-  playbackSettings,
-  validateSettings,
-} from '../shared/settings.js';
+import * as debugLogger     from '../shared/debuglogger.js';
+import * as eventLogger     from './eventlogger.js';
+import * as playback        from './playback.js';
+import * as playbackEvents  from './playback-events.js';
+import * as screenWakeLock  from './screen-wakelock.js';
+import * as utils           from '../shared/utils.js';
+import { showSnackbar }     from '../shared/snackbar.js';
+import { playbackSettings } from '../shared/settings.js';
 
 import {
   KEY,
@@ -90,7 +85,6 @@ function readSettings()
 {
   debug.log('readSettings()');
   mSettings = readWriteSettingsProxy(KEY.UF_PLAYBACK_SETTINGS, playbackSettings, true);
-  validateSettings(mSettings, playbackSchema);
   debug.log(mSettings);
 }
 

@@ -8,6 +8,12 @@
 
 import * as debugLogger from '../shared/debuglogger.js';
 
+import {
+  playbackSchema,
+  siteSchema,
+  validateSettings as validateSettingsDeep,
+} from  '../shared/settings.js';
+
 
 export {
   KEY,
@@ -226,6 +232,38 @@ function cleanDeep(mergedSettings, newSettings)
   }
 }
 
+function validateSettings(settingsKey, settingsObject, defaultSettings)
+{
+  try
+  {
+    let invalidSettingsCount = 0;
+
+    switch(settingsKey)
+    {
+      case KEY.UF_PLAYBACK_SETTINGS:
+        invalidSettingsCount = validateSettingsDeep(settingsObject, playbackSchema);
+        break;
+
+      case KEY.UF_SITE_SETTINGS:
+        invalidSettingsCount = validateSettingsDeep(settingsObject, siteSchema);
+        break;
+    }
+
+    if (invalidSettingsCount > 0)
+      writeJson(settingsKey, settingsObject);
+  }
+  catch(exception)
+  {
+    debug.error(`validateSettings() exception: ${exception} -- using default settings`);
+
+    writeJson(settingsKey, defaultSettings);
+
+    return defaultSettings;
+  }
+
+  return settingsObject;
+}
+
 
 // ************************************************************************************************
 // Read and write settings proxy
@@ -235,28 +273,34 @@ function readWriteSettingsProxy(settingsKey, defaultSettings = null, setDefault 
 {
   const parsedJson = readJson(settingsKey, defaultSettings, setDefault);
 
-  if ((parsedJson !== null) && (defaultSettings !== null))
+  if ((parsedJson !== null) && (defaultSettings !== null) && (parsedJson.version !== undefined))
   {
-    let settingsObject = null;
+    let settingsObject = parsedJson;
     
-    // If version is new, perform object merge and cleanup
+    // If version is new, perform settings merge and cleanup
     if (parsedJson.version < defaultSettings.version)
     {
       debug.log(parsedJson);
+
       settingsObject = mergeSettings(parsedJson, defaultSettings, settingsKey);
-      debug.log(settingsObject);
-
       writeJson(settingsKey, settingsObject);
-    }
-    else
-    {
-      settingsObject = parsedJson;
+
+      debug.log(settingsObject);
     }
 
-    return onSettingsChange(settingsKey, settingsObject);
+    return onSettingsChange(settingsKey, validateSettings(settingsKey, settingsObject, defaultSettings));
   }
 
-  debug.error(`readWriteSettingsProxy() failed for: ${settingsKey}`);
+  if (defaultSettings !== null)
+  {
+    debug.warn(`readWriteSettingsProxy() - Failed for: ${settingsKey} -- using default settings`);
+
+    writeJson(settingsKey, defaultSettings);
+
+    return onSettingsChange(settingsKey, defaultSettings);
+  }
+
+  debug.error(`readWriteSettingsProxy() - Fatal error for: ${settingsKey} -- unable to read settings!`);
 
   return null;
 }

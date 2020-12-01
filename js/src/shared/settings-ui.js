@@ -5,16 +5,16 @@
 //
 
 
-import * as debugLogger from '../shared/debuglogger.js';
-import * as settings    from '../shared/settings.js';
-import { showSnackbar } from '../shared/snackbar.js';
+import * as debugLogger from '../shared/debuglogger.js?ver=1.15.2';
+import * as settings    from '../shared/settings.js?ver=1.15.2';
+import { showSnackbar } from '../shared/snackbar.js?ver=1.15.2';
 
 import {
   KEY,
   deleteCookie,
   readJson,
   writeJson,
-} from '../shared/storage.js';
+} from '../shared/storage.js?ver=1.15.2';
 
 
 /*************************************************************************************************/
@@ -250,7 +250,7 @@ function siteSettingsClick(event)     { updateRowData(event, siteSettings.user, 
 function settingsSaveClick()
 {
   writeSettings();
-  showSnackbar('Settings saved successfully', 3);
+  showSnackbar('All settings saved', 3);
 }
 
 function settingsResetClick()
