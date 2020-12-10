@@ -5,16 +5,16 @@
 //
 
 
-import * as debugLogger from '../shared/debuglogger.js?ver=1.15.2';
-import * as settings    from '../shared/settings.js?ver=1.15.2';
-import { showSnackbar } from '../shared/snackbar.js?ver=1.15.2';
+import * as debugLogger from '../shared/debuglogger.js?ver=1.15.3';
+import * as settings    from '../shared/settings.js?ver=1.15.3';
+import { showSnackbar } from '../shared/snackbar.js?ver=1.15.3';
 
 import {
   KEY,
   deleteCookie,
   readJson,
   writeJson,
-} from '../shared/storage.js?ver=1.15.2';
+} from '../shared/storage.js?ver=1.15.3';
 
 
 /*************************************************************************************************/
