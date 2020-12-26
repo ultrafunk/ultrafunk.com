@@ -30,7 +30,7 @@ let useKeyboardShortcuts = false;
 let isPlaybackReady      = false;
 
 const mConfig = {
-  autoPlayToggleId:            'footer-autoplay-toggle',
+  autoplayToggleId:            'footer-autoplay-toggle',
   crossfadeToggleId:           'footer-crossfade-toggle',
   allowKeyboardShortcutsEvent: 'allowKeyboardShortcuts',
   denyKeyboardShortcutsEvent:  'denyKeyboardShortcuts',
@@ -39,9 +39,9 @@ const mConfig = {
 };
 
 const mElements = {
-  playbackControls: { details: null, thumbnail: null, statePlaying: false },
+  playbackControls: { details: null, thumbnail: null, timer: null, statePlaying: false },
   fullscreenTarget: null,
-  autoPlayToggle:   null,
+  autoplayToggle:   null,
   crossfadeToggle:  null,
 };
 
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () =>
   {
     initInteraction();
     initPlayback();
-    updateAutoPlayDOM(mSettings.user.autoPlay);
+    updateAutoplayDOM(mSettings.user.autoplay);
     updateCrossfadeDOM(mSettings.user.autoCrossfade);
   }
 });
@@ -95,20 +95,23 @@ function initInteraction()
   useKeyboardShortcuts                 = mSettings.user.keyboardShortcuts;
   mElements.playbackControls.details   = document.getElementById('playback-controls').querySelector('.details-control');
   mElements.playbackControls.thumbnail = document.getElementById('playback-controls').querySelector('.thumbnail-control');
-  mElements.autoPlayToggle             = document.getElementById(mConfig.autoPlayToggleId);
+  mElements.playbackControls.timer     = document.getElementById('playback-controls').querySelector('.timer-control');
+  mElements.autoplayToggle             = document.getElementById(mConfig.autoplayToggleId);
   mElements.crossfadeToggle            = document.getElementById(mConfig.crossfadeToggleId);
 
-  utils.addEventListeners('i.nav-bar-arrow-back', 'click', subPaginationClick, navigationVars.prevUrl); // eslint-disable-line no-undef
-  utils.addEventListeners('i.nav-bar-arrow-fwd',  'click', subPaginationClick, navigationVars.nextUrl); // eslint-disable-line no-undef
-
-  utils.addEventListeners('nav.post-navigation .nav-previous a', 'click', subPaginationClick, navigationVars.prevUrl); // eslint-disable-line no-undef
-  utils.addEventListeners('nav.post-navigation .nav-next a',     'click', subPaginationClick, navigationVars.nextUrl); // eslint-disable-line no-undef
+  /* eslint-disable */
+  utils.addEventListeners('i.nav-bar-arrow-back',                'click', paginationNavClick, navigationVars.prevUrl);
+  utils.addEventListeners('i.nav-bar-arrow-fwd',                 'click', paginationNavClick, navigationVars.nextUrl);
+  utils.addEventListeners('nav.post-navigation .nav-previous a', 'click', paginationNavClick, navigationVars.prevUrl);
+  utils.addEventListeners('nav.post-navigation .nav-next a',     'click', paginationNavClick, navigationVars.nextUrl);
+  /* eslint-enable */
 }
 
 function initPlayback()
 {
   playback.init(mSettings);
   playbackEvents.addListener(playbackEvents.EVENT.READY,                playbackEventReady);
+  playbackEvents.addListener(playbackEvents.EVENT.MEDIA_SHOW,           playbackEventMediaEnded);
   playbackEvents.addListener(playbackEvents.EVENT.MEDIA_ENDED,          playbackEventMediaEnded);
   playbackEvents.addListener(playbackEvents.EVENT.MEDIA_TIME_REMAINING, playbackEventMediaTimeRemaining);
 }
@@ -145,7 +148,7 @@ document.addEventListener('keydown', (event) =>
         break;
 
       case 'A':
-        autoPlayToggle(event);
+        autoplayToggle(event);
         break;
 
       case 'f':
@@ -184,11 +187,10 @@ function fullscreenTrackToggle(event)
 function arrowLeftKey(event)
 {
   event.preventDefault();
-  exitFullscreenTrack();
 
   if (event.shiftKey === true)
   {
-    subPaginationClick(event, navigationVars.prevUrl); // eslint-disable-line no-undef
+    paginationNavClick(event, navigationVars.prevUrl); // eslint-disable-line no-undef
   }
   else
   {
@@ -221,11 +223,10 @@ function doubleTapNavPrev(prevUrl, playbackStatus)
 function arrowRightKey(event)
 {
   event.preventDefault();
-  exitFullscreenTrack();
 
   if (event.shiftKey === true)
   {
-    subPaginationClick(event, navigationVars.nextUrl); // eslint-disable-line no-undef
+    paginationNavClick(event, navigationVars.nextUrl); // eslint-disable-line no-undef
   }
   else
   {
@@ -273,10 +274,11 @@ function playbackEventReady()
 {
   mElements.playbackControls.details.addEventListener('click', playbackDetailsClick);
   mElements.playbackControls.thumbnail.addEventListener('click', playbackDetailsClick);
-  mElements.autoPlayToggle.addEventListener('click', autoPlayToggle);
+  mElements.playbackControls.timer.addEventListener('click', autoplayToggle);
+  mElements.autoplayToggle.addEventListener('click', autoplayToggle);
   mElements.crossfadeToggle.addEventListener('click', crossfadeToggle);
   document.addEventListener('visibilitychange', documentEventVisibilityChange);
-  
+
   if (mSettings.user.keepMobileScreenOn)
     screenWakeLock.enable(mSettings);
 
@@ -320,7 +322,7 @@ function windowEventBlur()
     else // normal window blur (lost focus)
     {
       /*
-      if ((mSettings.user.autoPlay === false) && mSettings.user.blurFocusBgChange)
+      if ((mSettings.user.autoplay === false) && mSettings.user.blurFocusBgChange)
         document.body.classList.add('blurred');
       */
     }
@@ -330,7 +332,7 @@ function windowEventBlur()
 /*
 function windowEventFocus()
 {
-  if ((mSettings.user.autoPlay === false) && mSettings.user.blurFocusBgChange)
+  if ((mSettings.user.autoplay === false) && mSettings.user.blurFocusBgChange)
     document.body.classList.remove('blurred');
 }
 */
@@ -350,8 +352,8 @@ function windowEventStorage(event)
       readSettings();
   
       // Check what has changed (old settings vs. new settings) and update data / UI where needed
-      if (settings.user.autoPlay !== oldSettings.user.autoPlay)
-        updateAutoPlayData(settings.user.autoPlay);
+      if (settings.user.autoplay !== oldSettings.user.autoplay)
+        updateAutoplayData(settings.user.autoplay);
     }
   }
 }
@@ -414,7 +416,7 @@ function playbackDetailsClick(event)
     enterFullscreenTrack();
 }
 
-function subPaginationClick(event, destUrl)
+function paginationNavClick(event, destUrl)
 {
   if ((event !== null) && (destUrl !== null))
   {
@@ -446,27 +448,27 @@ function exitFullscreenTrack()
 
 
 // ************************************************************************************************
-// AutoPlay UI toggle and DOM update
+// Autoplay UI toggle and DOM update
 // ************************************************************************************************
 
-function autoPlayToggle(event)
+function autoplayToggle(event)
 {
   event.preventDefault();
-  mSettings.user.autoPlay = (mSettings.user.autoPlay === true) ? false : true;
-  showSnackbar(mSettings.user.autoPlay ? 'Autoplay enabled (<b>Shift</b> + <b>A</b> to disable)' : 'Autoplay disabled (<b>Shift</b> + <b>A</b> to enable)', 5);
-  updateAutoPlayDOM(mSettings.user.autoPlay);
+  mSettings.user.autoplay = (mSettings.user.autoplay === true) ? false : true;
+  showSnackbar(mSettings.user.autoplay ? 'Autoplay enabled (<b>Shift</b> + <b>A</b> to disable)' : 'Autoplay disabled (<b>Shift</b> + <b>A</b> to enable)', 5);
+  updateAutoplayDOM(mSettings.user.autoplay);
 }
 
-function updateAutoPlayDOM(autoPlay)
+function updateAutoplayDOM(autoplay)
 {
-  debug.log(`updateAutoPlayDOM() - autoPlay: ${autoPlay}`);
+  debug.log(`updateAutoplayDOM() - autoplay: ${autoplay}`);
 
-  mElements.autoPlayToggle.querySelector('.autoplay-on-off').textContent = autoPlay ? 'ON' : 'OFF';
-  autoPlay ? utils.replaceClass(document.body, 'autoplay-off', 'autoplay-on') : utils.replaceClass(document.body, 'autoplay-on', 'autoplay-off');
-  autoPlay ? mElements.crossfadeToggle.classList.remove('disabled')           : mElements.crossfadeToggle.classList.add('disabled');
+  mElements.autoplayToggle.querySelector('.autoplay-on-off').textContent = autoplay ? 'ON' : 'OFF';
+  autoplay ? utils.replaceClass(document.body, 'autoplay-off', 'autoplay-on') : utils.replaceClass(document.body, 'autoplay-on', 'autoplay-off');
+  autoplay ? mElements.crossfadeToggle.classList.remove('disabled')           : mElements.crossfadeToggle.classList.add('disabled');
 
   /*
-  if (autoPlay)
+  if (autoplay)
   {
     document.body.classList.remove('blurred');
   }

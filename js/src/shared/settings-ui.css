@@ -5,16 +5,6 @@
 *
 */
 
-.site-theme-light {
-  --settings-row-odd-color: #eee;
-  --settings-row-hover-color: #bbb;
-}
-
-.site-theme-dark {
-  --settings-row-odd-color: #333;
-  --settings-row-hover-color: #666;
-}
-
 #settings-container {
   width: 100%;
   min-height: 75vh;
@@ -30,13 +20,13 @@
 }
 
 #settings-container table tr:nth-child(odd) {
-  background: var(--settings-row-odd-color);
+  background: var(--list-row-odd-color);
 }
 
 @media all and (pointer: fine) {
  
   #settings-container table tr:hover {
-    background: var(--settings-row-hover-color);
+    background: var(--list-row-hover-color);
     cursor: pointer;
   }
 
@@ -45,7 +35,7 @@
 @media not all and (pointer: fine) {
 
   #settings-container table tr:nth-child(odd) {
-    background: var(--settings-row-odd-color);
+    background: var(--list-row-odd-color);
     transition: background 150ms 0s ease-in;
   }
 
@@ -54,7 +44,7 @@
   }
 
   #settings-container table tr:active {
-    background: var(--settings-row-hover-color);
+    background: var(--list-row-hover-color);
     transition: background 0s;
   }
 

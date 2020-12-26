@@ -10,7 +10,7 @@ use \Ultrafunk\ThemeTags as ultrafunk;
 
 ?>
 <!doctype html>
-<html <?php language_attributes(); ?>>
+<html <?php language_attributes(); ?> class="<?php echo ultrafunk\get_user_layout_class(); ?>">
 <head>
   <meta charset="<?php bloginfo('charset'); ?>">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -36,7 +36,6 @@ use \Ultrafunk\ThemeTags as ultrafunk;
       ?>
     </div>
     <nav id="site-navigation" class="main-navigation">
-      <button class="menu-toggle" aria-controls="primary-menu" aria-expanded="false"><?php esc_html_e('Primary Menu', 'ultrafunk'); ?></button>
       <?php ultrafunk\header_nav_bars() ?>
       <div class="nav-menu-outer">
         <div class="nav-menu-inner">

@@ -8,6 +8,7 @@
 import * as debugLogger        from '../shared/debuglogger.js';
 import { addSettingsObserver } from '../shared/storage.js';
 import { replaceClass }        from '../shared/utils.js';
+import { presetList }          from '../shared/settings.js';
 
 
 export {
@@ -31,11 +32,14 @@ export {
 
 const debug  = debugLogger.newInstance('playback-controls');
 let settings = {};
+let players  = {};
 
 const mConfig = {
-  progressControlsId:        'progress-controls',
-  playbackControlsId:        'playback-controls',
-  entryMetaControlsSelector: '.entry-meta-controls .crossfade-control',
+  progressControlsId:      'progress-controls',
+  playbackControlsId:      'playback-controls',
+  crossfadePresetSelector: '.crossfade-controls .preset-control',
+  crossfadePresetData:     'data-crossfade-preset',
+  crossfadeToSelector:     '.crossfade-controls .fadeto-control',
 };
 
 const STATE = {
@@ -46,17 +50,21 @@ const STATE = {
 };
 
 const controls = {
-  progressSeek:   { element:  null, state: STATE.DISABLED, click: null },
-  progressBar:    { element:  null, state: STATE.DISABLED },
-  details:        { element:  null, state: STATE.DISABLED, artistElement: null, titleElement: null },
-  thumbnail:      { element:  null, state: STATE.DISABLED, img: null },
-  timer:          { element:  null, state: STATE.DISABLED, positionElement: null, durationElement: null, positionSeconds: -1, durationSeconds: -1 },
-  prevTrack:      { element:  null, state: STATE.DISABLED },
-  playPause:      { element:  null, state: STATE.DISABLED, iconElement: null },
-  nextTrack:      { element:  null, state: STATE.DISABLED },
-  shuffle:        { element:  null, state: STATE.DISABLED },
-  mute:           { element:  null, state: STATE.DISABLED, iconElement: null },
-  trackCrossfade: { elements: null, click: null },
+//Progress Controls
+  progressSeek:    { element:  null, state: STATE.DISABLED, click: null },
+  progressBar:     { element:  null, state: STATE.DISABLED },
+//Playback Controls
+  details:         { element:  null, state: STATE.DISABLED, artistElement: null, titleElement: null },
+  thumbnail:       { element:  null, state: STATE.DISABLED, img: null },
+  timer:           { element:  null, state: STATE.DISABLED, positionElement: null, durationElement: null, positionSeconds: -1, durationSeconds: -1 },
+  prevTrack:       { element:  null, state: STATE.DISABLED },
+  playPause:       { element:  null, state: STATE.DISABLED, iconElement: null },
+  nextTrack:       { element:  null, state: STATE.DISABLED },
+  shuffle:         { element:  null, state: STATE.DISABLED },
+  mute:            { element:  null, state: STATE.DISABLED, iconElement: null },
+//Crossfade Controls
+  crossfadePreset: { elements: null },
+  crossfadeTo:     { elements: null, click: null },
 };
 
 
@@ -64,11 +72,12 @@ const controls = {
 // Init and make ready all controls
 // ************************************************************************************************
 
-function init(playbackSettings, seekClickCallback, crossfadeClickCallback)
+function init(playbackSettings, mediaPlayers, seekClickCallback, crossfadeClickCallback)
 {
   debug.log('init()');
 
   settings = playbackSettings;
+  players  = mediaPlayers;
 
   const playbackProgress = document.getElementById(mConfig.progressControlsId);
 
@@ -80,7 +89,7 @@ function init(playbackSettings, seekClickCallback, crossfadeClickCallback)
   }
   else
   {
-    debug.error(`playbackControls.init(): Unable to getElementById() for '#${mConfig.progressControlsId}'`);
+    debug.error(`init(): Unable to getElementById() for '#${mConfig.progressControlsId}'`);
   }
 
   const playbackControls = document.getElementById(mConfig.playbackControlsId);
@@ -105,13 +114,17 @@ function init(playbackSettings, seekClickCallback, crossfadeClickCallback)
   }
   else
   {
-    debug.error(`playbackControls.init(): Unable to getElementById() for '#${mConfig.playbackControlsId}'`);
+    debug.error(`init(): Unable to getElementById() for '#${mConfig.playbackControlsId}'`);
   }
 
-  controls.trackCrossfade.elements = document.querySelectorAll(mConfig.entryMetaControlsSelector);
+  controls.crossfadePreset.elements = document.querySelectorAll(mConfig.crossfadePresetSelector);
+  controls.crossfadeTo.elements     = document.querySelectorAll(mConfig.crossfadeToSelector);
 
-  if (controls.trackCrossfade.elements.length !== 0)
-    controls.trackCrossfade.click = crossfadeClickCallback;
+  if ((controls.crossfadePreset.elements.length > 1) && (controls.crossfadeTo.elements.length > 1))
+  {
+    controls.crossfadeTo.click = crossfadeClickCallback;
+    controls.crossfadePreset.elements.forEach((element) => setCrossfadePreset(element, settings.trackCrossfadeDefPreset));
+  }
 }
 
 function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks)
@@ -147,10 +160,18 @@ function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks)
   controls.mute.element.addEventListener('click', muteClick);
   updateMuteState();
 
-  if (controls.trackCrossfade.elements.length > 1)
-    controls.trackCrossfade.elements.forEach(element => element.addEventListener('click', trackCrossfadeClick));
+  if ((controls.crossfadePreset.elements.length > 1) && (controls.crossfadeTo.elements.length > 1))
+  {
+    controls.crossfadePreset.elements.forEach(element =>
+    {
+      element.addEventListener('click', crossfadePresetClick);
+      replaceClass(element, STATE.DISABLED, STATE.ENABLED);
+    });
 
-  addSettingsObserver('autoPlay',   updateAutoPlayState);
+    controls.crossfadeTo.elements.forEach(element => element.addEventListener('click', crossfadeToClick));
+  }
+
+  addSettingsObserver('autoplay',   updateAutoplayState);
   addSettingsObserver('masterMute', updateMuteState);
 }
 
@@ -212,9 +233,6 @@ function progressSeekClick(event)
 
 function setDetails(playbackStatus)
 {
-//debug.log('setDetails()');
-//debug.log(playbackStatus);
-
   controls.details.artistElement.textContent = playbackStatus.artist || ''; // Artist will contain the post title if all else fails
   controls.details.titleElement.textContent  = playbackStatus.title  || '';
   setThumbnail(playbackStatus.thumbnailSrc);
@@ -242,7 +260,7 @@ function setTimer(positionSeconds, durationSeconds)
   {
     controls.timer.positionSeconds = positionSeconds;
 
-    if (settings.autoPlay === false)
+    if (settings.autoplay === false)
       positionSeconds = durationSeconds - positionSeconds;
     
     setTimerText(controls.timer.positionElement, positionSeconds);
@@ -286,30 +304,34 @@ function isPlaying()
   return ((controls.playPause.state === STATE.PAUSE) ? true : false);    
 }
 
-function updatePrevState(playbackStatus)
+function updatePrevState()
 {
-  clearTimer();
-  setDetails(playbackStatus);
+  const playersStatus = players.getStatus();
 
-  if ((isPlaying() === false) && (playbackStatus.currentTrack <= 1))
+  clearTimer();
+  setDetails(playersStatus);
+
+  if ((isPlaying() === false) && (playersStatus.currentTrack <= 1))
     setState(controls.prevTrack, STATE.DISABLED);
   
-  if (playbackStatus.currentTrack < playbackStatus.numTracks)
+  if (playersStatus.currentTrack < playersStatus.numTracks)
     setState(controls.nextTrack, STATE.ENABLED);
 }
 
-function setPlayState(playbackStatus)
+function setPlayState()
 {
+  const playersStatus = players.getStatus();
+
   setState(controls.playPause, STATE.PAUSE);
   setState(controls.prevTrack, STATE.ENABLED);
-  setDetails(playbackStatus);
-  updateTrackCrossfadeState(true, playbackStatus.currentTrack);
+  setDetails(playersStatus);
+  updateCrossfadeToState(true, playersStatus.currentTrack);
 }
 
 function setPauseState()
 {
   setState(controls.playPause, STATE.PLAY);
-  updateTrackCrossfadeState(false);
+  updateCrossfadeToState(false);
 }
 
 function blinkPlayPause(toggleBlink)
@@ -320,13 +342,15 @@ function blinkPlayPause(toggleBlink)
     controls.playPause.element.classList.remove('time-remaining-warning');
 }
 
-function updateNextState(playbackStatus)
+function updateNextState()
 {
+  const playersStatus = players.getStatus();
+  
   clearTimer();
-  setDetails(playbackStatus);
+  setDetails(playersStatus);
   setState(controls.prevTrack, STATE.ENABLED);
   
-  if (playbackStatus.currentTrack >= playbackStatus.numTracks)
+  if (playersStatus.currentTrack >= playersStatus.numTracks)
     setState(controls.nextTrack, STATE.DISABLED);
 }
 
@@ -335,20 +359,40 @@ function updateMuteState()
   controls.mute.iconElement.textContent = settings.masterMute ? 'volume_off' : 'volume_up';
 }
 
-function trackCrossfadeClick(event)
+function setCrossfadePreset(element, presetIndex)
 {
-  if (isPlaying())
+  element.setAttribute(mConfig.crossfadePresetData, presetIndex);
+  element.textContent = `${presetIndex + 1}`;
+  element.title       = `Preset: ${presetList.crossfade[presetIndex].name}`;
+}
+
+function crossfadePresetClick(event)
+{
+  let presetIndex = parseInt(event.target.getAttribute(mConfig.crossfadePresetData));
+  ((presetIndex + 1) < presetList.crossfade.length) ? presetIndex++ : presetIndex = 0;
+  setCrossfadePreset(event.target, presetIndex);
+}
+
+function crossfadeToClick(event)
+{
+  if (isPlaying() && (players.crossfade.isFading() === false))
   {
-    const element = event.target.closest('article').querySelector('iframe');
+    const element = event.target.closest('article.post');
 
     if (element !== null)
-      controls.trackCrossfade.click(element.id);
+    {
+      const iframe      = element.querySelector('iframe');
+      const presetIndex = element.querySelector(mConfig.crossfadePresetSelector).getAttribute(mConfig.crossfadePresetData);
+
+      replaceClass(event.target.closest('div.fadeto-control'), STATE.ENABLED, STATE.DISABLED);
+      controls.crossfadeTo.click(players.uIdFromIframeId(iframe.id), presetList.crossfade[presetIndex]);
+    }
   }
 }
 
-function updateTrackCrossfadeState(isPlaying, currentTrack = -1)
+function updateCrossfadeToState(isPlaying, currentTrack = -1)
 {
-  controls.trackCrossfade.elements.forEach((element, index) =>
+  controls.crossfadeTo.elements.forEach((element, index) =>
   {
     if (currentTrack === (index + 1))
       replaceClass(element, (isPlaying ? STATE.ENABLED : STATE.DISABLED), (isPlaying ? STATE.DISABLED : STATE.ENABLED));
@@ -359,14 +403,14 @@ function updateTrackCrossfadeState(isPlaying, currentTrack = -1)
 
 
 // ************************************************************************************************
-// AutoPlay state changes
+// Autoplay state changes
 // ************************************************************************************************
 
-function updateAutoPlayState()
+function updateAutoplayState()
 {
   if ((isPlaying() === false) && (controls.timer.positionSeconds !== -1) && ((controls.timer.durationSeconds !== -1)))
   {
-    setTimerText(controls.timer.positionElement, settings.autoPlay ? controls.timer.positionSeconds : (controls.timer.durationSeconds - controls.timer.positionSeconds));
+    setTimerText(controls.timer.positionElement, settings.autoplay ? controls.timer.positionSeconds : (controls.timer.durationSeconds - controls.timer.positionSeconds));
     setTimerText(controls.timer.durationElement, controls.timer.durationSeconds);
   }
 }

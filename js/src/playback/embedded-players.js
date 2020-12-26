@@ -24,19 +24,16 @@ export {
 
 const debug         = debugLogger.newInstance('embedded-players');
 const eventLog      = new eventLogger.Playback(10);
-let settings        = null;
-let players         = null;
-let playbackState   = null;
-let playbackTimer   = null;
 let eventHandler    = null;
 let loadEventsTotal = 0;
 let loadEventsCount = 1;
+let settings, players, playbackState, playbackTimer;
 
 const mConfig = {
   youTubeIframeIdRegEx:    /youtube-uid/i,
   soundCloudIframeIdRegEx: /soundcloud-uid/i,
   entriesSelector:         'article',
-  trackTitleData:          'data-entry-track-title',
+  artistTrackTitleData:    'data-artist-track-title',
   maxPlaybackStartDelay:   3, // VERY rough estimate of "max" network buffering delay in seconds (see also: maxBufferingDelay)
 };
 
@@ -45,12 +42,9 @@ const mConfig = {
 //
 // ************************************************************************************************
 
-function init(playbackSettings, mediaPlayers, playbackStateModule, playbackTimerModule)
+function init(args)
 {
-  settings      = playbackSettings;
-  players       = mediaPlayers;
-  playbackState = playbackStateModule;
-  playbackTimer = playbackTimerModule;
+  ({ settings = null, players = null, playbackState = null, playbackTimer = null } = args);
 
   initYouTubeAPI();
   initSoundCloudAPI();
@@ -104,7 +98,7 @@ function getAllPlayers()
   entries.forEach(entry => 
   {
     const postId     = entry.id;
-    const entryTitle = entry.getAttribute(mConfig.trackTitleData);
+    const entryTitle = entry.getAttribute(mConfig.artistTrackTitleData);
     const iframes    = entry.querySelectorAll('iframe');
 
     iframes.forEach(iframe =>
@@ -290,7 +284,7 @@ function onYouTubePlayerStateChange(event)
       {
         debug.log(`onYouTubePlayerStateChange: UNSTARTED (uID: ${event.target.h.id})`);
         
-        if (eventLog.ytAutoPlayBlocked(event.target.h.id, 3000))
+        if (eventLog.ytAutoplayBlocked(event.target.h.id, 3000))
           eventHandler(EVENT.AUTOPLAY_BLOCKED);
       }
       break;
@@ -359,7 +353,7 @@ function onSoundCloudPlayerEventPause(event)
   debug.log(`onSoundCloudPlayerEvent: PAUSE  (uID: ${event.soundId})`);
   eventLog.add(eventLogger.SOURCE.SOUNDCLOUD, eventLogger.EVENT.STATE_PAUSED, event.soundId);
   
-  if (eventLog.scAutoPlayBlocked(event.soundId, 3000))
+  if (eventLog.scAutoplayBlocked(event.soundId, 3000))
   {
     playbackTimer.stop(false);
     eventHandler(EVENT.AUTOPLAY_BLOCKED);

@@ -4,7 +4,12 @@
  *
  */
 
+$version      = \Ultrafunk\Globals\get_version();
+$template_uri = esc_url(get_template_directory_uri());
+
 ?>
+<script type="module"   src='<?php echo $template_uri . '/js/src/shared/settings-ui.js?ver='  . $version; ?>'></script>
+<link rel="stylesheet" href='<?php echo $template_uri . '/js/src/shared/settings-ui.css?ver=' . $version; ?>' media='all' />
 
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
   <header class="entry-header">

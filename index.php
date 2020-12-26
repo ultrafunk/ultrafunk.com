@@ -20,7 +20,7 @@ if (have_posts())
 
   ?></div><!-- #track-layout --><?php
   
-  \Ultrafunk\ThemeTags\content_nav_title();
+  \Ultrafunk\ThemeTags\content_pagination();
 }
 else
 {

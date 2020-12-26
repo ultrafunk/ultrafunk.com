@@ -8,13 +8,19 @@
 namespace Ultrafunk\Globals;
 
 
-// Overridden in preload-chunk.php, this is the fallback value
+/**************************************************************************************************************************/
+
+
+// Overridden in build-env.php, this is the fallback value
 $ultrafunk_is_prod_build = false;
+
+
+/**************************************************************************************************************************/
 
 
 class Globals
 {
-  public static $version = '1.15.3';
+  public static $version = '1.16.0';
 
   public static $dev_prod_consts = array(
     'menu_item_all_id'         => WP_DEBUG ?  115 :  115,
@@ -34,6 +40,7 @@ class Globals
   );
 
   public static $cached_title = null;
+  public static $is_paged_404 = false;
 
   public static $perf_data = array(
     'display_perf_results' => true,
@@ -60,6 +67,9 @@ function &get_shuffle_params()    { return Globals::$shuffle_params;            
 
 function get_cached_title()       { return Globals::$cached_title;                 }
 function set_cached_title($title) { Globals::$cached_title = $title;               }
+
+function is_paged_404()           { return Globals::$is_paged_404;                 }
+function set_is_paged_404()       { Globals::$is_paged_404 = true;                 }
 
 function get_perf_data()          { return Globals::$perf_data;                    }
 

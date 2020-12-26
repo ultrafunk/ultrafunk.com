@@ -5,8 +5,8 @@
 //
 
 
-import * as debugLogger        from '../shared/debuglogger.js';
-import { MATCH, matchesMedia } from '../shared/utils.js';
+import * as debugLogger        from './debuglogger.js';
+import { MATCH, matchesMedia } from './utils.js';
 
 
 export {

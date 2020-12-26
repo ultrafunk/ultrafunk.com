@@ -8,6 +8,7 @@
 export {
   playbackSettings,
   siteSettings,
+  presetList,
 };
 
 
@@ -43,42 +44,6 @@ const playbackSettings = {
     trackTimesOnMobile:     'false',
     trackThumbnailOnMobile: 'true',
   //blurFocusBgChange:      false,
-    presets: {
-      autoCrossfade: {
-        1 : {
-          name:                'Preset 1',
-          autoCrossfadeLength: '10',
-          autoCrossfadeCurve:  '0',
-        },
-        2 :{
-          name:                'Preset 2',
-          autoCrossfadeLength: '20',
-          autoCrossfadeCurve:  '1',
-        },
-        3 :{
-          name:                'Preset 3',
-          autoCrossfadeLength: '30',
-          autoCrossfadeCurve:  '1',
-        },
-      },
-      trackCrossfade: {
-        1 : {
-          name:                 'Preset 1',
-          trackCrossfadeLength: '5',
-          trackCrossfadeCurve:  '0',
-        },
-        2 :{
-          name:                 'Preset 2',
-          trackCrossfadeLength: '10',
-          trackCrossfadeCurve:  '0',
-        },
-        3 :{
-          name:                 'Preset 3',
-          trackCrossfadeLength: '15',
-          trackCrossfadeCurve:  '1',
-        },
-      },
-    },
   },
   priv: {
     testValue:          'testValue',
@@ -96,6 +61,8 @@ const playbackSettings = {
 playbackSettings.priv.playbackTest1 = { testValue: '1' };
 playbackSettings.priv.playbackTest1.playbackTest2 = { testValue: '2' };
 
+
+/*************************************************************************************************/
 
 const siteSettings = {
   version: 7,
@@ -117,3 +84,32 @@ const siteSettings = {
 
 siteSettings.priv.banners2.siteTest1 = { testValue: '1' };
 siteSettings.priv.banners2.siteTest1.siteTest2 = { testValue: '2' };
+
+
+/*************************************************************************************************/
+
+const presetList = {
+  version: 1,
+  crossfade: [
+    {
+      name:   'Preset 1',
+      length: 10,
+      curve:  0,
+    },
+    {
+      name:   'Preset 2',
+      length: 20,
+      curve:  0,
+    },
+    {
+      name:   'Preset 3',
+      length: 30,
+      curve:  0,
+    },
+    {
+      name:   'Preset 4',
+      length: 30,
+      curve:  1,
+    },
+  ],
+};

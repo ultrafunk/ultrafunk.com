@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../shared/debuglogger.js';
+import * as debugLogger from './debuglogger.js';
 
 
 export {
@@ -16,6 +16,8 @@ export {
   playbackSettings,
   siteSchema,
   siteSettings,
+  presetsSchema,
+  presetList,
   validateSettings,
 };
 
@@ -35,33 +37,30 @@ const STRING  = 3;
 // ************************************************************************************************
 
 const playbackSchema = {
-  version: { description: '', type: INTEGER, values: [1, 999999], default: 23, valueStrings: [] },
+  version: { description: '', type: INTEGER, values: [1, 999999], default: 26, valueStrings: [] },
   user: {
-    keyboardShortcuts:      { description: 'Keyboard Shortcuts',                 type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
-    masterVolume:           { description: 'Master Volume',                      type: INTEGER, values: [0, 25, 50, 75, 100],    default: 100,   valueStrings: ['0%', '25%', '50%', '75%', '100%'] },
-    masterMute:             { description: 'Master Mute',                        type: BOOLEAN, values: [true, false],           default: false, valueStrings: ['ON', 'OFF'] },
-    autoPlay:               { description: 'Autoplay next track',                type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
-    autoCrossfade:          { description: 'Auto Crossfade to next track',       type: BOOLEAN, values: [true, false],           default: false, valueStrings: ['ON', 'OFF'] },
-    autoCrossfadeLength:    { description: 'Auto Crossfade Length',              type: INTEGER, values: [5, 10, 15, 20, 25, 30], default: 20,    valueStrings: ['5 sec', '10 sec', '15 sec', '20 sec', '25 sec', '30 sec'] },
-    autoCrossfadeCurve:     { description: 'Auto Crossfade Curve',               type: INTEGER, values: [0, 1],                  default: 1,     valueStrings: ['EQUAL POWER', 'LINEAR'] },
-    autoScroll:             { description: 'Autoscroll to next track',           type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
-    smoothScrolling:        { description: 'Smooth Scrolling to next track',     type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
-    autoExitFullscreen:     { description: 'Exit Fullscreen on next track',      type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
-    animateNowPlayingIcon:  { description: 'Animate Playing Track Icon',         type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
-    autoResumePlayback:     { description: 'Auto Resume Playback on focus',      type: BOOLEAN, values: [true, false],           default: false, valueStrings: ['ON', 'OFF'] },
-    trackCrossfade:         { description: 'Track to Track Crossfade',           type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
-    trackCrossfadeLength:   { description: 'Track to Track Crossfade Length',    type: INTEGER, values: [5, 10, 15, 20, 25, 30], default: 10,    valueStrings: ['5 sec', '10 sec', '15 sec', '20 sec', '25 sec', '30 sec'] },
-    trackCrossfadeCurve:    { description: 'Track to Track Crossfade Curve',     type: INTEGER, values: [0, 1],                  default: 0,     valueStrings: ['EQUAL POWER', 'LINEAR'] },
-    timeRemainingWarning:   { description: 'Time Remaining Warning',             type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
-    timeRemainingSeconds:   { description: 'Time Remaining Warning Seconds',     type: INTEGER, values: [15, 30, 45, 60],        default: 60,    valueStrings: ['15 sec', '30 sec', '45 sec', '60 sec'] },
-    autoExitFsOnWarning:    { description: 'Exit Fullscreen on Time Warning',    type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
-    keepMobileScreenOn:     { description: 'Keep Mobile Screen On when playing', type: BOOLEAN, values: [true, false],           default: false, valueStrings: ['ON', 'OFF'] },
-    trackTimesOnMobile:     { description: 'Show Track Times on mobile',         type: BOOLEAN, values: [true, false],           default: false, valueStrings: ['ON', 'OFF'] },
-    trackThumbnailOnMobile: { description: 'Show Track Thumbnail on mobile',     type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
+    keyboardShortcuts:       { description: 'Keyboard Shortcuts',                 type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
+    masterVolume:            { description: 'Master Volume',                      type: INTEGER, values: [0, 25, 50, 75, 100],    default: 100,   valueStrings: ['0%', '25%', '50%', '75%', '100%'] },
+    masterMute:              { description: 'Master Mute',                        type: BOOLEAN, values: [true, false],           default: false, valueStrings: ['ON', 'OFF'] },
+    autoplay:                { description: 'Autoplay next track',                type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
+    autoCrossfade:           { description: 'Auto Crossfade to next track',       type: BOOLEAN, values: [true, false],           default: false, valueStrings: ['ON', 'OFF'] },
+    autoCrossfadeLength:     { description: 'Auto Crossfade Length',              type: INTEGER, values: [5, 10, 15, 20, 25, 30], default: 20,    valueStrings: ['5 sec', '10 sec', '15 sec', '20 sec', '25 sec', '30 sec'] },
+    autoCrossfadeCurve:      { description: 'Auto Crossfade Curve',               type: INTEGER, values: [0, 1],                  default: 1,     valueStrings: ['Equal Power', 'Linear'] },
+    autoScroll:              { description: 'Autoscroll to next track',           type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
+    smoothScrolling:         { description: 'Smooth Scrolling to next track',     type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
+    autoExitFullscreen:      { description: 'Exit Fullscreen on next track',      type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
+    animateNowPlayingIcon:   { description: 'Animate Playing Track Icon',         type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
+    autoResumePlayback:      { description: 'Auto Resume Playback on focus',      type: BOOLEAN, values: [true, false],           default: false, valueStrings: ['ON', 'OFF'] },
+    trackCrossfadeDefPreset: { description: 'Track Crossfade Default Preset',     type: INTEGER, values: [0, 1, 2, 3, 4, 5],      default: 1,     valueStrings: ['10 sec EqPow', '20 sec EqPow', '30 sec EqPow', '10 sec Linear', '20 sec Linear', '30 sec Linear'] },
+    timeRemainingWarning:    { description: 'Time Remaining Warning',             type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
+    timeRemainingSeconds:    { description: 'Time Remaining Warning Seconds',     type: INTEGER, values: [15, 30, 45, 60],        default: 60,    valueStrings: ['15 sec', '30 sec', '45 sec', '60 sec'] },
+    autoExitFsOnWarning:     { description: 'Exit Fullscreen on Time Warning',    type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
+    keepMobileScreenOn:      { description: 'Keep Mobile Screen On when playing', type: BOOLEAN, values: [true, false],           default: false, valueStrings: ['ON', 'OFF'] },
+    trackTimesOnMobile:      { description: 'Show Track Times on mobile',         type: BOOLEAN, values: [true, false],           default: false, valueStrings: ['ON', 'OFF'] },
+    trackThumbnailOnMobile:  { description: 'Show Track Thumbnail on mobile',     type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
   },
   priv: {
     storageChangeSync:  { description: '', type: BOOLEAN, values: [true, false], default: false, valueStrings: [] },
-    continueAutoPlay:   { description: '', type: BOOLEAN, values: [true, false], default: false, valueStrings: [] },
     tips: {
       showLeftArrowHint:  { description: '', type: BOOLEAN, values: [true, false], default: true,  valueStrings: [] },
       showRightArrowHint: { description: '', type: BOOLEAN, values: [true, false], default: true,  valueStrings: [] },
@@ -74,32 +73,29 @@ const playbackSchema = {
 const playbackSettings = {
   version: playbackSchema.version.default,
   user: {
-    keyboardShortcuts:      playbackSchema.user.keyboardShortcuts.default,
-    masterVolume:           playbackSchema.user.masterVolume.default,
-    masterMute:             playbackSchema.user.masterMute.default,
-    autoPlay:               playbackSchema.user.autoPlay.default,
-    autoCrossfade:          playbackSchema.user.autoCrossfade.default,
-    autoCrossfadeLength:    playbackSchema.user.autoCrossfadeLength.default,
-    autoCrossfadeCurve:     playbackSchema.user.autoCrossfadeCurve.default,
-    autoScroll:             playbackSchema.user.autoScroll.default,
-    smoothScrolling:        playbackSchema.user.smoothScrolling.default,
-    autoExitFullscreen:     playbackSchema.user.autoExitFullscreen.default,
-    animateNowPlayingIcon:  playbackSchema.user.animateNowPlayingIcon.default,
-    autoResumePlayback:     playbackSchema.user.autoResumePlayback.default,
-    trackCrossfade:         playbackSchema.user.trackCrossfade.default,
-    trackCrossfadeLength:   playbackSchema.user.trackCrossfadeLength.default,     
-    trackCrossfadeCurve:    playbackSchema.user.trackCrossfadeCurve.default,
-    timeRemainingWarning:   playbackSchema.user.timeRemainingWarning.default,
-    timeRemainingSeconds:   playbackSchema.user.timeRemainingSeconds.default,
-    autoExitFsOnWarning:    playbackSchema.user.autoExitFsOnWarning.default,
-    keepMobileScreenOn:     playbackSchema.user.keepMobileScreenOn.default,
-    trackTimesOnMobile:     playbackSchema.user.trackTimesOnMobile.default,
-    trackThumbnailOnMobile: playbackSchema.user.trackThumbnailOnMobile.default,
-  //blurFocusBgChange:      false,
+    keyboardShortcuts:       playbackSchema.user.keyboardShortcuts.default,
+    masterVolume:            playbackSchema.user.masterVolume.default,
+    masterMute:              playbackSchema.user.masterMute.default,
+    autoplay:                playbackSchema.user.autoplay.default,
+    autoCrossfade:           playbackSchema.user.autoCrossfade.default,
+    autoCrossfadeLength:     playbackSchema.user.autoCrossfadeLength.default,
+    autoCrossfadeCurve:      playbackSchema.user.autoCrossfadeCurve.default,
+    autoScroll:              playbackSchema.user.autoScroll.default,
+    smoothScrolling:         playbackSchema.user.smoothScrolling.default,
+    autoExitFullscreen:      playbackSchema.user.autoExitFullscreen.default,
+    animateNowPlayingIcon:   playbackSchema.user.animateNowPlayingIcon.default,
+    autoResumePlayback:      playbackSchema.user.autoResumePlayback.default,
+    trackCrossfadeDefPreset: playbackSchema.user.trackCrossfadeDefPreset.default,
+    timeRemainingWarning:    playbackSchema.user.timeRemainingWarning.default,
+    timeRemainingSeconds:    playbackSchema.user.timeRemainingSeconds.default,
+    autoExitFsOnWarning:     playbackSchema.user.autoExitFsOnWarning.default,
+    keepMobileScreenOn:      playbackSchema.user.keepMobileScreenOn.default,
+    trackTimesOnMobile:      playbackSchema.user.trackTimesOnMobile.default,
+    trackThumbnailOnMobile:  playbackSchema.user.trackThumbnailOnMobile.default,
+  //blurFocusBgChange:       false,
   },
   priv: {
     storageChangeSync:  playbackSchema.priv.storageChangeSync.default,
-    continueAutoPlay:   playbackSchema.priv.continueAutoPlay.default,
     tips: {
       showLeftArrowHint:  playbackSchema.priv.tips.showLeftArrowHint.default,
       showRightArrowHint: playbackSchema.priv.tips.showRightArrowHint.default,
@@ -117,8 +113,8 @@ const playbackSettings = {
 const siteSchema = {
   version: { description: '', type: INTEGER, values: [1, 999999], default: 7, valueStrings: [] },
   user: {
-    theme:             { description: 'Theme',                                    type: STRING,  values: ['light', 'dark', 'auto'],             default: 'auto',     valueStrings: ['LIGHT', 'DARK', 'AUTO / SYSTEM']         },
-    trackLayout:       { description: 'Track Layout',                             type: STRING,  values: ['list', '2-column', '3-column'],      default: '3-column', valueStrings: ['LIST', '2 COLUMN', '3 / 4 COLUMN']       },
+    theme:             { description: 'Theme',                                    type: STRING,  values: ['light', 'dark', 'auto'],             default: 'auto',     valueStrings: ['Light', 'Dark', 'Auto / System']         },
+    trackLayout:       { description: 'Track Layout',                             type: STRING,  values: ['list', '2-column', '3-column'],      default: '3-column', valueStrings: ['List', '2 Column', '3 / 4 Column']       },
     tracksPerPage:     { description: 'Tracks Per Page for Search &amp; Shuffle', type: INTEGER, values: [...Array(22).keys()].map(i => i + 3), default: 12,         valueStrings: [...Array(22).keys()].map(i => `${i + 3}`) },
     keyboardShortcuts: { description: 'Keyboard Shortcuts',                       type: BOOLEAN, values: [true, false],                         default: true,       valueStrings: ['ON', 'OFF']                              },
   },
@@ -148,6 +144,83 @@ const siteSettings = {
       showPromoIntro:     siteSchema.priv.banners.showPromoIntro.default,
     },
   },
+};
+
+
+// ************************************************************************************************
+// Presets
+// ************************************************************************************************
+
+const presetsSchema = {
+  version: { description: '', type: INTEGER, values: [1, 999999], default: 1, valueStrings: [] },
+  crossfade: [
+    {
+      name:   { description: 'Preset 1',         type: STRING,  values: [5, 50],                 default: '10 sec EqPow', valueStrings: [] },
+      length: { description: 'Crossfade Length', type: INTEGER, values: [5, 10, 15, 20, 25, 30], default: 10,             valueStrings: ['5 sec', '10 sec', '15 sec', '20 sec', '25 sec', '30 sec'] },
+      curve:  { description: 'Crossfade Curve',  type: INTEGER, values: [0, 1],                  default: 0,              valueStrings: ['Equal Power', 'Linear'] },
+    },
+    {
+      name:   { description: 'Preset 2',         type: STRING,  values: [5, 50],                 default: '20 sec EqPow', valueStrings: [] },
+      length: { description: 'Crossfade Length', type: INTEGER, values: [5, 10, 15, 20, 25, 30], default: 20,             valueStrings: ['5 sec', '10 sec', '15 sec', '20 sec', '25 sec', '30 sec'] },
+      curve:  { description: 'Crossfade Curve',  type: INTEGER, values: [0, 1],                  default: 0,              valueStrings: ['Equal Power', 'Linear'] },
+    },
+    {
+      name:   { description: 'Preset 3',         type: STRING,  values: [5, 50],                 default: '30 sec EqPow', valueStrings: [] },
+      length: { description: 'Crossfade Length', type: INTEGER, values: [5, 10, 15, 20, 25, 30], default: 30,             valueStrings: ['5 sec', '10 sec', '15 sec', '20 sec', '25 sec', '30 sec'] },
+      curve:  { description: 'Crossfade Curve',  type: INTEGER, values: [0, 1],                  default: 0,              valueStrings: ['Equal Power', 'Linear'] },
+    },
+    {
+      name:   { description: 'Preset 4',         type: STRING,  values: [5, 50],                 default: '10 sec Linear', valueStrings: [] },
+      length: { description: 'Crossfade Length', type: INTEGER, values: [5, 10, 15, 20, 25, 30], default: 10,              valueStrings: ['5 sec', '10 sec', '15 sec', '20 sec', '25 sec', '30 sec'] },
+      curve:  { description: 'Crossfade Curve',  type: INTEGER, values: [0, 1],                  default: 1,               valueStrings: ['Equal Power', 'Linear'] },
+    },
+    {
+      name:   { description: 'Preset 5',         type: STRING,  values: [5, 50],                 default: '20 sec Linear', valueStrings: [] },
+      length: { description: 'Crossfade Length', type: INTEGER, values: [5, 10, 15, 20, 25, 30], default: 20,              valueStrings: ['5 sec', '10 sec', '15 sec', '20 sec', '25 sec', '30 sec'] },
+      curve:  { description: 'Crossfade Curve',  type: INTEGER, values: [0, 1],                  default: 1,               valueStrings: ['Equal Power', 'Linear'] },
+    },
+    {
+      name:   { description: 'Preset 6',         type: STRING,  values: [5, 50],                 default: '30 sec Linear', valueStrings: [] },
+      length: { description: 'Crossfade Length', type: INTEGER, values: [5, 10, 15, 20, 25, 30], default: 30,              valueStrings: ['5 sec', '10 sec', '15 sec', '20 sec', '25 sec', '30 sec'] },
+      curve:  { description: 'Crossfade Curve',  type: INTEGER, values: [0, 1],                  default: 1,               valueStrings: ['Equal Power', 'Linear'] },
+    },
+  ],
+};
+
+const presetList = {
+  version: presetsSchema.version.default,
+  crossfade: [
+    {
+      name:   presetsSchema.crossfade[0].name.default,
+      length: presetsSchema.crossfade[0].length.default,
+      curve:  presetsSchema.crossfade[0].curve.default,
+    },
+    {
+      name:   presetsSchema.crossfade[1].name.default,
+      length: presetsSchema.crossfade[1].length.default,
+      curve:  presetsSchema.crossfade[1].curve.default,
+    },
+    {
+      name:   presetsSchema.crossfade[2].name.default,
+      length: presetsSchema.crossfade[2].length.default,
+      curve:  presetsSchema.crossfade[2].curve.default,
+    },
+    {
+      name:   presetsSchema.crossfade[3].name.default,
+      length: presetsSchema.crossfade[3].length.default,
+      curve:  presetsSchema.crossfade[3].curve.default,
+    },
+    {
+      name:   presetsSchema.crossfade[4].name.default,
+      length: presetsSchema.crossfade[4].length.default,
+      curve:  presetsSchema.crossfade[4].curve.default,
+    },
+    {
+      name:   presetsSchema.crossfade[5].name.default,
+      length: presetsSchema.crossfade[5].length.default,
+      curve:  presetsSchema.crossfade[5].curve.default,
+    },
+  ],
 };
 
 

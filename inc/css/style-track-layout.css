@@ -106,13 +106,20 @@
   font-size: 32px;
 }
 
-.track-layout-2-column .entry-meta-controls .crossfade-control {
+.track-layout-2-column .crossfade-controls .preset-control {
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  line-height: 28px;
+}
+
+.track-layout-2-column .crossfade-controls .fadeto-control {
   width: 44px;
   height: 44px;
   margin-right: -6px;
 }
 
-.track-layout-2-column .entry-meta-controls .crossfade-control img {
+.track-layout-2-column .crossfade-controls .fadeto-control img {
   width: 44px;
   height: 44px;
 }
@@ -127,13 +134,20 @@
   font-size: 28px;
 }
 
-.track-layout-3-column .entry-meta-controls .crossfade-control {
+.track-layout-3-column .crossfade-controls .preset-control {
+  width: 26px;
+  height: 26px;
+  font-size: 18px;
+  line-height: 27px;
+}
+
+.track-layout-3-column .crossfade-controls .fadeto-control {
   width: 40px;
   height: 40px;
   margin-right: -5px;
 }
 
-.track-layout-3-column .entry-meta-controls .crossfade-control img {
+.track-layout-3-column .crossfade-controls .fadeto-control img {
   width: 40px;
   height: 40px;
 }

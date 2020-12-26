@@ -17,14 +17,16 @@ export {
   settingsUpdated,
   siteTheme,
   trackLayout,
+  shareModal,
 };
 
 
 /*************************************************************************************************/
 
 
-const debug  = debugLogger.newInstance('site-interaction');
-let settings = {};
+const debug         = debugLogger.newInstance('site-interaction');
+const htmlClassList = document.documentElement.classList;
+let settings        = {};
 
 
 // ************************************************************************************************
@@ -36,10 +38,11 @@ function init(siteSettings)
   debug.log('init()');
 
   settings = siteSettings;
-  
-  trackShare.addEventListeners();
+
   siteTheme.init();
   trackLayout.init();
+
+  utils.addEventListeners('.entry-meta-controls .track-share-control', 'click', trackShareControlClick);
 }
 
 function settingsUpdated(updatedSettings)
@@ -47,6 +50,32 @@ function settingsUpdated(updatedSettings)
   settings = updatedSettings;
   siteTheme.setCurrent();
   trackLayout.setCurrent();
+}
+
+function trackShareControlClick(event)
+{
+  const artistTrackTitle = event.target.getAttribute('data-artist-track-title');
+  const trackUrl         = event.target.getAttribute('data-track-url');
+ 
+  shareModal.show({ string: artistTrackTitle, filterString: true, url: trackUrl });
+}
+
+
+// ************************************************************************************************
+// Site theme and layout settings helpers
+// ************************************************************************************************
+
+function getCurrentSetting(settings, currentId, defaultSetting)
+{
+  const setting = Object.values(settings).find(value => value.id === currentId);
+  return ((setting !== undefined) ? setting : defaultSetting);
+}
+
+function getNextSetting(settings, currentSetting)
+{
+  const index = Object.values(settings).findIndex(value => value.id === currentSetting.id);
+  const keys  = Object.keys(settings);
+  return (((index + 1) < keys.length) ? settings[keys[index + 1]] : settings[keys[0]]);
 }
 
 
@@ -119,12 +148,12 @@ const siteTheme = (() =>
   function updateDOM(newTheme)
   {
     // Only update DOM if something has actually changed...
-    if (document.documentElement.classList.contains(newTheme.class) === false)
+    if (htmlClassList.contains(newTheme.class) === false)
     {
       debug.log(`updateDOM() - newSiteTheme: ${newTheme.id}`);
     
-      document.documentElement.classList.remove(themes.light.class, themes.dark.class);
-      document.documentElement.classList.add(newTheme.class);
+      htmlClassList.remove(themes.light.class, themes.dark.class);
+      htmlClassList.add(newTheme.class);
     }
 
     // Always update this because AUTO is not a separate class (only DARK + LIGHT are classes)
@@ -177,7 +206,8 @@ const trackLayout = (() =>
   
   function matchMediaMinWidth(event)
   {
-    event.matches ? document.documentElement.classList.remove(currentLayout.class) : document.documentElement.classList.add(currentLayout.class);
+    if (htmlClassList.contains('user-layout'))
+      event.matches ? htmlClassList.remove(currentLayout.class) : htmlClassList.add(currentLayout.class);
   }
   
   function toggle(event, scrollIntoView = false)
@@ -197,15 +227,15 @@ const trackLayout = (() =>
   
   function updateDOM()
   {
-    // Only update DOM if something has actually changed...
-    if (document.documentElement.classList.contains(currentLayout.class) === false)
+    // Only update DOM if needed and when something has actually changed
+    if ((htmlClassList.contains('user-layout')) && (htmlClassList.contains(currentLayout.class) === false))
     {
       debug.log(`updateDOM() - newTrackLayout: ${currentLayout.id}`);
     
-      document.documentElement.classList.remove(layouts.list.class, layouts.twoColumn.class, layouts.threeColumn.class);
+      htmlClassList.remove(layouts.list.class, layouts.twoColumn.class, layouts.threeColumn.class);
   
       if (window.matchMedia(config.minWidth).matches === false)
-        document.documentElement.classList.add(currentLayout.class);
+        htmlClassList.add(currentLayout.class);
     
       elements.toggle.querySelector('span').textContent = currentLayout.text;
     }
@@ -214,101 +244,85 @@ const trackLayout = (() =>
 
 
 // ************************************************************************************************
-// Site theme and layout settings helpers
+// Share Dialog module
 // ************************************************************************************************
 
-function getCurrentSetting(settings, currentId, defaultSetting)
+const shareModal = (() =>
 {
-  const setting = Object.values(settings).find(value => value.id === currentId);
-  return ((setting !== undefined) ? setting : defaultSetting);
-}
-
-function getNextSetting(settings, currentSetting)
-{
-  const index = Object.values(settings).findIndex(value => value.id === currentSetting.id);
-  const keys  = Object.keys(settings);
-  return (((index + 1) < keys.length) ? settings[keys[index + 1]] : settings[keys[0]]);
-}
-
-
-// ************************************************************************************************
-// Track share module
-// ************************************************************************************************
-
-const trackShare = (() =>
-{
-  let trackTitle = null;
-  let trackUrl   = null;
-  const separatorRegEx = /\s{1,}[–·-]\s{1,}/i;
-
-  const singleChoiceList = [
-    { id: 'copyToClipboard',    description: '<b>Copy Link</b> to Clipboard' },
-    { id: 'shareOnEmail',       description: '<b>Share</b> on Email'         },
-    { id: 'playOnAmazonMusic',  description: '<b>Play</b> on Amazon Music'   },
-    { id: 'playOnAppleMusic',   description: '<b>Play</b> on Apple Music'    },
-    { id: 'playOnSpotify',      description: '<b>Play</b> on Spotify'        },
-    { id: 'playOnTidal',        description: '<b>Play</b> on Tidal'          },
-    { id: 'playOnYouTubeMusic', description: '<b>Play</b> on YouTube Music'  },
-  ];
+  const filterStringRegEx = /\s{1,}[–·-]\s{1,}/i;
+  let title, string, filterString, url, verb;
 
   return {
-    addEventListeners,
-    click,
+    show,
   };
   
-  function addEventListeners()
+  function show(args)
   {
-    utils.addEventListeners('.entry-meta-controls .track-share-control', 'click', click);
+    ({
+      title        = 'Share / Play Track',
+      string       = null,
+      filterString = false,
+      url          = null,
+      verb         = 'Play'
+    } = args);
+
+    showModal(title, getSingleChoiceList(verb), singleChoiceListClick);
   }
 
-  function click(event)
+  function getSingleChoiceList(verb)
   {
-    trackTitle = event.target.getAttribute('data-entry-track-title');
-    trackUrl   = event.target.getAttribute('data-entry-track-url');
-    showModal('Share / Play Track', singleChoiceList, singleChoiceListClick);
+    return [
+      { id: 'copyToClipboardId', description: '<b>Copy Link</b> to Clipboard'   },
+      { id: 'shareOnEmailId',    description: '<b>Share</b> on Email'           },
+      { id: 'amazonMusicId',     description: `<b>${verb}</b> on Amazon Music`  },
+      { id: 'appleMusicId',      description: `<b>${verb}</b> on Apple Music`   },
+      { id: 'spotifyId',         description: `<b>${verb}</b> on Spotify`       },
+      { id: 'tidalId',           description: `<b>${verb}</b> on Tidal`         },
+      { id: 'youTubeMusicId',    description: `<b>${verb}</b> on YouTube Music` },
+    ];
   }
 
   function singleChoiceListClick(clickId)
   {
-    debug.log(`singleChoiceListClick(): ${clickId} - trackTitle: ${trackTitle} - trackUrl: ${trackUrl}`);
+    debug.log(`singleChoiceListClick(): ${clickId} - title: "${title}" - string: "${string}" - filterString: ${filterString} - url: ${url} - verb: ${verb}`);
 
-    const searchString = encodeURIComponent(trackTitle.replace(separatorRegEx, ' '));
+    const searchString = filterString ? encodeURIComponent(string.replace(filterStringRegEx, ' ')) : encodeURIComponent(string);
 
     switch (clickId)
     {
-      case 'copyToClipboard':
-        navigator.clipboard.writeText(trackUrl).then(() =>
+      case 'copyToClipboardId':
+        navigator.clipboard.writeText(url).then(() =>
         {
           showSnackbar('Track link copied to clipboard', 3);
         },
         (reason) =>
         {
-          debug.error(`trackShare.copyToClipboard() failed because ${reason}`);
+          debug.error(`shareModal.copyToClipboard() failed because ${reason}`);
           showSnackbar('Unable to copy Track link to clipboard', 5);
         });
         break;
 
-      case 'shareOnEmail':
-        window.location.href = `mailto:?subject=${encodeURIComponent(trackTitle)}&body=${trackUrl}%0d%0a`;
+      case 'shareOnEmailId':
+        window.location.href = `mailto:?subject=${encodeURIComponent(string)}&body=${url}%0d%0a`;
         break;
 
-      case 'playOnAmazonMusic':
+      case 'amazonMusicId':
         window.open(`https://music.amazon.com/search/${searchString}`, "_blank");
         break;
 
-      case 'playOnAppleMusic':
+      case 'appleMusicId':
         window.open(`https://music.apple.com/ca/search?term=${searchString}`, "_blank");
         break;
 
-      case 'playOnSpotify':
+      case 'spotifyId':
         window.open(`https://open.spotify.com/search/${searchString}`, "_blank");
         break;
 
-      case 'playOnTidal':
+      case 'tidalId':
         window.open(`https://google.com/search?q=${searchString}%20site:tidal.com`, "_blank");
         break;
 
-      case 'playOnYouTubeMusic':
+      case 'youTubeMusicId':
         window.open(`https://music.youtube.com/search?q=${searchString}`, "_blank");
         break;
     }

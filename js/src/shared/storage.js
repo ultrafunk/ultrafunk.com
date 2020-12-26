@@ -6,13 +6,13 @@
 //
 
 
-import * as debugLogger from '../shared/debuglogger.js';
+import * as debugLogger from './debuglogger.js';
 
 import {
   playbackSchema,
   siteSchema,
   validateSettings as validateSettingsDeep,
-} from  '../shared/settings.js';
+} from  './settings.js';
 
 
 export {
@@ -37,10 +37,15 @@ const debug     = debugLogger.newInstance('storage');
 const observers = {};
 
 const KEY = {
+//sessionStorage keys
+  UF_AUTOPLAY:          'UF_AUTOPLAY',
+//localStorage keys
   UF_PLAYBACK_SETTINGS: 'UF_PLAYBACK_SETTINGS',
   UF_SITE_SETTINGS:     'UF_SITE_SETTINGS',
+  UF_PRESET_LIST:       'UF_PRESET_LIST',
   UF_SITE_THEME:        'UF_SITE_THEME',
   UF_TRACK_LAYOUT:      'UF_TRACK_LAYOUT',
+//document.cookie keys
   UF_TRACKS_PER_PAGE:   'UF_TRACKS_PER_PAGE',
 };
 

@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../shared/debuglogger.js';
+import * as debugLogger from './debuglogger.js';
 
 
 export {
@@ -125,7 +125,7 @@ function close()
 function disablePageScrolling(disable)
 {
   const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-  document.body.style.touchAction  = disable ? 'none'   : '';
+//document.body.style.touchAction  = disable ? 'none'   : '';
   document.body.style.overflow     = disable ? 'hidden' : '';
   document.body.style.paddingRight = disable ? `${scrollbarWidth}px` : '';
   document.getElementById('site-header').style.paddingRight = disable ? `${scrollbarWidth}px` : '';

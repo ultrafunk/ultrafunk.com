@@ -170,7 +170,7 @@ class Playback extends EventLog
 {
   constructor(maxEntries) { super(maxEntries); }
 
-  ytAutoPlayBlocked(uId, deltaTime)
+  ytAutoplayBlocked(uId, deltaTime)
   {
     this.initMatch();
     
@@ -183,10 +183,10 @@ class Playback extends EventLog
       this.matchesDelta(3, deltaTime);
     }
     
-    return this.isPatternMatch(5, 'YouTube AutoPlay Blocked');
+    return this.isPatternMatch(5, 'YouTube Autoplay Blocked');
   }
   
-  scAutoPlayBlocked(uId, deltaTime)
+  scAutoplayBlocked(uId, deltaTime)
   {
     this.initMatch();
     
@@ -199,7 +199,7 @@ class Playback extends EventLog
       this.matchesDelta(3, deltaTime);
     }
     
-    return this.isPatternMatch(5, 'SoundCloud AutoPlay Blocked');
+    return this.isPatternMatch(5, 'SoundCloud Autoplay Blocked');
   }
 
   scWidgetPlayBlocked(uId, deltaTime)

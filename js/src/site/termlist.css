@@ -1,0 +1,253 @@
+/*
+* Termlist UI
+*
+* https://ultrafunk.com
+* 
+*/
+
+.site-theme-light {
+  --border-top-even-row: 2px solid #ccc;
+  --border-top-odd-row: 2px solid #ccc;
+}
+
+.site-theme-dark {
+  --border-top-even-row: 2px solid #555;
+  --border-top-odd-row: 2px solid #555;
+}
+
+#termlist-container {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.termlist-title {
+  border-radius: var(--button-border-radius);
+  background-color: var(--list-row-odd-color);
+  padding: 10px 15px;
+}
+
+.termlist-header {
+  display: flex;
+  padding-left: 15px;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: var(--button-border-radius);
+}
+
+.termlist-header.odd {
+  background-color: var(--list-row-odd-color);
+}
+
+.termlist-entry.open .termlist-header {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+@media all and (pointer: fine) {
+ 
+  .termlist-header:hover {
+    background: var(--list-row-hover-color);
+    cursor: pointer;
+ }
+
+}
+
+@media not all and (pointer: fine) {
+
+  .termlist-header.odd {
+    background: var(--list-row-odd-color);
+    transition: background 100ms 0s ease-in;
+  }
+
+  .termlist-header.even {
+    transition: background 100ms 0s ease-in;
+  }
+
+  .termlist-header:active {
+    background: var(--list-row-hover-color);
+    transition: background 0s;
+  }
+
+}
+
+.termlist-name {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  font-weight: 400;
+}
+
+.termlist-icons {
+  display: inline-flex;
+}
+
+.termlist-icons .material-icons {
+  font-size: 33px;
+}
+
+.termlist-icons .play-button a,
+.termlist-icons .shuffle-button a {
+  display: inline-flex;
+  padding: 11px 11px;
+  text-decoration: none;
+  color: var(--primary-icon-color);
+  user-select: none;
+}
+
+.termlist-icons .play-button a:hover,
+.termlist-icons .shuffle-button a:hover {
+  color: var(--link-hover-color);
+}
+
+.termlist-icons .share-find-button,
+.termlist-icons .expand-toggle {
+  width: 33px;
+  height: 33px;
+  padding: 11px 11px 11px 11px;
+  color: var(--primary-icon-color);
+  user-select: none;
+}
+
+@media all and (pointer: fine) {
+ 
+  .termlist-icons .play-button:hover,
+  .termlist-icons .shuffle-button:hover,
+  .termlist-icons .share-find-button:hover,
+  .termlist-icons .expand-toggle:hover {
+    background-color: var(--control-highlight-color);
+  }
+  
+}
+
+@media not all and (pointer: fine) {
+
+  .termlist-icons .play-button,
+  .termlist-icons .shuffle-button,
+  .termlist-icons .share-find-button {
+    transition: background 100ms 0s ease-in;
+  }
+
+  .termlist-icons .play-button:active,
+  .termlist-icons .shuffle-button:active,
+  .termlist-icons .share-find-button:active {
+    background-color: var(--control-highlight-color);
+    transition: background 0s;
+  }
+
+}
+
+.termlist-body {
+  display: none;
+  border-top: var(--border-top-even-row);
+  border-bottom-left-radius: var(--button-border-radius);
+  border-bottom-right-radius: var(--button-border-radius);
+  padding: 12px 15px 13px 15px;
+  font-size: 20px;
+  line-height: 30px;
+}
+
+.termlist-body.odd {
+  background-color: var(--list-row-odd-color);
+  border-top: var(--border-top-odd-row);
+}
+
+
+/**************************************************************************************************
+* Responsive
+***************************************************************************************************/
+
+@media screen and (max-width: 1350px) {
+ 
+  #termlist-container {
+    padding-left: 75px;
+    padding-right: 75px;
+  }
+
+}
+
+@media screen and (max-width: 1100px) {
+ 
+  .termlist-icons .material-icons {
+    font-size: 30px;
+  }
+
+  .termlist-icons .play-button a,
+  .termlist-icons .shuffle-button a {
+    padding: 10px 10px;
+  }
+  
+  .termlist-icons .share-find-button,
+  .termlist-icons .expand-toggle {
+    width: 30px;
+    height: 30px;
+    padding: 10px 10px 10px 10px;
+  }
+
+  .termlist-body {
+    font-size: unset;
+    line-height: unset;
+    padding: 10px 15px;
+  }
+
+}
+
+@media screen and (max-width: 900px) {
+  
+  #termlist-container {
+    padding-left: 50px;
+    padding-right: 50px;
+  }
+
+}
+
+@media screen and (max-width: 768px) {
+  
+  #termlist-container {
+    padding-left: 25px;
+    padding-right: 25px;
+  }
+
+  .termlist-icons .material-icons {
+    font-size: 26px;
+  }
+
+  .termlist-icons .share-find-button,
+  .termlist-icons .expand-toggle {
+    width: 26px;
+    height: 26px;
+  }
+
+}
+
+@media screen and (max-width: 500px) {
+  
+  #termlist-container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .termlist-title {
+    padding: 12px 15px;
+  }
+
+  .termlist-icons .material-icons {
+    font-size: 23px;
+  }
+
+  .termlist-icons .play-button a,
+  .termlist-icons .shuffle-button a {
+    padding: 12px 12px;
+  }
+  
+  .termlist-icons .share-find-button,
+  .termlist-icons .expand-toggle {
+    width: 23px;
+    height: 23px;
+    padding: 12px 12px 12px 12px;
+  }
+
+  .termlist-body {
+    padding: 12px 15px;
+  }
+
+}

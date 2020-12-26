@@ -16,23 +16,13 @@ use function Ultrafunk\Globals\ {
   get_shuffle_params,
   get_cached_title,
   set_cached_title,
+  set_is_paged_404,
   get_dev_prod_const,
 };
 
 
-//
-// Only enqueues style-track-layout.css on pages where it is needed
-//
-function enqueue_style_track_layout($version)
-{
-  if (!is_singular() && !is_search() && !is_404())
-  {
-    global $wp_query;
+/**************************************************************************************************************************/
 
-    if (isset($wp_query) && ($wp_query->found_posts >= 3))
-      wp_enqueue_style('ultrafunk-style-track-layout', get_theme_file_uri('/inc/css/style-track-layout.css'), array(), $version);
-  }
-}
 
 //
 // Get previous and next post/posts URLs
@@ -78,33 +68,12 @@ function get_prev_next_urls()
 }
 
 //
-// Set number of posts (tracks) per page for Search + Shuffle based on user setting
-//
-function set_posts_per_page($query)
-{
-  if (!is_admin() && $query->is_main_query())
-  {
-    if (is_search() || is_shuffle())
-    {
-      if (isset($_COOKIE['UF_TRACKS_PER_PAGE']))
-      {
-        $num_tracks = intval($_COOKIE['UF_TRACKS_PER_PAGE']);
-  
-        if (($num_tracks > 2) && ($num_tracks < 25))
-          $query->set('posts_per_page', $num_tracks);
-      }
-    }
-  }
-}
-add_action('pre_get_posts', '\Ultrafunk\ThemeFunctions\set_posts_per_page', 1);
-
-//
 // Enhance search results by replacing special chars in query string
 // This should be done by default in WordPress?
 //
 function modify_search_query($query)
 {
-  if (!is_admin() && $query->is_main_query() && $query->is_search())
+  if (!is_admin() && $query->is_main_query() && $query->is_search)
   {
     // https://www.w3.org/wiki/Common_HTML_entities_used_for_typography
     $search  = array('&ndash;', '&mdash;', '&lsquo;', '&rsquo;', '&prime;', '&Prime;', '&ldquo;', '&rdquo;', '&quot;');
@@ -122,6 +91,51 @@ function modify_search_query($query)
   }
 }
 add_action('parse_query', '\Ultrafunk\ThemeFunctions\modify_search_query');
+
+//
+// Set number of posts (tracks) per page for Search + Shuffle based on user setting
+//
+function set_posts_per_page($query)
+{
+  if (!is_admin() && $query->is_main_query())
+  {
+    if ($query->is_search || is_shuffle())
+    {
+      if (isset($_COOKIE['UF_TRACKS_PER_PAGE']))
+      {
+        $num_tracks = intval($_COOKIE['UF_TRACKS_PER_PAGE']);
+  
+        if (($num_tracks > 2) && ($num_tracks < 25))
+          $query->set('posts_per_page', $num_tracks);
+      }
+    }
+  }
+}
+add_action('pre_get_posts', '\Ultrafunk\ThemeFunctions\set_posts_per_page', 1);
+
+//
+// Setup custom pagination for term-list pages
+//
+function set_page_pagination($found_posts, $query)
+{
+  if (!is_admin() && $query->is_main_query())
+  {
+    if (is_page() && is_page(['artists', 'channels']))
+    {
+      $taxonomy   = ($query->query['pagename'] === 'artists') ? 'post_tag' : 'category';
+      $term_count = get_terms(array('taxonomy' => $taxonomy, 'fields' => 'count'));
+      
+      $query->max_num_pages = ($term_count > 30) ? ceil($term_count / 30) : 0;
+      $query->query_vars['posts_per_page'] = 30;
+
+      if (get_query_var('paged') > $query->max_num_pages)
+        set_is_paged_404();
+    }
+  }
+
+  return $found_posts;
+}
+add_filter('found_posts', '\Ultrafunk\ThemeFunctions\set_page_pagination', 10, 2);
 
 //
 // Get current title from context
@@ -209,7 +223,12 @@ function webfonts_script()
 {
   ?>
   <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
-  <script>WebFont.load({ google: { families: ['Roboto:100,300,400,700&display=swap'] } });</script>
+  <script>
+  WebFont.load({
+    google: { families: ['Roboto:100,300,400,700&display=swap'] },
+    classes: false, events: false,
+  });
+  </script>
   <?php
 }
 add_action('wp_body_open', '\Ultrafunk\ThemeFunctions\webfonts_script');

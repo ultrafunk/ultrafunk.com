@@ -7,6 +7,7 @@
 
 import * as debugLogger                  from '../shared/debuglogger.js';
 import * as utils                        from '../shared/utils.js';
+import { KEY }                           from '../shared/storage.js';
 import { updateProgressPercent }         from './playback-controls.js';
 import { showSnackbar, dismissSnackbar } from '../shared/snackbar.js';
 
@@ -184,13 +185,15 @@ function continueAutoplay(playbackEvent)
 
 function resumeAutoplay(playbackEvent)
 {
-  debugEvent(playbackEvent);
-  debug.log(`RESUME_AUTOPLAY: ${settings.priv.continueAutoPlay}`);
+  const autoplayValue = sessionStorage.getItem(KEY.UF_AUTOPLAY);
 
-  if (settings.priv.continueAutoPlay)
+  debugEvent(playbackEvent);
+  debug.log(`RESUME_AUTOPLAY: ${(autoplayValue !== null) ? 'true' : 'false'}`);
+
+  if (autoplayValue !== null)
   {
-    settings.priv.continueAutoPlay = false;
-    playbackEvent.callback.resumeAutoPlay();
+    sessionStorage.removeItem(KEY.UF_AUTOPLAY);
+    playbackEvent.callback.resumeAutoplay();
   }
 }
 
@@ -280,14 +283,14 @@ function isPremiumTrack(postId)
   return false;
 }
 
-function navigateTo(destUrl, continueAutoPlay = false)
+function navigateTo(destUrl, continueAutoplay = false)
 {
-  debug.log(`navigateTo(): ${destUrl} - continueAutoPlay: ${continueAutoPlay}`);
+  debug.log(`navigateTo(): ${destUrl} - continueAutoplay: ${continueAutoplay}`);
   
   if ((destUrl !== null) && (destUrl.length > 0))
   {
-    if (continueAutoPlay)
-      settings.priv.continueAutoPlay = true;
+    if (continueAutoplay)
+      sessionStorage.setItem(KEY.UF_AUTOPLAY, 'true');
     
     window.location.href = destUrl;
   }

@@ -12,8 +12,8 @@ Tested on servers running LAMP: Linux, Apache, MariaDB / MySQL and PHP.
 **Required:**  
 PHP version 7.4 or greater  
 [WordPress](https://wordpress.org/download/) 5.5 or greater  
-[Google Material Icons font](https://google.github.io/material-design-icons/#icon-font-for-the-web)  
 [ESBuild](https://github.com/evanw/esbuild/) (JavaScript / CSS bundler and minifier)  
+[Google Material Icons font](https://google.github.io/material-design-icons/#icon-font-for-the-web)  
 
 **Optional:**  
 [ESLint](https://eslint.org/) (Static code analyzer for JavaScript)  

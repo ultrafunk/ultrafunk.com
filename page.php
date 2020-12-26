@@ -1,6 +1,6 @@
 <?php
 /*
- * The (single) page template file.
+ * The page template file.
  *
  */
 
@@ -11,7 +11,20 @@ if (have_posts())
   while (have_posts())
   {
     the_post();
-    get_template_part('template-parts/content', 'page');
+
+    global $post;
+    $template_name = 'post';
+
+    switch($post->post_name)
+    {
+      case 'artists':
+      case 'channels':
+      case 'settings':
+        $template_name = $post->post_name;
+        break;
+    }
+
+    get_template_part('template-parts/content', $template_name);
   }
 }
 

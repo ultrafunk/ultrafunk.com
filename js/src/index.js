@@ -9,6 +9,7 @@ import * as debugLogger from './shared/debuglogger.js';
 import * as storage     from './shared/storage.js';
 import * as utils       from './shared/utils.js';
 import * as interaction from './site/interaction.js';
+import * as termlist    from './site/termlist.js';
 import { siteSettings } from './shared/settings.js';
 
 
@@ -56,6 +57,9 @@ document.addEventListener('DOMContentLoaded', () =>
   resize.setTopMargin();
   resize.setLastInnerWidth(window.innerWidth);
   
+  if (document.getElementById('termlist-container') !== null)
+    termlist.init();
+
   setPreviousPageTitle();
 });
 
@@ -159,6 +163,22 @@ document.addEventListener('keydown', (event) =>
           interaction.siteTheme.toggle(event);
         }
         break;
+
+      case 'ArrowLeft':
+        if (event.shiftKey && noPlayback())
+        {
+          // eslint-disable-next-line no-undef
+          arrowKeyNav(navigationVars.prevUrl);
+        }
+        break;
+
+      case 'ArrowRight':
+        if (event.shiftKey && noPlayback())
+        {
+          // eslint-disable-next-line no-undef
+          arrowKeyNav(navigationVars.nextUrl);
+        }
+        break;
     }
   }
 });
@@ -176,6 +196,11 @@ function notSettingsPage()
 function notFullscreenTrack()
 {
   return ((mElements.fullscreenTarget === null) ? true : false);
+}
+
+function noPlayback()
+{
+  return (document.body.classList.contains('no-playback'));
 }
 
 
@@ -262,6 +287,12 @@ function setPreviousPageTitle()
       element.querySelector('.go-back-to').style.opacity  = 1;
     });
   }
+}
+
+function arrowKeyNav(destUrl)
+{
+  if (destUrl !== null)
+    window.location.href = destUrl;
 }
 
 

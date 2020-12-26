@@ -5,16 +5,16 @@
 //
 
 
-import * as debugLogger from '../shared/debuglogger.js?ver=1.15.3';
-import * as settings    from '../shared/settings.js?ver=1.15.3';
-import { showSnackbar } from '../shared/snackbar.js?ver=1.15.3';
+import * as debugLogger from './debuglogger.js?ver=1.16.0';
+import * as settings    from './settings.js?ver=1.16.0';
+import { showSnackbar } from './snackbar.js?ver=1.16.0';
 
 import {
   KEY,
   deleteCookie,
   readJson,
   writeJson,
-} from '../shared/storage.js?ver=1.15.3';
+} from '../shared/storage.js?ver=1.16.0';
 
 
 /*************************************************************************************************/
@@ -173,18 +173,18 @@ function getValueStringsIndex(schemaEntry, findValue)
 
 function insertSettingsHtml()
 {
-  let html = `\n<h3>Playback</h3>\n<table class="playback-settings">\n<tbody>`;
+  let html = `\n<h3>Playback</h3>\n<table id="playback-settings">\n<tbody>`;
   Object.entries(settings.playbackSchema.user).forEach(entry => html += addTableRow(mConfig.playbackIdPrefix, entry));
 
-  html += `\n</tbody>\n</table>\n<h3>Site</h3>\n<table class="site-settings">\n<tbody>`;
+  html += `\n</tbody>\n</table>\n<h3>Site</h3>\n<table id="site-settings">\n<tbody>`;
   Object.entries(settings.siteSchema.user).forEach(entry => html += addTableRow(mConfig.siteIdPrefix, entry));
 
   html += `\n</tbody>\n</table>\n`;
 
   mElements.settingsContainer.insertAdjacentHTML('afterbegin', html);
 
-  Object.keys(settings.playbackSchema.user).forEach(key => document.getElementById(`${mConfig.playbackIdPrefix}:${key}`).addEventListener('click', playbackSettingsClick));
-  Object.keys(settings.siteSchema.user).forEach(key => document.getElementById(`${mConfig.siteIdPrefix}:${key}`).addEventListener('click', siteSettingsClick));
+  document.getElementById('playback-settings').addEventListener('click', playbackSettingsClick);
+  document.getElementById('site-settings').addEventListener('click', siteSettingsClick);
 }
 
 function addTableRow(idPrefix, entry)

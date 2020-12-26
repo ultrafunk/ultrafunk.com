@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /*
  * Theme setup and customization
  *
@@ -98,22 +98,23 @@ function ultrafunk_scripts()
 
   if (true === $ultrafunk_is_prod_build)
   {
-    wp_enqueue_style('js-bundle-style', get_theme_file_uri('/js/dist/css/bundle.min.css'), array(), $version);
     wp_enqueue_script('interaction-script', get_theme_file_uri('/js/dist/playback/interaction.js'), array(), $version);
-    wp_enqueue_style('ultrafunk-style', get_theme_file_uri('style.min.css'), array(), $version);
     wp_enqueue_script('ultrafunk-script', get_theme_file_uri('/js/dist/index.js'), array(), $version);
+    wp_enqueue_style('ultrafunk-style', get_theme_file_uri('style.min.css'), array(), $version);
+    wp_enqueue_style('bundle-style', get_theme_file_uri('/js/dist/css/bundle.min.css'), array(), $version);
   }
   else
   {
     wp_enqueue_style('modal-style', get_theme_file_uri('/js/src/shared/modal.css'), array(), $version);
     wp_enqueue_style('snackbar-style', get_theme_file_uri('/js/src/shared/snackbar.css'), array(), $version);
     wp_enqueue_style('playback-controls-style', get_theme_file_uri('/js/src/playback/playback-controls.css'), array(), $version);
+    wp_enqueue_style('termlist-style', get_theme_file_uri('/js/src/site/termlist.css'), array(), $version);
     wp_enqueue_script('interaction-script', get_theme_file_uri('/js/src/playback/interaction.js'), array(), $version);
-    wp_enqueue_style('ultrafunk-style', get_stylesheet_uri(), array(), $version);
     wp_enqueue_script('ultrafunk-script', get_theme_file_uri('/js/src/index.js'), array(), $version);
+    wp_enqueue_style('ultrafunk-style', get_stylesheet_uri(), array(), $version);
+    wp_enqueue_style('style-track-layout', get_theme_file_uri('/inc/css/style-track-layout.css'), array(), $version);
   }
 
-  \Ultrafunk\ThemeFunctions\enqueue_style_track_layout($version);
   wp_localize_script('interaction-script', 'navigationVars', \Ultrafunk\ThemeFunctions\get_prev_next_urls());
 }
 add_action('wp_enqueue_scripts', 'ultrafunk_scripts');

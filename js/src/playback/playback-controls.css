@@ -147,6 +147,7 @@ body.autoplay-off #progress-controls .bar-control {
   color: var(--primary-icon-color);
   user-select: none;
   min-width: 38px;
+  cursor: pointer;
 }
 
 #playback-controls .prev-control,

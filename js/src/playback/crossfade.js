@@ -6,12 +6,12 @@
 
 
 import * as debugLogger from '../shared/debuglogger.js';
+//import { showSnackbar } from '../shared/snackbar.js';
 
 
 export {
   VOLUME,
-  CROSSFADE_TYPE,
-  CROSSFADE_CURVE,
+  TYPE as CROSSFADE_TYPE,
   getInstance,
 };
 
@@ -26,20 +26,21 @@ const VOLUME = {
   MAX: 100,
 };
 
-const CROSSFADE_TYPE = {
+const TYPE = {
   NONE:  -1,
   AUTO:   0,
   TRACK:  1,
 };
 
-const CROSSFADE_CURVE = {
+const CURVE = {
   NONE:        -1,
   EQUAL_POWER:  0,
   LINEAR:       1,
 };
 
 const mConfig = {
-  updateCrossfadeInterval: 50, // Milliseconds between each crossfade event
+  intervalEqPow:   33, // Milliseconds between each crossfade update event
+  intervalLinear: 100,
 };
 
 
@@ -58,9 +59,14 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
   let fadeInPlayer    = null;
   let fadeLength      = 0;
   let fadeStartVolume = 0;
-  let fadeType        = CROSSFADE_TYPE.NONE;
-  let fadeCurve       = CROSSFADE_CURVE.NONE;
+  let fadeType        = TYPE.NONE;
+  let fadePreset      = null;
   let fadeStartTime   = 0;
+
+  /*
+  let perfCounter   = 0;
+  let perfTimeTotal = 0;
+  */
 
   return {
     isFading() { return isFading; },
@@ -70,16 +76,16 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
     mute,
   };
   
-  function init(crossfadeType, crossfadeCurve = 0, fadeInUid = null)
+  function init(crossfadeType, crossfadePreset, fadeInUid = null)
   {
     if ((isFading === false) && (set(fadeInUid) === true))
     {
-      debug.log(`init() - crossfadeType: ${debug.getObjectKeyForValue(CROSSFADE_TYPE, crossfadeType)} - crossfadeCurve: ${debug.getObjectKeyForValue(CROSSFADE_CURVE, crossfadeCurve)} - fadeInUid: ${fadeInUid}`);
+      debug.log(`init() - type: ${debug.getObjectKeyForValue(TYPE, crossfadeType)} - fadeInUid: ${fadeInUid} - preset: ${crossfadePreset.length} sec ${debug.getObjectKeyForValue(CURVE, crossfadePreset.curve)} (Name: ${crossfadePreset.name})`);
   
       isFading        = true;
       fadeStartVolume = settings.masterVolume;
       fadeType        = crossfadeType;
-      fadeCurve       = crossfadeCurve;
+      fadePreset      = crossfadePreset;
       
       fadeInPlayer.setVolume(0);
   
@@ -94,24 +100,25 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
     return null;
   }
   
-  function start(fadeInUid)
+  function start()
   {
     if (isFading)
     {
       fadeOutPlayer.getPosition((positionMilliseconds) =>
       {
-        fadeStartTime       = ((positionMilliseconds + mConfig.updateCrossfadeInterval) / 1000);
-        const timeRemaining = fadeOutPlayer.getDuration() - fadeStartTime;
-        const fadeRemaining = timeRemaining - (mConfig.updateCrossfadeInterval / 1000);
+        const updateInterval = (fadePreset.curve === CURVE.EQUAL_POWER) ? mConfig.intervalEqPow : mConfig.intervalLinear;
+        fadeStartTime        = ((positionMilliseconds + updateInterval) / 1000);
+        const timeRemaining  = fadeOutPlayer.getDuration() - fadeStartTime;
+        const fadeRemaining  = timeRemaining - (updateInterval / 1000);
   
-        if (fadeType === CROSSFADE_TYPE.AUTO)
+        if (fadeType === TYPE.AUTO)
           fadeLength = fadeRemaining;
-        else if (fadeType === CROSSFADE_TYPE.TRACK)
-          fadeLength = (timeRemaining > settings.trackCrossfadeLength) ? settings.trackCrossfadeLength : fadeRemaining;
+        else if (fadeType === TYPE.TRACK)
+          fadeLength = (timeRemaining > fadePreset.length) ? fadePreset.length : fadeRemaining;
   
-        debug.log(`start() - fadeStartTime: ${fadeStartTime.toFixed(2)} sec - timeRemaining: ${timeRemaining.toFixed(2)} sec - fadeLength: ${fadeLength.toFixed(2)} sec - fadeInUid: ${fadeInUid}`);
+        debug.log(`start() - fadeStartTime: ${fadeStartTime.toFixed(2)} sec - timeRemaining: ${timeRemaining.toFixed(2)} sec - fadeLength: ${fadeLength.toFixed(2)} sec - updateInterval: ${updateInterval} ms`);
   
-        intervalId = setInterval((fadeCurve === CROSSFADE_CURVE.EQUAL_POWER) ? equalPowerFade : linearFade, mConfig.updateCrossfadeInterval);
+        intervalId = setInterval((fadePreset.curve === CURVE.EQUAL_POWER) ? equalPowerFade : linearFade, updateInterval);
       });
     }
   }
@@ -122,6 +129,13 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
   
     if (isFading)
     {
+      /*
+      const perfMean   = perfTimeTotal / perfCounter;
+      const perfString = `${fadePreset.name} | <b>Intervals:</b> ${perfCounter} | <b>Total Time:</b> ${perfTimeTotal.toFixed(0)} ms | <b>Mean:</b> ${perfMean.toFixed(2)} ms`;
+      showSnackbar(perfString, 30);
+      debug.log(perfString);
+      */
+
       if (intervalId !== -1)
       {
         clearInterval(intervalId);
@@ -142,21 +156,19 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
       }
     
       if (fadeInPlayer !== null)
-      {
-        // ToDo: Temp fix for: This might POP on fade out end, check if there is a safer way to reset the volume
-        setTimeout(() =>
-        {
-          fadeInPlayer.setVolume(settings.masterVolume); // ToDo: fadeStartVolume is 0 because of setTimeout()
-          fadeInPlayer = null;
-        }, 200);
-      }
+        fadeInPlayer = null;
     
       isFading        = false;
       fadeLength      = 0;
       fadeStartVolume = 0;
-      fadeType        = CROSSFADE_TYPE.NONE;
-      fadeCurve       = CROSSFADE_CURVE.NONE;
+      fadeType        = TYPE.NONE;
+      fadePreset      = null;
       fadeStartTime   = 0;
+
+      /*
+      perfCounter   = 0;
+      perfTimeTotal = 0;
+      */
     }
   }
   
@@ -182,6 +194,11 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
   //
   function equalPowerFade()
   {
+    /*
+    let startTime = performance.now();
+    perfCounter++;
+    */
+
     fadeOutPlayer.getPosition((positionMilliseconds) =>
     {
       // Clamp negative position values
@@ -195,46 +212,68 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
       const fadeOutVolume = Math.round(Math.sqrt(fadeStartVolume * fadeVolume));
       const fadeInVolume  = Math.round(Math.sqrt(fadeStartVolume * (fadeStartVolume - fadeVolume)));
   
+      /*
+      if (debug.isDebug())
+      {
+        if ((fadeOutVolume >= (VOLUME.MAX - 1)) || (fadeInVolume >= (VOLUME.MAX - 1)))
+          debug.log(`fadePosition: ${fadePosition.toFixed(3)} - fadeVolume: ${fadeVolume.toFixed(3)} - fadeOutVolume: ${fadeOutVolume} - fadeInVolume: ${fadeInVolume}`);
+      }
+      */
+
       if ((fadePosition >= fadeLength) && (fadeVolume <= VOLUME.MIN) && (fadeInVolume >= fadeStartVolume))
       {
+        fadeOutPlayer.setVolume(VOLUME.MIN);
+        fadeInPlayer.setVolume(fadeStartVolume);
         stop();
       }
       else
       {
-        /*
-        if ((fadeOutVolume >= (VOLUME.MAX - 1)) || (fadeInVolume >= (VOLUME.MAX - 1)))
-          debug.log(`fadePosition: ${fadePosition.toFixed(3)} - fadeVolume: ${fadeVolume.toFixed(3)} - fadeOutVolume: ${fadeOutVolume} - fadeInVolume: ${fadeInVolume}`);
-        */
-  
         fadeOutPlayer.setVolume(fadeOutVolume);
         fadeInPlayer.setVolume(fadeInVolume);
       }
+
+      /*
+      perfTimeTotal += (performance.now() - startTime);
+      */
     });
   }
   
   function linearFade()
   {
+    /*
+    let startTime = performance.now();
+    perfCounter++;
+    */
+
     fadeOutPlayer.getPosition((positionMilliseconds) =>
     {
       const fadePosition  = ((positionMilliseconds / 1000) - fadeStartTime);
       const fadeInVolume  = Math.round(fadeStartVolume * (fadePosition / fadeLength));
       const fadeOutVolume = fadeStartVolume - fadeInVolume;
   
+      /*
+      if (debug.isDebug())
+      {
+        if ((fadeOutVolume >= (VOLUME.MAX - 1)) || (fadeInVolume >= (VOLUME.MAX - 1)))
+          debug.log(`fadePosition: ${fadePosition.toFixed(3)} - fadeInVolume: ${fadeInVolume} - fadeOutVolume: ${fadeOutVolume}`);
+      }
+      */
+  
       if ((fadePosition > fadeLength) && (fadeOutVolume < VOLUME.MIN) && (fadeInVolume > fadeStartVolume))
       {
+        fadeOutPlayer.setVolume(VOLUME.MIN);
+        fadeInPlayer.setVolume(fadeStartVolume);
         stop();
       }
       else
       {
-        /*
-        if ((fadeOutVolume >= (VOLUME.MAX - 1)) || (fadeInVolume >= (VOLUME.MAX - 1)))
-          debug.log(`fadePosition: ${fadePosition.toFixed(3)} - fadeInVolume: ${fadeInVolume} - fadeOutVolume: ${fadeOutVolume}`);
-        */
-  
         fadeOutPlayer.setVolume(fadeOutVolume);
         fadeInPlayer.setVolume(fadeInVolume);
       }
+
+      /*
+      perfTimeTotal += (performance.now() - startTime);
+      */
     });
   }
 });
-

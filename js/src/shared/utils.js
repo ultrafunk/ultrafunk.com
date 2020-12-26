@@ -5,7 +5,7 @@
 //
 
 
-import * as debugLogger from '../shared/debuglogger.js';
+import * as debugLogger from './debuglogger.js';
 
 
 export {

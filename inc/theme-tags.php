@@ -9,10 +9,13 @@ namespace Ultrafunk\ThemeTags;
 
 
 use function Ultrafunk\Globals\ {
+  console_log,
   is_shuffle,
+  is_paged_404,
   get_dev_prod_const,
   get_perf_data
 };
+
 use function Ultrafunk\ThemeFunctions\ {
   get_prev_next_urls,
   get_title,
@@ -21,6 +24,20 @@ use function Ultrafunk\ThemeFunctions\ {
 };
 
 
+/**************************************************************************************************************************/
+
+
+function get_user_layout_class()
+{
+  if (!is_singular() && !is_search() && !is_404())
+  {
+    global $wp_query;
+
+    if (isset($wp_query) && ($wp_query->found_posts >= 3))
+      return 'user-layout';
+  }
+}
+
 function pre_wp_head()
 {
   if (is_shuffle())
@@ -28,26 +45,29 @@ function pre_wp_head()
 
   ?>
   <script>
-    const siteTheme        = localStorage.getItem('UF_SITE_THEME');
-    let   siteThemeClass   = 'site-theme-light';
-    const trackLayout      = localStorage.getItem('UF_TRACK_LAYOUT');
-    let   trackLayoutClass = 'track-layout-3-column';
+    const siteTheme      = localStorage.getItem('UF_SITE_THEME');
+    let   siteThemeClass = 'site-theme-light';
 
     if (siteTheme !== null)
       siteThemeClass = (siteTheme === 'dark') ? 'site-theme-dark' : 'site-theme-light';
 
     document.documentElement.classList.add(siteThemeClass);
 
-    if (trackLayout !== null)
+    if ((window.innerWidth > 1100) && (document.documentElement.classList.contains('user-layout')))
     {
-      if (trackLayout === 'list')
-        trackLayoutClass = 'track-layout-list';
-      else if (trackLayout === '2-column')
-        trackLayoutClass = 'track-layout-2-column';
-    }
+      const trackLayout      = localStorage.getItem('UF_TRACK_LAYOUT');
+      let   trackLayoutClass = 'track-layout-3-column';
 
-    if (window.innerWidth > 1100)
+      if (trackLayout !== null)
+      {
+        if (trackLayout === 'list')
+          trackLayoutClass = 'track-layout-list';
+        else if (trackLayout === '2-column')
+          trackLayoutClass = 'track-layout-2-column';
+      }
+
       document.documentElement.classList.add(trackLayoutClass);
+    }
   </script>
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
@@ -208,6 +228,12 @@ function get_pagednum()
   return (get_query_var('paged') ? get_query_var('paged') : 1);
 }
 
+function is_paged_or_first()
+{
+  global $wp_query;
+  return ($wp_query->max_num_pages !== 0) || (is_paged());
+}
+
 function get_pagination($before = ' ( ', $separator = ' / ', $after = ' ) ')
 {
   global $wp_query;
@@ -246,15 +272,24 @@ function nav_bar_title()
     $title      = '';
     $pagination = '';
   }
-  else if (is_page())
+  else if (is_page() && !is_paged_404())
   {
-    $prefix     = '<span class="go-back-to"><b>Go Back: </b><span class="go-back-title"></span></span>';
-    $title      = '';
-    $pagination = '';
+    if (is_paged_or_first())
+    {
+      $prefix = "<b>$title </b>";
+      $title  = '';
+    }
+    else
+    {
+      $prefix     = '<span class="go-back-to"><b>Go Back: </b><span class="go-back-title"></span></span>';
+      $title      = '';
+      $pagination = '';
+    }
   }
-  else if (is_404())
+  else if (is_404() || is_paged_404())
   {
     $prefix     = '<b>Error / 404: </b>';
+    $title      =  is_paged_404() ? 'Page not found' : $title;
     $pagination = '';
   }
   else if (is_search())
@@ -271,7 +306,7 @@ function nav_bar_title()
   echo '<div class="nav-bar-title">' . $prefix . $title . $pagination . '</div>';
 }
 
-function content_nav_title()
+function content_pagination()
 {
   $prefix = is_shuffle() ? '<b>Shuffle: </b>' : '<b>Channel: </b>';
   $title  = esc_html(get_title());
@@ -284,6 +319,11 @@ function content_nav_title()
   else if (is_tag())
   {
     $prefix = '<b>Artist: </b>';
+  }
+  else if (is_page() && is_paged_or_first())
+  {
+    $prefix = $title;
+    $title  = '';
   }
   
   $title_pagination = get_the_posts_pagination(array(
@@ -311,7 +351,7 @@ function meta_controls()
 {
   ?>
   <div class="entry-meta-controls">
-  <div class="track-share-control"><span class="material-icons" title="Share track / Play On" data-entry-track-title="<?php echo esc_html(get_the_title()); ?>" data-entry-track-url="<?php echo esc_url(get_permalink()); ?>">share</span></div>
+  <div class="track-share-control"><span class="material-icons" title="Share track / Play On" data-artist-track-title="<?php echo esc_html(get_the_title()); ?>" data-track-url="<?php echo esc_url(get_permalink()); ?>">share</span></div>
   <?php
   
   if (!is_404() && !is_singular() && ('post' === get_post_type()))
@@ -320,7 +360,12 @@ function meta_controls()
 
     if (isset($wp_query) && ($wp_query->found_posts > 1))
     {
-      ?><div class="crossfade-control state-disabled"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/inc/img/crossfade_icon.png" alt="" title="Crossfade to this track"></div><?php
+      ?>
+      <div class="crossfade-controls">
+        <div class="preset-control state-disabled"></div>
+        <div class="fadeto-control state-disabled"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/inc/img/crossfade_icon.png" alt="" title="Crossfade to this track"></div>
+      </div>
+      <?php
     }
   }
 
@@ -397,7 +442,8 @@ function content_widgets()
       }
       ?>
     </aside><!-- .widget-area -->
-  <?php }
+    <?php
+  }
 }
 
 function perf_results()
