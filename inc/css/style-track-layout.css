@@ -26,27 +26,27 @@
   padding-right: 0;
 }
 
-.track-layout-2-column #track-layout,
-.track-layout-3-column #track-layout {
+.track-layout-2-column track-layout,
+.track-layout-3-column track-layout {
   display: inline-grid;
   width: 100%;
   box-sizing: border-box;  
 }
 
-.track-layout-2-column #track-layout {
+.track-layout-2-column track-layout {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-row-gap: 40px;
   grid-column-gap: 80px;
 }
 
-.track-layout-3-column #track-layout {
+.track-layout-3-column track-layout {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-row-gap: 30px;
   grid-column-gap: 60px;
 }
 
-.track-layout-2-column article,
-.track-layout-3-column article {
+.track-layout-2-column single-track,
+.track-layout-3-column single-track {
   margin-top: 0;
 }
 
@@ -177,8 +177,8 @@
     max-width: 100%;
   }
 
-  .track-layout-2-column #track-layout,
-  .track-layout-3-column #track-layout,
+  .track-layout-2-column track-layout,
+  .track-layout-3-column track-layout,
   .track-layout-2-column h1.content-header,
   .track-layout-3-column h1.content-header,  
   .track-layout-2-column nav.navigation,
@@ -193,7 +193,7 @@
 
 @media screen and (min-width: 2100px) {
 
-  .track-layout-3-column #track-layout {
+  .track-layout-3-column track-layout {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
@@ -201,7 +201,7 @@
 
 @media screen and (max-width: 1600px) {
 
-  .track-layout-3-column #track-layout {
+  .track-layout-3-column track-layout {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

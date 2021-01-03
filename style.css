@@ -4,7 +4,7 @@ Theme URI:    https://github.com/ultrafunk/ultrafunk.com
 Author:       Ultrafunk
 Author URI:   https://ultrafunk.com
 Description:  ultrafunk.com WordPress theme
-Version:      1.16.0
+Version:      1.17.0
 Tested up to: 5.5
 Requires PHP: 7.4
 License:      Apache License 2.0
@@ -171,10 +171,6 @@ body {
 
 body.blurred {
   background: var(--body-background-blurred);
-}
-
-.skip-link.screen-reader-text {
-  display: none;
 }
 
 
@@ -543,6 +539,10 @@ body.no-playback #site-content {
   margin-top: calc(var(--site-content-margin-top) + var(--site-header-full-no-playback));
 }
 
+track-layout {
+  display: block;
+}
+
 nav.navigation.pagination {
   margin: 140px auto 155px auto;
 }
@@ -635,7 +635,7 @@ nav .nav-links ul {
 
 .site-footer-container {
   max-width: var(--site-max-width);
-  padding: 225px 0;
+  padding: 200px 0;
   margin: 0 auto;
   overflow: hidden;
   display: flex;
@@ -677,11 +677,12 @@ nav .nav-links ul {
   text-decoration: underline;
 }
 
+#site-footer .footer-site-block,
 #site-footer .footer-settings-block {
   margin-top: 30px;
 }
 
-.page-template-page-settings #site-footer .footer-settings-block {
+body.page-settings #site-footer .footer-settings-block {
   display: none;
 }
 
@@ -785,11 +786,17 @@ h1.content-header {
   padding-bottom: 45px;
 }
 
-article {
+single-track {
+  display: block;
+}
+
+article,
+single-track {
   margin-top: 100px;
 }
 
-article:first-of-type {
+article:first-child,
+single-track:first-child {
   margin-top: 0;
 }
 
@@ -943,7 +950,7 @@ body.autoplay-on .entry-meta-controls .track-share-control {
   display: none;
 }
 
-body.autoplay-off .crossfade-controls {
+body.autoplay-off.multiple-tracks .crossfade-controls {
   display: contents;
 }
 
@@ -1022,19 +1029,11 @@ body.autoplay-off .crossfade-controls {
 
 .entry-content p {
   margin-bottom: 35px;
-  /*
-  font-size: 26px;
-  line-height: 37px;
-  */
 }
 
 .entry-content ul {
   padding: 0;
   margin: 0 0 0 25px;
-  /*
-  font-size: 26px;
-  line-height: 37px;
-  */
 }
 
 .entry-content a.show-more {
@@ -1311,7 +1310,8 @@ body.no-playback #site-header.sticky-nav-down {
     max-width: calc(var(--site-max-width) + 150px);
   }
 
-  article {
+  article,
+  single-track {
     margin-top: var(--site-content-margin-top);
   }
     
@@ -1511,7 +1511,7 @@ body.no-playback #site-header.sticky-nav-down {
     float: none;
   }
   .site-info-1 {
-    margin-bottom: 150px;
+    margin-bottom: 175px;
     text-align: center;
   }
 

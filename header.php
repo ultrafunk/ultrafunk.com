@@ -22,9 +22,8 @@ use \Ultrafunk\ThemeTags as ultrafunk;
   ?>
 </head>
 
-<body <?php body_class(); ?>>
+<body <?php ultrafunk\body_attributes(); ?>>
 <?php wp_body_open(); ?>
-<a class="skip-link screen-reader-text" href="#site-content"><?php esc_html_e('Skip to content', 'ultrafunk'); ?></a>
 <header id="site-header" class="hide-nav-menu">
   <?php ultrafunk\header_progress_controls(); ?>
   <div class="site-header-container">
@@ -42,9 +41,9 @@ use \Ultrafunk\ThemeTags as ultrafunk;
           <?php wp_nav_menu(array('theme_location' => 'primary-menu')); ?>
         </div>
       </div>
-    </nav><!-- #site-navigation -->
-  </div><!-- .site-header-container -->
-</header><!-- #site-header -->
+    </nav>
+  </div>
+</header>
 
 <?php ultrafunk\intro_banner(); ?>
 

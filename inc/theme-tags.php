@@ -76,7 +76,7 @@ function pre_wp_head()
 
   global $ultrafunk_is_prod_build, $ultrafunk_js_preload_chunk;
 
-  if (!empty($ultrafunk_js_preload_chunk) && (true === $ultrafunk_is_prod_build))
+  if (!empty($ultrafunk_js_preload_chunk) && $ultrafunk_is_prod_build)
     echo '<link rel="preload" href="' . esc_url(get_template_directory_uri()) . $ultrafunk_js_preload_chunk . '" as="script" crossorigin>' . PHP_EOL;
 }
 
@@ -86,7 +86,7 @@ function head()
 
   if (is_front_page() && !is_paged() && !is_shuffle())
     echo $meta_description;
-  else if (get_dev_prod_const('page_about_id') === get_the_ID())
+  else if (get_the_ID() === get_dev_prod_const('page_about_id'))
     echo $meta_description;
 
   ?>
@@ -119,6 +119,35 @@ function head()
     </script>
     <?php
   }
+}
+
+function body_attributes()
+{
+  global $wp_query;
+  $track_count = 0;
+  
+  // 404 never has any posts / tracks
+  if (isset($wp_query) && $wp_query->have_posts() && !is_404())
+  {
+    foreach ($wp_query->posts as $post)
+    {
+      if ($post->post_type === 'post')
+        $track_count++;
+    }
+  }
+
+  if (is_page())
+    $classes[] = 'page-' . $wp_query->query_vars['pagename'];
+
+  if ($track_count === 0)
+    $classes[] = 'no-playback';
+  else if ($track_count === 1)
+    $classes[] = 'single-track';
+  else if ($track_count > 1)
+    $classes[] = 'multiple-tracks';
+
+  body_class($classes);
+  echo " data-track-count=\"$track_count\"";
 }
 
 function header_progress_controls()
@@ -351,25 +380,13 @@ function meta_controls()
 {
   ?>
   <div class="entry-meta-controls">
-  <div class="track-share-control"><span class="material-icons" title="Share track / Play On" data-artist-track-title="<?php echo esc_html(get_the_title()); ?>" data-track-url="<?php echo esc_url(get_permalink()); ?>">share</span></div>
+    <div class="track-share-control"><span class="material-icons" title="Share track / Play On" data-artist-track-title="<?php echo esc_html(get_the_title()); ?>" data-track-url="<?php echo esc_url(get_permalink()); ?>">share</span></div>
+    <div class="crossfade-controls">
+      <div class="preset-control state-disabled"></div>
+      <div class="fadeto-control state-disabled"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/inc/img/crossfade_icon.png" alt="" title="Crossfade to this track"></div>
+    </div>
+  </div>
   <?php
-  
-  if (!is_404() && !is_singular() && ('post' === get_post_type()))
-  {
-    global $wp_query;
-
-    if (isset($wp_query) && ($wp_query->found_posts > 1))
-    {
-      ?>
-      <div class="crossfade-controls">
-        <div class="preset-control state-disabled"></div>
-        <div class="fadeto-control state-disabled"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/inc/img/crossfade_icon.png" alt="" title="Crossfade to this track"></div>
-      </div>
-      <?php
-    }
-  }
-
-  ?></div><?php
 }
 
 function content_excerpt()
@@ -383,33 +400,33 @@ function content_excerpt()
 
 function intro_banner()
 {
-  $property = '';
-  $content  = '';
-  $display  = false;
+  $property    = '';
+  $content     = '';
+  $show_banner = false;
 
   if (is_front_page() && !is_paged() && !is_shuffle())
   {
-    $property = 'showFrontpageIntro';
-    $post     = get_post(get_dev_prod_const('block_frontpage_intro_id'));
-    $content  = apply_filters('the_content', wp_kses_post($post->post_content));
-    $display  = true;
+    $property    = 'showFrontpageIntro';
+    $post        = get_post(get_dev_prod_const('block_frontpage_intro_id'));
+    $content     = apply_filters('the_content', wp_kses_post($post->post_content));
+    $show_banner = true;
   }
   else if (is_category('premium') && have_posts() && !is_paged())
   {
-    $property = 'showPremiumIntro';
-    $post     = get_post(get_dev_prod_const('block_premium_intro_id'));
-    $content  = apply_filters('the_content', wp_kses_post($post->post_content));
-    $display  = true;
+    $property    = 'showPremiumIntro';
+    $post        = get_post(get_dev_prod_const('block_premium_intro_id'));
+    $content     = apply_filters('the_content', wp_kses_post($post->post_content));
+    $show_banner = true;
   }
   else if (is_category('promo') && have_posts() && !is_paged())
   {
-    $property = 'showPromoIntro';
-    $post     = get_post(get_dev_prod_const('block_promo_intro_id'));
-    $content  = apply_filters('the_content', wp_kses_post($post->post_content));
-    $display  = true;
+    $property    = 'showPromoIntro';
+    $post        = get_post(get_dev_prod_const('block_promo_intro_id'));
+    $content     = apply_filters('the_content', wp_kses_post($post->post_content));
+    $show_banner = true;
   }
 
-  if (true === $display)
+  if ($show_banner)
   {
     ?>
     <script>var bannerProperty = '<?php echo $property; ?>';</script>
@@ -451,9 +468,9 @@ function perf_results()
   global $ultrafunk_is_prod_build;
   $perf_data = get_perf_data();
 
-  if (true === $perf_data['display_perf_results'])
+  if ($perf_data['display_perf_results'])
   {
-    $results = ((true === $ultrafunk_is_prod_build) ? 'PROD - ' : 'DEV - ') . get_num_queries() . ' queries in ' . timer_stop(0) . ' seconds';
+    $results = ($ultrafunk_is_prod_build ? 'PROD - ' : 'DEV - ') . get_num_queries() . ' queries in ' . timer_stop(0) . ' seconds';
 
     if (is_shuffle())
       $results .= ' - cRndTrans: ' . $perf_data['create_rnd_transient'] . ' ms - gRndTrans: ' . $perf_data['get_rnd_transient'] . ' ms';

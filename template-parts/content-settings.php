@@ -14,7 +14,7 @@ $template_uri = esc_url(get_template_directory_uri());
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
   <header class="entry-header">
     <?php \Ultrafunk\ThemeTags\entry_title(); ?>
-  </header><!-- .entry-header -->
+  </header>
   <div class="entry-content">
     <?php the_content(); ?>
     <div id="settings-container"></div>
@@ -22,5 +22,5 @@ $template_uri = esc_url(get_template_directory_uri());
       <div class="settings-save">Save Settings</div>
       <div class="settings-reset">Reset Settings</div>
     </div>
-  </div><!-- .entry-content -->
+  </div>
 </article>

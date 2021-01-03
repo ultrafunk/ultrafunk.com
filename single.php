@@ -11,7 +11,7 @@ if (have_posts())
   while (have_posts())
   {
     the_post();
-    get_template_part('template-parts/content', 'post');
+    get_template_part('template-parts/content', 'track');
     the_post_navigation(array(
       'prev_text' => '<b>&#10094;&#10094; Previous track</b><br>%title',
       'next_text' => '<b>Next track &#10095;&#10095;</b><br>%title',

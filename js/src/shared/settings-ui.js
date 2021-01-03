@@ -5,16 +5,16 @@
 //
 
 
-import * as debugLogger from './debuglogger.js?ver=1.16.0';
-import * as settings    from './settings.js?ver=1.16.0';
-import { showSnackbar } from './snackbar.js?ver=1.16.0';
+import * as debugLogger from './debuglogger.js?ver=1.17.0';
+import * as settings    from './settings.js?ver=1.17.0';
+import { showSnackbar } from './snackbar.js?ver=1.17.0';
 
 import {
   KEY,
   deleteCookie,
   readJson,
   writeJson,
-} from '../shared/storage.js?ver=1.16.0';
+} from '../shared/storage.js?ver=1.17.0';
 
 
 /*************************************************************************************************/
@@ -179,9 +179,7 @@ function insertSettingsHtml()
   html += `\n</tbody>\n</table>\n<h3>Site</h3>\n<table id="site-settings">\n<tbody>`;
   Object.entries(settings.siteSchema.user).forEach(entry => html += addTableRow(mConfig.siteIdPrefix, entry));
 
-  html += `\n</tbody>\n</table>\n`;
-
-  mElements.settingsContainer.insertAdjacentHTML('afterbegin', html);
+  mElements.settingsContainer.insertAdjacentHTML('afterbegin', html + '\n</tbody>\n</table>\n');
 
   document.getElementById('playback-settings').addEventListener('click', playbackSettingsClick);
   document.getElementById('site-settings').addEventListener('click', siteSettingsClick);

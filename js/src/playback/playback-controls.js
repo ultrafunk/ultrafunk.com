@@ -122,12 +122,12 @@ function init(playbackSettings, mediaPlayers, seekClickCallback, crossfadeClickC
 
   if ((controls.crossfadePreset.elements.length > 1) && (controls.crossfadeTo.elements.length > 1))
   {
-    controls.crossfadeTo.click = crossfadeClickCallback;
     controls.crossfadePreset.elements.forEach((element) => setCrossfadePreset(element, settings.trackCrossfadeDefPreset));
+    controls.crossfadeTo.click = crossfadeClickCallback;
   }
 }
 
-function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks)
+function ready(prevClick, playPauseClick, nextClick, muteClick)
 {
   debug.log('ready()');
 
@@ -151,7 +151,7 @@ function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks)
   setState(controls.playPause, STATE.PLAY);
   controls.playPause.element.addEventListener('click', playPauseClick);
 
-  setState(controls.nextTrack, ((numTracks > 1) ? STATE.ENABLED : STATE.DISABLED));
+  setState(controls.nextTrack, ((players.getNumTracks() > 1) ? STATE.ENABLED : STATE.DISABLED));
   controls.nextTrack.element.addEventListener('click', nextClick);
 
   setState(controls.shuffle, STATE.ENABLED);
@@ -160,7 +160,7 @@ function ready(prevClick, playPauseClick, nextClick, muteClick, numTracks)
   controls.mute.element.addEventListener('click', muteClick);
   updateMuteState();
 
-  if ((controls.crossfadePreset.elements.length > 1) && (controls.crossfadeTo.elements.length > 1))
+  if (players.getNumTracks() > 1)
   {
     controls.crossfadePreset.elements.forEach(element =>
     {
@@ -359,6 +359,11 @@ function updateMuteState()
   controls.mute.iconElement.textContent = settings.masterMute ? 'volume_off' : 'volume_up';
 }
 
+
+// ************************************************************************************************
+// Crossfade controls (preset and fadeTo)
+// ************************************************************************************************
+
 function setCrossfadePreset(element, presetIndex)
 {
   element.setAttribute(mConfig.crossfadePresetData, presetIndex);
@@ -377,7 +382,7 @@ function crossfadeToClick(event)
 {
   if (isPlaying() && (players.crossfade.isFading() === false))
   {
-    const element = event.target.closest('article.post');
+    const element = event.target.closest('single-track');
 
     if (element !== null)
     {

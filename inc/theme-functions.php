@@ -54,10 +54,10 @@ function get_prev_next_urls()
     $prevLink = get_previous_posts_link('');
     $nextLink = get_next_posts_link('');
     
-    if (null !== $prevLink)
+    if ($prevLink !== null)
       $prevUrl = new SimpleXMLElement($prevLink);
     
-    if (null !== $nextLink)
+    if ($nextLink !== null)
       $nextUrl = new SimpleXMLElement($nextLink);
     
     return array(
@@ -150,12 +150,12 @@ function get_title()
 
   if (!is_404() && is_shuffle())
   {
-    $title = 'All';
+    $title = 'All Tracks';
 
-    if ('artist' === get_shuffle_params()['type'])
+    if (get_shuffle_params()['type'] === 'artist')
       $title = get_term_field_by_slug(get_shuffle_params()['slug'], 'post_tag', 'name');
 
-    if ('channel' === get_shuffle_params()['type'])
+    if (get_shuffle_params()['type'] === 'channel')
       $title = get_term_field_by_slug(get_shuffle_params()['slug'], 'category', 'name');
   }
   else
@@ -164,7 +164,7 @@ function get_title()
     $title = trim(wp_title('', false));
 
     if (empty($title))
-      $title = 'All';
+      $title = 'All Tracks';
   }
 
   set_cached_title($title);
@@ -189,34 +189,6 @@ function customize_title($title)
 add_filter('document_title_parts', '\Ultrafunk\ThemeFunctions\customize_title');
 
 //
-// Add CSS class to <body> if no posts are displayed
-//
-function add_body_class($classes)
-{
-  global $wp_query;
-  $has_posts = false;
-  
-  // 404 never has any playback-controls
-  if (isset($wp_query) && $wp_query->have_posts() && !is_404())
-  {
-    foreach ($wp_query->posts as $post)
-    {
-      if ('post' === $post->post_type)
-      {
-        $has_posts = true;
-        break;
-      }
-    }
-  }
-  
-  if (false === $has_posts)
-    $classes[] = 'no-playback';
-  
-  return $classes;
-}
-add_filter('body_class', '\Ultrafunk\ThemeFunctions\add_body_class');
-
-//
 // Use webfonts loader for async CSS
 //
 function webfonts_script()
@@ -238,13 +210,13 @@ add_action('wp_body_open', '\Ultrafunk\ThemeFunctions\webfonts_script');
 //
 function embed_iframe_setparams($cached_html)
 {
-  if (false !== stripos($cached_html, 'youtube.com/'))
+  if (stripos($cached_html, 'youtube.com/') !== false)
   {
     $cached_html = str_ireplace('<iframe', sprintf('<iframe id="youtube-uid-%s" loading="eager"', uniqid()), $cached_html);
   //$cached_html = str_ireplace('www.youtube.com', 'www.youtube-nocookie.com', $cached_html);
     $cached_html = str_ireplace('?feature=oembed', sprintf('?feature=oembed&enablejsapi=1&origin=%s', get_dev_prod_const('iframe_origin')), $cached_html);
   }
-  else if (false !== stripos($cached_html, 'soundcloud.com/'))
+  else if (stripos($cached_html, 'soundcloud.com/') !== false)
   {
     $cached_html = str_ireplace('<iframe', sprintf('<iframe id="soundcloud-uid-%s" allow="autoplay" loading="eager"', uniqid()), $cached_html);
     $cached_html = str_ireplace('?visual=true', '?visual=true&single_active=false', $cached_html);
@@ -259,7 +231,7 @@ add_filter('embed_oembed_html', '\Ultrafunk\ThemeFunctions\embed_iframe_setparam
 //
 function style_search_form($form)
 {
-  if (false !== stripos($form, '<input type="search"'))
+  if (stripos($form, '<input type="search"') !== false)
     $form = str_ireplace('<input type="search"', '<input type="search" required', $form);
   
   return $form;
@@ -283,10 +255,10 @@ function get_shuffle_menu_item_url()
 
     if (isset($queried_object) && isset($queried_object->taxonomy) && isset($queried_object->slug))
     {
-      if ('category' === $queried_object->taxonomy)
+      if ($queried_object->taxonomy === 'category')
         $request_url = '/shuffle/channel/' . $queried_object->slug . '/';
   
-      if ('post_tag' === $queried_object->taxonomy)
+      if ($queried_object->taxonomy === 'post_tag')
         $request_url = '/shuffle/artist/' . $queried_object->slug . '/';
     }
   }
@@ -306,7 +278,7 @@ function get_shuffle_menu_item_title()
   else
     $title = single_term_title('Shuffle: ', false);
 
-  return (!empty($title) ? $title : 'Shuffle: All');
+  return (!empty($title) ? $title : 'Shuffle: All Tracks');
 }
 
 //
@@ -317,13 +289,13 @@ function setup_nav_menu_item($menu_item)
   if (is_admin())
     return $menu_item;
 
-  if (is_front_page() && !is_shuffle() && (get_dev_prod_const('menu_item_all_id') === $menu_item->ID))
+  if (is_front_page() && !is_shuffle() && ($menu_item->ID === get_dev_prod_const('menu_item_all_id')))
     $menu_item->classes[] = 'current-menu-item';
   
-  if (!is_404() && is_shuffle() && (get_dev_prod_const('menu_item_shuffle_id') === $menu_item->ID))
+  if (!is_404() && is_shuffle() && ($menu_item->ID) === get_dev_prod_const('menu_item_shuffle_id'))
     $menu_item->classes[] = 'current-menu-item';
 
-  if (get_dev_prod_const('menu_item_shuffle_id') === $menu_item->ID)
+  if ($menu_item->ID === get_dev_prod_const('menu_item_shuffle_id'))
   {
     $menu_item->url        = esc_url(get_shuffle_menu_item_url());
     $menu_item->attr_title = esc_attr(get_shuffle_menu_item_title());

@@ -141,14 +141,46 @@
   border-top: var(--border-top-even-row);
   border-bottom-left-radius: var(--button-border-radius);
   border-bottom-right-radius: var(--button-border-radius);
-  padding: 12px 15px 13px 15px;
+  padding: 20px 30px 22px 30px;
   font-size: 20px;
   line-height: 30px;
+  overflow: hidden;
+  justify-content: space-between;
 }
 
 .termlist-body.odd {
   background-color: var(--list-row-odd-color);
   border-top: var(--border-top-odd-row);
+}
+
+.body-left {
+  margin-right: 30px;
+}
+
+.body-left a,
+.body-right a {
+  text-decoration: none;
+}
+
+.body-left a:hover,
+.body-right a:hover {
+  text-decoration: underline;
+}
+
+.termlist-body .body-left ul {
+  padding: 0;
+  margin: 0 0 0 22px;
+}
+
+.body-right {
+  text-align: right;
+  max-width: 35%;
+  min-width: 20%;
+}
+
+.body-right .artists,
+.body-right .channels {
+  margin-top: 15px;
 }
 
 
@@ -183,10 +215,11 @@
     padding: 10px 10px 10px 10px;
   }
 
-  .termlist-body {
+  .termlist-body,
+  .termlist-body .body-left ul,
+  .termlist-body .body-right {
     font-size: unset;
     line-height: unset;
-    padding: 10px 15px;
   }
 
 }
@@ -196,6 +229,10 @@
   #termlist-container {
     padding-left: 50px;
     padding-right: 50px;
+  }
+
+  .termlist-body {
+    padding: 12px 15px 13px 15px;
   }
 
 }
@@ -247,7 +284,28 @@
   }
 
   .termlist-body {
-    padding: 12px 15px;
+    flex-wrap: wrap;
+  }
+
+  .body-left {
+    margin: 0;
+    margin-top: 15px;
+  }
+
+  .termlist-body .body-left ul {
+    margin-left: 18px;
+  }
+  
+  .body-left {
+    width: 100%;
+  }
+
+  .body-right {
+    text-align: left;
+    order: -1;
+    white-space: normal;
+    width: 100%;
+    max-width: 100%;
   }
 
 }

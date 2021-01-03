@@ -124,7 +124,7 @@ function mediaPlaying(playbackEvent)
 
   if (playbackEvent.data.numTracks > 1)
   {
-    const nowPlayingIcon = document.querySelector(`#${playbackEvent.data.postId} ${mConfig.nowPlayingIconsSelector}`);
+    const nowPlayingIcon = document.querySelector(`#${playbackEvent.data.trackId} ${mConfig.nowPlayingIconsSelector}`);
 
     resetNowPlayingIcons(nowPlayingIcon);
     utils.replaceClass(nowPlayingIcon, 'playing-paused', 'now-playing-icon');
@@ -144,7 +144,7 @@ function mediaPaused(playbackEvent)
   debugEvent(playbackEvent);
 
   if (playbackEvent.data.numTracks > 1)
-    document.querySelector(`#${playbackEvent.data.postId} ${mConfig.nowPlayingIconsSelector}`).classList.add('playing-paused');
+    document.querySelector(`#${playbackEvent.data.trackId} ${mConfig.nowPlayingIconsSelector}`).classList.add('playing-paused');
 
   /*
   if (settings.user.keepMobileScreenOn)
@@ -174,7 +174,7 @@ function mediaShow(playbackEvent)
   mediaEnded(null);
 
   if (playbackEvent.data.scrollToMedia)
-    scrollTo.id(playbackEvent.data.postId);
+    scrollTo.id(playbackEvent.data.trackId);
 }
 
 function continueAutoplay(playbackEvent)
@@ -220,7 +220,7 @@ function mediaUnavailable(playbackEvent)
 {
   debugEvent(playbackEvent);
 
-  if (isPremiumTrack(playbackEvent.data.postId))
+  if (isPremiumTrack(playbackEvent.data.trackId))
   {
     showSnackbar('YouTube Premium track, skipping...', 5, 'help',  () => { window.location.href = '/channel/premium/'; });
     playbackEventErrorTryNext(playbackEvent, 5);
@@ -273,9 +273,9 @@ function playbackEventErrorTryNext(playbackEvent, timeout = 5)
   }, ((timeout * 1000) + 250));
 }
 
-function isPremiumTrack(postId)
+function isPremiumTrack(trackId)
 {
-  const postWithId = document.getElementById(postId);
+  const postWithId = document.getElementById(trackId);
 
   if (postWithId !== null)
     return postWithId.classList.contains('category-premium');
@@ -313,12 +313,12 @@ const scrollTo = (() =>
     id,
   };
 
-  function id(postId)
+  function id(trackId)
   {
     if (settings.user.autoScroll)
     {
       // Actual functional 'offsetTop' calculation: https://stackoverflow.com/a/52477551
-      const offsetTop    = Math.round(window.scrollY + document.getElementById(postId).getBoundingClientRect().top);
+      const offsetTop    = Math.round(window.scrollY + document.getElementById(trackId).getBoundingClientRect().top);
       const scrollTop    = Math.round(window.pageYOffset); // Don't want float results that can cause jitter
       let   headerHeight = getScrollHeaderHeight(offsetTop > scrollTop);
 

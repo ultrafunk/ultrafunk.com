@@ -60,7 +60,7 @@ function init(playbackSettings)
 
 function hasEmbeddedPlayers()
 {
-  return (embedded.countPlayers(embeddedEventHandler) > 0);
+  return (embedded.getTrackCount(embeddedEventHandler) > 0);
 }
 
 
@@ -150,7 +150,7 @@ function toggleMute()
   
 function playTrack(playMedia, scrollToMedia = true)
 {
-  events.dispatch(events.EVENT.MEDIA_SHOW, { scrollToMedia: scrollToMedia, postId: players.current.getPostId() });
+  events.dispatch(events.EVENT.MEDIA_SHOW, { scrollToMedia: scrollToMedia, trackId: players.current.getTrackId() });
   
   if (playMedia)
     players.current.play(embedded.onPlayerError);
@@ -184,7 +184,7 @@ function getStatus()
     isPlaying:    controls.isPlaying(),
     currentTrack: players.getCurrentTrack(),
     numTracks:    players.getNumTracks(),
-    postId:       players.current.getPostId(),
+    trackId:      players.current.getTrackId(),
     iframeId:     players.current.getIframeId(),
   };
 }
@@ -209,7 +209,7 @@ function embeddedEventHandler(embeddedEvent, embeddedEventData = null)
       break;
     
     case events.EVENT.READY:
-      controls.ready(prevClick, togglePlayPause, nextClick, toggleMute, players.getNumTracks());
+      controls.ready(prevClick, togglePlayPause, nextClick, toggleMute);
       events.dispatch(events.EVENT.READY);
       events.dispatch(events.EVENT.RESUME_AUTOPLAY, null, { 'resumeAutoplay': resumeAutoplay });
       break;

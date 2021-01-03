@@ -74,31 +74,31 @@ class Request
   
     if (($url_parts_count >= 2) && ($url_parts_count < 6))
     {
-      if ('shuffle' === $this->url_parts[0])
+      if ($this->url_parts[0] === 'shuffle')
       {
-        if ('all' === $this->url_parts[1])
+        if ($this->url_parts[1] === 'all')
         {
-          if (2 === $url_parts_count)
+          if ($url_parts_count === 2)
           {
             $this->shuffle_all = true;
             return true;
           }
   
-          if ((4 === $url_parts_count) && ('page' === $this->url_parts[2]))
+          if (($url_parts_count === 4) && ($this->url_parts[2] === 'page'))
           {
             $this->shuffle_all_page = true;
             return true;
           }
         }
-        else if (('artist' === $this->url_parts[1]) || ('channel' === $this->url_parts[1]))
+        else if (($this->url_parts[1] === 'artist') || ($this->url_parts[1] === 'channel'))
         {
-          if (3 === $url_parts_count)
+          if ($url_parts_count === 3)
           {
             $this->shuffle_slug = true;
             return true;
           }
   
-          if ((5 === $url_parts_count) && ('page' === $this->url_parts[3]))
+          if (($url_parts_count === 5) && ($this->url_parts[3] === 'page'))
           {
             $this->shuffle_slug_page = true;
             return true;
@@ -114,14 +114,14 @@ class Request
   {
     // Is /shuffle/artist/artist-slug/
     // Is /shuffle/channel/channel-slug/
-    if (true === $this->shuffle_slug)
+    if ($this->shuffle_slug)
     {
       $this->params['slug'] = sanitize_title($this->url_parts[2]); // sanitize_title_for_query() or esc_attr()?
       return;
     }
   
     // Is /shuffle/all/page/x number
-    if (true === $this->shuffle_all_page)
+    if ($this->shuffle_all_page)
     {
       $value = intval($this->url_parts[3]);
       $this->params['page_num'] = ($value < 0) ? 0 : $value;
@@ -130,7 +130,7 @@ class Request
   
     // Is /shuffle/artist/artist-slug/page/x number
     // Is /shuffle/channel/channel-slug/page/x number
-    if (true === $this->shuffle_slug_page)
+    if ($this->shuffle_slug_page)
     {
       $value = intval($this->url_parts[4]);
       $this->params['page_num'] = ($value < 0) ? 0 : $value;
@@ -143,7 +143,7 @@ class Request
   {
     $this->params['type'] = $this->url_parts[1];
 
-    if ((true === $this->shuffle_slug) || (true === $this->shuffle_slug_page))
+    if ($this->shuffle_slug || $this->shuffle_slug_page)
       $this->params['path'] = ($this->params['type'] . '/' . $this->params['slug']);
 
     $shuffle_params               = &get_shuffle_params();
@@ -155,7 +155,7 @@ class Request
 
   public function is_valid()
   {
-    if (true === $this->is_shuffle)
+    if ($this->is_shuffle)
     {
       $this->sanitize_url_parts();
       $this->set_shuffle_params();
@@ -208,7 +208,7 @@ function get_term_field_by_slug($slug, $taxonomy, $field)
 {
   $term = get_term_by('slug', $slug, $taxonomy);
 
-  if (false !== $term)
+  if ($term !== false)
     return $term->$field;
 
   return null;
@@ -224,12 +224,12 @@ function get_posts_args($request)
     'posts_per_page' => -1,
   );
   
-  if (true === $request->shuffle_slug)
+  if ($request->shuffle_slug)
   {
-    if ('artist' === $request->params['type'])
+    if ($request->params['type'] === 'artist')
       $args['tag_id'] = get_term_field_by_slug($request->params['slug'], 'post_tag', 'term_id');
 
-    if ('channel' === $request->params['type'])
+    if ($request->params['type'] === 'channel')
       $args['cat'] = get_term_field_by_slug($request->params['slug'], 'category', 'term_id');
 
     if (!isset($args['tag_id']) && !isset($args['cat']))
@@ -246,12 +246,12 @@ function create_shuffle_transient($request)
 {
   $args = get_posts_args($request);
 
-  if (null !== $args)
+  if ($args !== null)
   {
     $posts_array['shuffle'] = $request->params['path'];
     $posts_array['postIds'] = get_posts($args);
 
-    if (true === shuffle($posts_array['postIds']))
+    if (shuffle($posts_array['postIds']) === true)
     {
       $transient_name = get_transient_name();
       
@@ -264,7 +264,7 @@ function create_shuffle_transient($request)
   
       delete_transient($transient_name);
       
-      if (true === set_transient($transient_name, $posts_array, DAY_IN_SECONDS))
+      if (set_transient($transient_name, $posts_array, DAY_IN_SECONDS) === true)
         return $posts_array;
     }  
   }
@@ -279,10 +279,10 @@ function get_shuffle_page_num($request, $max_page_num)
 {
   $page_num = 0;
   
-  if ((true === $request->shuffle_all) || (true === $request->shuffle_slug))
+  if ($request->shuffle_all || $request->shuffle_slug)
     return 1;
 
-  if ((true === $request->shuffle_all_page) || (true === $request->shuffle_slug_page))
+  if ($request->shuffle_all_page || $request->shuffle_slug_page)
     $page_num = $request->params['page_num'];
 
   if (($page_num >= 1) && ($page_num < $max_page_num))
@@ -296,20 +296,20 @@ function get_shuffle_page_num($request, $max_page_num)
 //
 function do_parse_request($do_parse, $wp)
 {
-  if ((false === is_admin()) && (false === wp_doing_ajax()))
+  if ((is_admin() === false) && (wp_doing_ajax() === false))
   {
     $request = new Request();
 
-    if (true === $request->is_valid())
+    if ($request->is_valid())
     {
       $paged = get_shuffle_page_num($request, 9999);
     
-      if (0 !== $paged)
+      if ($paged !== 0)
       {
         $transient = false;
         $orderby   = 'DESC';
   
-        if (1 === $paged)
+        if ($paged === 1)
         {
           perf_start();
           $transient = create_shuffle_transient($request);
@@ -320,13 +320,13 @@ function do_parse_request($do_parse, $wp)
           perf_start();
           $transient = get_transient(get_transient_name());
 
-          if ((false !== $transient) && ($request->params['path'] !== $transient['shuffle']))
+          if (($transient !== false) && ($request->params['path'] !== $transient['shuffle']))
             $transient = false;
 
           perf_stop('get_rnd_transient');
         }
   
-        if (false === $transient)
+        if ($transient === false)
           return $do_parse;
         else
           $orderby = 'post__in';

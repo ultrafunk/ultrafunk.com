@@ -14,7 +14,7 @@ import { EVENT }         from './playback-events.js';
 export {
   eventLog,
   init,
-  countPlayers,
+  getTrackCount,
   onPlayerError,
 };
 
@@ -30,9 +30,10 @@ let loadEventsCount = 1;
 let settings, players, playbackState, playbackTimer;
 
 const mConfig = {
+  trackCountData:          'data-track-count',
   youTubeIframeIdRegEx:    /youtube-uid/i,
   soundCloudIframeIdRegEx: /soundcloud-uid/i,
-  entriesSelector:         'article',
+  entriesSelector:         'single-track',
   artistTrackTitleData:    'data-artist-track-title',
   maxPlaybackStartDelay:   3, // VERY rough estimate of "max" network buffering delay in seconds (see also: maxBufferingDelay)
 };
@@ -55,22 +56,16 @@ function init(args)
 //
 // ************************************************************************************************
 
-function countPlayers(embeddedEventHandler)
+function getTrackCount(embeddedEventHandler)
 {
-  let playersCount = 0;
+  const trackCount = parseInt(document.body.getAttribute(mConfig.trackCountData));
 
-  document.querySelectorAll('iframe').forEach(element =>
-  {
-    if (mConfig.youTubeIframeIdRegEx.test(element.id) || mConfig.soundCloudIframeIdRegEx.test(element.id))
-      playersCount++;
-  });
+  debug.log(`getTrackCount(): ${trackCount}`);
 
-  debug.log(`countPlayers(): ${playersCount}`);
-
-  loadEventsTotal = playersCount + 3;     // The total number of loadEvents include 3 stages before embedded players are loaded
+  loadEventsTotal = trackCount + 3;       // The total number of loadEvents include 3 stages before embedded players are loaded
   eventHandler    = embeddedEventHandler; // This is set here to be available as early as possible since it is called before init()
 
-  return playersCount;
+  return trackCount;
 }
 
 function getLoadingPercent()
@@ -88,7 +83,7 @@ function updatePlayersReady()
 
 
 // ************************************************************************************************
-// Get and wrap all embedder players in MediaPlayer classes
+// Get and wrap all embedder players in MediaPlayer YouTube or SoundCloud classes
 // ************************************************************************************************
 
 function getAllPlayers()
@@ -97,7 +92,7 @@ function getAllPlayers()
 
   entries.forEach(entry => 
   {
-    const postId     = entry.id;
+    const trackId    = entry.id;
     const entryTitle = entry.getAttribute(mConfig.artistTrackTitleData);
     const iframes    = entry.querySelectorAll('iframe');
 
@@ -118,13 +113,13 @@ function getAllPlayers()
           }
         });
 
-        player = new mediaPlayers.YouTube(postId, iframeId, embeddedPlayer, iframe.src);
+        player = new mediaPlayers.YouTube(trackId, iframeId, embeddedPlayer, iframe.src);
       }
       else if (mConfig.soundCloudIframeIdRegEx.test(iframeId))
       {
         /* eslint-disable */
         const embeddedPlayer = SC.Widget(iframeId);
-        player = new mediaPlayers.SoundCloud(postId, iframeId, embeddedPlayer, iframe.src);
+        player = new mediaPlayers.SoundCloud(trackId, iframeId, embeddedPlayer, iframe.src);
 
         // Preload thumbnail image as early as possible
         embeddedPlayer.bind(SC.Widget.Events.READY, () =>
@@ -174,7 +169,7 @@ function getPlayerErrorData(player, mediaUrl)
   return {
     currentTrack: players.trackFromUid(player.getUid()),
     numTracks:    players.getNumTracks(),
-    postId:       player.getPostId(),
+    trackId:      player.getTrackId(),
     mediaTitle:   `${artist} - ${title}`,
     mediaUrl:     mediaUrl,
   };

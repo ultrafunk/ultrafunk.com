@@ -96,7 +96,7 @@ function ultrafunk_scripts()
   wp_enqueue_style('google-fonts-material-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons&display=block', array(), null);
   wp_enqueue_script('soundcloud-api-script', 'https://w.soundcloud.com/player/api.js', array(), null);
 
-  if (true === $ultrafunk_is_prod_build)
+  if ($ultrafunk_is_prod_build)
   {
     wp_enqueue_script('interaction-script', get_theme_file_uri('/js/dist/playback/interaction.js'), array(), $version);
     wp_enqueue_script('ultrafunk-script', get_theme_file_uri('/js/dist/index.js'), array(), $version);
@@ -122,9 +122,9 @@ add_action('wp_enqueue_scripts', 'ultrafunk_scripts');
 // Customize enqueued script tags when needeed
 function ultrafunk_modify_script_tag($tag, $handle, $source)
 {
-  if ('soundcloud-api-script' === $handle)
+  if ($handle === 'soundcloud-api-script')
     $tag = str_ireplace('<script ', '<script defer ', $tag);
-  else if (('interaction-script' === $handle) || ('ultrafunk-script' === $handle))
+  else if (($handle === 'interaction-script') || ($handle === 'ultrafunk-script'))
     $tag = str_ireplace('<script ', '<script type="module" ', $tag);
 
   return $tag;

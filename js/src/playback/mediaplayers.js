@@ -32,9 +32,9 @@ const artistTitleRegEx = /\s{1,}[–·-]\s{1,}/i;
 
 class MediaPlayer
 {
-  constructor(postId, iframeId, embeddedPlayer)
+  constructor(trackId, iframeId, embeddedPlayer)
   {
-    this.postId         = postId;
+    this.trackId        = trackId;
     this.iframeId       = iframeId;
     this.embeddedPlayer = embeddedPlayer;
     this.playable       = true;
@@ -48,7 +48,7 @@ class MediaPlayer
     this.thumbnail.decoding = 'async';
   }
   
-  getPostId()           { return this.postId;                    }
+  getTrackId()          { return this.trackId;                   }
   getIframeId()         { return this.iframeId;                  }
   getUid()              { return this.iframeId;                  }
   getEmbeddedPlayer()   { return this.embeddedPlayer;            }
@@ -84,9 +84,9 @@ class MediaPlayer
 
 class YouTube extends MediaPlayer
 {
-  constructor(postId, iframeId, embeddedPlayer, iframeSrc)
+  constructor(trackId, iframeId, embeddedPlayer, iframeSrc)
   {
-    super(postId, iframeId, embeddedPlayer);
+    super(trackId, iframeId, embeddedPlayer);
     this.previousPlayerState = -1;
     this.setThumbnail(iframeSrc);
   }
@@ -165,9 +165,9 @@ class YouTube extends MediaPlayer
 
 class SoundCloud extends MediaPlayer
 {
-  constructor(postId, iframeId, embeddedPlayer, iframeSrc)
+  constructor(trackId, iframeId, embeddedPlayer, iframeSrc)
   {
-    super(postId, iframeId, embeddedPlayer);
+    super(trackId, iframeId, embeddedPlayer);
     this.soundId = this.getSoundId(iframeSrc);
     this.volume  = crossfadeModule.VOLUME.MAX;
     this.muted   = false;

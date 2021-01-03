@@ -48,7 +48,10 @@ document.addEventListener('DOMContentLoaded', () =>
   if (mElements.introBanner !== null)
     showIntroBanner();
   
-  if (document.querySelector('#site-content form.search-form') !== null)
+  if (document.getElementById('termlist-container') !== null)
+    termlist.init();
+
+  if (mElements.siteContentSearch !== null)
   {
     mElements.siteContentSearch.focus();
     mElements.siteContentSearch.setSelectionRange(9999, 9999);
@@ -56,9 +59,6 @@ document.addEventListener('DOMContentLoaded', () =>
 
   resize.setTopMargin();
   resize.setLastInnerWidth(window.innerWidth);
-  
-  if (document.getElementById('termlist-container') !== null)
-    termlist.init();
 
   setPreviousPageTitle();
 });
@@ -143,7 +143,7 @@ document.addEventListener('keydown', (event) =>
       case 'L':
         if (searchNotFocused() && notSettingsPage())
         {
-          interaction.trackLayout.toggle(event, false);
+          interaction.trackLayout.toggle(event);
           resize.setTopMargin();
         }
         break;
@@ -190,7 +190,7 @@ function searchNotFocused()
 
 function notSettingsPage()
 {
-  return (document.body.classList.contains('page-template-page-settings') === false);
+  return (document.body.classList.contains('page-settings') === false);
 }
 
 function notFullscreenTrack()

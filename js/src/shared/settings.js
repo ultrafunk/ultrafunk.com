@@ -51,7 +51,7 @@ const playbackSchema = {
     autoExitFullscreen:      { description: 'Exit Fullscreen on next track',      type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
     animateNowPlayingIcon:   { description: 'Animate Playing Track Icon',         type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
     autoResumePlayback:      { description: 'Auto Resume Playback on focus',      type: BOOLEAN, values: [true, false],           default: false, valueStrings: ['ON', 'OFF'] },
-    trackCrossfadeDefPreset: { description: 'Track Crossfade Default Preset',     type: INTEGER, values: [0, 1, 2, 3, 4, 5],      default: 1,     valueStrings: ['10 sec EqPow', '20 sec EqPow', '30 sec EqPow', '10 sec Linear', '20 sec Linear', '30 sec Linear'] },
+    trackCrossfadeDefPreset: { description: 'Track Crossfade Def. Preset',        type: INTEGER, values: [0, 1, 2, 3, 4, 5],      default: 1,     valueStrings: ['10 sec EqPow (1)', '20 sec EqPow (2)', '30 sec EqPow (3)', '10 sec Linear (4)', '20 sec Linear (5)', '30 sec Linear (6)'] },
     timeRemainingWarning:    { description: 'Time Remaining Warning',             type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
     timeRemainingSeconds:    { description: 'Time Remaining Warning Seconds',     type: INTEGER, values: [15, 30, 45, 60],        default: 60,    valueStrings: ['15 sec', '30 sec', '45 sec', '60 sec'] },
     autoExitFsOnWarning:     { description: 'Exit Fullscreen on Time Warning',    type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },

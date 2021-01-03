@@ -34,11 +34,13 @@ function term_list($taxonomy, $title, $term_path)
 
   if (!empty($terms))
   {
+    $term_type = ($taxonomy === 'category') ? 'categories' : 'tags';
+
     ?>
     <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
       <div class="entry-content">
-        <div id="termlist-container">
-          <?php term_list_entries($terms, $title, $term_path); ?>
+        <div id="termlist-container" data-term-type="<?php echo $term_type; ?>">
+          <?php term_list_entries($term_type, $terms, $title, $term_path); ?>
         </div>
       </div>
     </article>
@@ -52,7 +54,7 @@ function term_list($taxonomy, $title, $term_path)
   return false;
 }
 
-function term_list_entries($terms, $title, $term_path)
+function term_list_entries($term_type, $terms, $title, $term_path)
 {
   $odd_even = 0;
 
@@ -76,7 +78,16 @@ function term_list_entries($terms, $title, $term_path)
         </div>
       </div>
       <div class="termlist-body <?php echo $color_class; ?>">
-        Permalink: <a href="<?php echo "/$term_path/$term->slug/"; ?>"><?php echo $term->name?></a>
+        <div class="body-left">
+          <?php echo ($term_type === 'categories') ? '<b>10 Latest Tracks<br>' : '<b>All Tracks<br>'; ?>&#8226;&#8226;&#8226;</b>
+        </div>
+        <div class="body-right">
+          <div class="permalink"><b>Permalink</b><br><a href="<?php echo "/$term_path/$term->slug/"; ?>"><?php echo $term->name?></a></div>
+          <?php if ($term_type === 'tags') { ?>
+            <div class="artists"><b>Related Artists<br>&#8226;&#8226;&#8226;</b></div>
+            <div class="channels"><b>In Channels<br>&#8226;&#8226;&#8226;</b></div>
+          <?php } ?>
+        </div>
       </div>
     </div>
     <?php

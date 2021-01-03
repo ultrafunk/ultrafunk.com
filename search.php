@@ -1,24 +1,18 @@
 <?php
 /*
- * The main / index template file.
+ * The search template file.
  *
  */
-
-if (!defined('ABSPATH')) exit;
 
 get_header();
 
 if (have_posts())
 {
-  ?><track-layout><?php
-
   while (have_posts())
   {
     the_post();
-    get_template_part('template-parts/content', 'track');
+    get_template_part('template-parts/content', (get_post_type() === 'post') ? 'track' : 'page');
   }
-
-  ?></track-layout><?php
   
   \Ultrafunk\ThemeTags\content_pagination();
 }

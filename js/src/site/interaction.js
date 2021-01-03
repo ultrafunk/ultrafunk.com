@@ -210,13 +210,15 @@ const trackLayout = (() =>
       event.matches ? htmlClassList.remove(currentLayout.class) : htmlClassList.add(currentLayout.class);
   }
   
-  function toggle(event, scrollIntoView = false)
+  function toggle(event)
   {
     event.preventDefault();
     currentLayout = getNextSetting(layouts, currentLayout);
     settings.user.trackLayout = currentLayout.id;
     updateData();
-    if (scrollIntoView) elements.toggle.scrollIntoView();
+
+    if (event.type === 'click')
+      elements.toggle.scrollIntoView();
   }
   
   function updateData()
@@ -231,14 +233,14 @@ const trackLayout = (() =>
     if ((htmlClassList.contains('user-layout')) && (htmlClassList.contains(currentLayout.class) === false))
     {
       debug.log(`updateDOM() - newTrackLayout: ${currentLayout.id}`);
-    
+
       htmlClassList.remove(layouts.list.class, layouts.twoColumn.class, layouts.threeColumn.class);
-  
+
       if (window.matchMedia(config.minWidth).matches === false)
         htmlClassList.add(currentLayout.class);
-    
-      elements.toggle.querySelector('span').textContent = currentLayout.text;
     }
+
+    elements.toggle.querySelector('span').textContent = currentLayout.text;
   }
 })();
 

@@ -13,7 +13,7 @@ if (have_posts())
     the_post();
 
     global $post;
-    $template_name = 'post';
+    $template_name = 'page';
 
     switch($post->post_name)
     {

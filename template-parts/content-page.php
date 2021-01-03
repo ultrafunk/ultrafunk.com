@@ -10,8 +10,8 @@
   <header class="entry-header">
     <?php \Ultrafunk\ThemeTags\entry_title(); ?>
     <div class="entry-meta">
-    </div><!-- .entry-meta -->
-  </header><!-- .entry-header -->
+    </div>
+  </header>
   <div class="entry-content">
     <?php
     if (is_search())
@@ -19,6 +19,5 @@
     else
       the_content();
     ?>
-  </div><!-- .entry-content -->
-</article><!-- #post-<?php the_ID(); ?> -->
-
+  </div>
+</article>

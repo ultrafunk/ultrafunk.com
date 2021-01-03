@@ -20,7 +20,7 @@ $ultrafunk_is_prod_build = false;
 
 class Globals
 {
-  public static $version = '1.16.0';
+  public static $version = '1.17.0';
 
   public static $dev_prod_consts = array(
     'menu_item_all_id'         => WP_DEBUG ?  115 :  115,
@@ -75,10 +75,10 @@ function get_perf_data()          { return Globals::$perf_data;                 
 
 function perf_start()
 {
-  Globals::$perf_data['time_start'] = microtime(true);
+  Globals::$perf_data['time_start'] = hrtime(true);
 }
 
 function perf_stop($perfTimer)
 {
-  Globals::$perf_data[$perfTimer] = round(((microtime(true) - Globals::$perf_data['time_start']) * 1000), 2);
+  Globals::$perf_data[$perfTimer] = round(((hrtime(true) - Globals::$perf_data['time_start']) / 1e+6), 2);
 }
