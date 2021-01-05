@@ -292,7 +292,7 @@ function setup_nav_menu_item($menu_item)
   if (is_front_page() && !is_shuffle() && ($menu_item->ID === get_dev_prod_const('menu_item_all_id')))
     $menu_item->classes[] = 'current-menu-item';
   
-  if (!is_404() && is_shuffle() && ($menu_item->ID) === get_dev_prod_const('menu_item_shuffle_id'))
+  if (!is_404() && is_shuffle() && ($menu_item->ID === get_dev_prod_const('menu_item_shuffle_id')))
     $menu_item->classes[] = 'current-menu-item';
 
   if ($menu_item->ID === get_dev_prod_const('menu_item_shuffle_id'))

@@ -5,11 +5,16 @@
 //
 
 
-import * as debugLogger           from '../shared/debuglogger.js';
-import { shareModal }             from './interaction.js';
-import { KEY }                    from '../shared/storage.js';
-import { replaceClass }           from '../shared/utils.js';
-import { fetchTracks, fetchMeta } from './term-rest.js';
+import * as debugLogger   from '../shared/debuglogger.js';
+import { shareModal }     from './interaction.js';
+import { KEY }            from '../shared/storage.js';
+import { replaceClass }   from '../shared/utils.js';
+import { setArtistTitle } from '../playback/mediaplayers.js';
+
+import {
+  fetchTracks,
+  fetchMeta,
+} from './term-rest.js';
 
 
 export {
@@ -21,6 +26,7 @@ export {
 
 
 const debug = debugLogger.newInstance('termlist');
+const artistTitleRegEx = /\s{1,}[–·-]\s{1,}|\s{1,}(&#8211;)\s{1,}/i;
 
 
 // ************************************************************************************************
@@ -99,13 +105,11 @@ function fetchDataUpdateDOM(termlistEntry, termlistBody)
 
   fetchTracks(termType, termId, (isAllChannels ? 10 : 50), (termData) => 
   {
-    debug.log(termData);
-
-    let header  = isAllChannels ? '10 Latest Tracks' : 'All Tracks';
+    let header  = isAllChannels ? 'Latest Tracks' : 'All Tracks';
     let element = termlistBody.querySelector('.body-left');
 
     if (termData !== null)
-      insertListHtml(termData, header, element);
+      insertListHtml(header, termData, element);
     else
       element.innerHTML = `<b>Error!</b><br>Unable to fetch track data...`;
 
@@ -113,13 +117,11 @@ function fetchDataUpdateDOM(termlistEntry, termlistBody)
     {
       fetchMeta(termData, termId, 50, (metaType, metadata) =>
       {
-        debug.log(metadata);
-
         header  = (metaType === 'tags') ? 'Related Artists' : 'In Channels';
         element = (metaType === 'tags') ? termlistBody.querySelector('.artists') : termlistBody.querySelector('.channels');
 
         if (metadata !== null)
-          insertLinksHtml(metadata, header, element);
+          insertLinksHtml(header, metadata, element);
         else
           element.innerHTML = `<b>${header}</b><br>None found`;
       });
@@ -127,16 +129,23 @@ function fetchDataUpdateDOM(termlistEntry, termlistBody)
   });
 }
 
-function insertListHtml(termData, header, element)
+function insertListHtml(header, termData, destElement)
 {
+  const artistTitle = {};
   let html = `<b>${header}</b><ul>`;
-  termData.forEach(item => html += `<li><a href="${item.link}">${item.title.rendered}</a></li>`);
-  element.innerHTML = html + '</ul>';
+
+  termData.forEach(item =>
+  {
+    setArtistTitle(artistTitle, item.title.rendered, artistTitleRegEx);
+    html += `<li><div class="artist-title"><a href="${item.link}"><b>${artistTitle.artist}</b> &#8211; ${artistTitle.title}</a></div></li>`;
+  });
+  
+  destElement.innerHTML = html + '</ul>';
 }
 
-function insertLinksHtml(termData, header, element)
+function insertLinksHtml(header, termData, destElement)
 {
   let html = `<b>${header}</b><br>`;
   termData.forEach(item => html += `<a href="${item.link}">${item.name}</a>, `);
-  element.innerHTML = html.slice(0, (html.length - 2));
+  destElement.innerHTML = html.slice(0, (html.length - 2));
 }

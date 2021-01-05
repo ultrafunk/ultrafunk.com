@@ -21,7 +21,7 @@ const debug = debugLogger.newInstance('term-rest');
 
 
 // ************************************************************************************************
-//
+// Fetch tracks (posts) for a given termType with termId (taxonomy: category or tag)
 // ************************************************************************************************
 
 function fetchTracks(termType, termId, maxItems, callback)
@@ -44,7 +44,7 @@ function fetchTracks(termType, termId, maxItems, callback)
 
 
 // ************************************************************************************************
-//
+// Merge then fetch metadata for a given termType with termIds (taxonomy: category or tag)
 // ************************************************************************************************
 
 function fetchMeta(termData, termId, maxItems, callback)

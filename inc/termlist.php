@@ -79,7 +79,7 @@ function term_list_entries($term_type, $terms, $title, $term_path)
       </div>
       <div class="termlist-body <?php echo $color_class; ?>">
         <div class="body-left">
-          <?php echo ($term_type === 'categories') ? '<b>10 Latest Tracks<br>' : '<b>All Tracks<br>'; ?>&#8226;&#8226;&#8226;</b>
+          <?php echo ($term_type === 'categories') ? '<b>Latest Tracks<br>' : '<b>All Tracks<br>'; ?>&#8226;&#8226;&#8226;</b>
         </div>
         <div class="body-right">
           <div class="permalink"><b>Permalink</b><br><a href="<?php echo "/$term_path/$term->slug/"; ?>"><?php echo $term->name?></a></div>

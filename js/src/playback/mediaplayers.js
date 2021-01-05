@@ -280,20 +280,19 @@ class SoundCloud extends MediaPlayer
 // MediaPlayer class support functions
 // ************************************************************************************************
 
-function setArtistTitle(mediaPlayer, artistTitle)
+function setArtistTitle(destination, artistTitle, matchRegEx = artistTitleRegEx)
 {
   if ((artistTitle !== null) && (artistTitle.length > 0))
   {
-    const match = artistTitle.match(artistTitleRegEx);
-      
+    destination.artist = artistTitle;
+    destination.title  = '';
+
+    const match = artistTitle.match(matchRegEx);
+
     if (match !== null)
     {
-      mediaPlayer.artist = artistTitle.slice(0, match.index);
-      mediaPlayer.title  = artistTitle.slice(match.index + match[0].length);
-    }
-    else
-    {
-      mediaPlayer.artist = artistTitle;
+      destination.artist = artistTitle.slice(0, match.index);
+      destination.title  = artistTitle.slice(match.index + match[0].length);
     }
   }
 }
