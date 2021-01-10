@@ -244,12 +244,7 @@ function setThumbnail(thumbnailSrc)
   if (thumbnailSrc !== controls.thumbnail.img.src)
   {
     controls.thumbnail.element.classList.add('loading');
-
-    if (thumbnailSrc !== null)
-      controls.thumbnail.img.src = thumbnailSrc;
-    else
-      controls.thumbnail.img.src = '/wp-content/themes/ultrafunk/inc/img/photo_filled_grey.png';
-  
+    controls.thumbnail.img.src = thumbnailSrc;
     controls.thumbnail.img.decode().then(() => { controls.thumbnail.element.classList.remove('loading'); });
   }
 }

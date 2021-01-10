@@ -13,6 +13,7 @@ export {
   YouTube,
   SoundCloud,
   setArtistTitle,
+  getYouTubeImgUrl,
   getInstance,
 };
 
@@ -88,18 +89,7 @@ class YouTube extends MediaPlayer
   {
     super(trackId, iframeId, embeddedPlayer);
     this.previousPlayerState = -1;
-    this.setThumbnail(iframeSrc);
-  }
-
-  setThumbnail(iframeSrc)
-  {
-    const iframeSrcParts = new URL(decodeURIComponent(iframeSrc));
-    const pathnameParts  = iframeSrcParts.pathname.split('/embed/');
-
-    if ((pathnameParts.length === 2) && (pathnameParts[1].length === 11))
-      super.setThumbnail(`https://img.youtube.com/vi/${pathnameParts[1]}/mqdefault.jpg`);
-    else
-      debug.warn(`MediaPlayer.YouTube.setThumbnail() failed for: ${this.iframeId}`);
+    this.setThumbnail(getYouTubeImgUrl(iframeSrc));
   }
 
   pause() { this.embeddedPlayer.pauseVideo(); }
@@ -280,7 +270,7 @@ class SoundCloud extends MediaPlayer
 // MediaPlayer class support functions
 // ************************************************************************************************
 
-function setArtistTitle(destination, artistTitle, matchRegEx = artistTitleRegEx)
+function setArtistTitle(artistTitle, destination, matchRegEx = artistTitleRegEx)
 {
   if ((artistTitle !== null) && (artistTitle.length > 0))
   {
@@ -294,6 +284,22 @@ function setArtistTitle(destination, artistTitle, matchRegEx = artistTitleRegEx)
       destination.artist = artistTitle.slice(0, match.index);
       destination.title  = artistTitle.slice(match.index + match[0].length);
     }
+  }
+}
+
+function getYouTubeImgUrl(iframeSrc, fallbackUrl = '/wp-content/themes/ultrafunk/inc/img/photo_filled_grey.png')
+{
+  const iframeSrcParts = new URL(decodeURIComponent(iframeSrc));
+  const pathnameParts  = iframeSrcParts.pathname.split('/embed/');
+
+  if ((pathnameParts.length === 2) && (pathnameParts[1].length === 11))
+  {
+    return `https://img.youtube.com/vi/${pathnameParts[1]}/default.jpg`;
+  }
+  else
+  {
+    debug.warn('getYouTubeImgUrl() failed for: ' + iframeSrc);
+    return fallbackUrl;
   }
 }
 

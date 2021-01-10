@@ -141,7 +141,7 @@
   border-top: var(--border-top-even-row);
   border-bottom-left-radius: var(--button-border-radius);
   border-bottom-right-radius: var(--button-border-radius);
-  padding: 20px 30px 22px 30px;
+  padding: 20px 30px 28px 30px;
   font-size: 20px;
   line-height: 30px;
   overflow: hidden;
@@ -158,6 +158,10 @@
   width: 60%;
 }
 
+.term-categories .body-left {
+  width: 75%;
+}
+
 .body-left a,
 .body-right a {
   text-decoration: none;
@@ -168,14 +172,13 @@
   text-decoration: underline;
 }
 
-.termlist-body .body-left ul {
-  padding: 0;
-  margin: 0 0 0 20px;
-}
-
 .body-right {
   text-align: right;
   width: 35%;
+}
+
+.term-categories .body-right {
+  width: 20%;
 }
 
 .body-right .artists,
@@ -183,10 +186,61 @@
   margin-top: 15px;
 }
 
-.body-left .artist-title {
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.body-left .track {
+  font-size: 14px;
+  line-height: 18px;
+  display: flex;
+  align-items: center;
+  height: 36px;
+  margin-top: 12px;  
+}
+
+.body-left .track:first-of-type {
+  margin-top: 8px;
+}
+
+.body-left .thumbnail {
+  margin-right: 10px;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  display: inline-block;
   overflow: hidden;
+  position: relative;
+}
+
+.body-left .thumbnail img {
+  width: 36px;
+  height: 48px;
+  margin-top: -6px;
+  object-fit: cover;
+}
+
+.body-left .thumbnail-overlay {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  background: rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+}
+
+.body-left .thumbnail-overlay .material-icons {
+  font-size: 30px;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  margin-top: 3px;
+  color: #fff;
+}
+
+.body-left .thumbnail-overlay:hover {
+  opacity: 1;
+}
+
+.body-left .artist-title {
+  display: inline-block;
 }
 
 
@@ -222,7 +276,6 @@
   }
 
   .termlist-body,
-  .termlist-body .body-left ul,
   .termlist-body .body-right {
     font-size: unset;
     line-height: unset;
@@ -238,9 +291,9 @@
   }
 
   .termlist-body {
-    padding: 12px 15px 13px 15px;
+    padding: 12px 15px 17px 15px;
   }
-
+  
 }
 
 @media screen and (max-width: 768px) {
@@ -264,23 +317,25 @@
     flex-wrap: wrap;
   }
 
-  .body-left {
+  .body-left,
+  .term-categories .body-left {
     margin: 0;
     margin-top: 15px;
     width: 100%;
   }
 
-  .termlist-body .body-left ul {
-    margin-left: 16px;
-  }
-  
-  .body-right {
+  .body-right,
+  .term-categories .body-right {
     text-align: left;
     order: -1;
     white-space: normal;
     width: 100%;
   }
 
+  .body-left .track:first-of-type {
+    margin-top: 6px;
+  }
+  
 }
 
 @media screen and (max-width: 500px) {

@@ -39,7 +39,7 @@ function term_list($taxonomy, $title, $term_path)
     ?>
     <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
       <div class="entry-content">
-        <div id="termlist-container" data-term-type="<?php echo $term_type; ?>">
+        <div id="termlist-container" class="<?php echo "term-$term_type"; ?>" data-term-type="<?php echo $term_type; ?>">
           <?php term_list_entries($term_type, $terms, $title, $term_path); ?>
         </div>
       </div>
@@ -71,8 +71,8 @@ function term_list_entries($term_type, $terms, $title, $term_path)
       <div class="termlist-header <?php echo $color_class; ?>" title="Show more or less">
         <div class="termlist-name"><?php echo "$term->name <span class='light-text'>($term->count)</span>"; ?></div>
         <div class="termlist-icons">
-          <div class="play-button" title="Play <?php echo $term->name; ?>"><a href="<?php echo "/$term_path/$term->slug/"; ?>" target="_blank"><span class="material-icons">play_arrow</span></a></div>
-          <div class="shuffle-button" title="Shuffle &amp Play <?php echo $term->name; ?>"><a href="<?php echo "/shuffle/$term_path/$term->slug/"; ?>" target="_blank"><span class="material-icons">shuffle</span></a></div>
+          <div class="play-button" title="Play All - <?php echo $term->name; ?>"><a href="<?php echo "/$term_path/$term->slug/"; ?>" target="_blank"><span class="material-icons">play_arrow</span></a></div>
+          <div class="shuffle-button" title="Shuffle &amp Play All - <?php echo $term->name; ?>"><a href="<?php echo "/shuffle/$term_path/$term->slug/"; ?>" target="_blank"><span class="material-icons">shuffle</span></a></div>
           <div class="share-find-button" title="Share <?php echo $term->name; ?> / Find On" data-term-type="<?php echo $term_path; ?>" data-term-name="<?php echo $term->name; ?>" data-term-url="<?php echo esc_url(home_url()) . "/$term_path/$term->slug/"; ?>"><span class="material-icons">share</span></div>
           <div class="expand-toggle" title="Show more or less"><span class="material-icons">expand_more</span></div>
         </div>

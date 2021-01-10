@@ -95,4 +95,3 @@ function replaceClass(element, removeClass, addClass)
   element.classList.remove(removeClass);
   element.classList.add(addClass);
 }
-

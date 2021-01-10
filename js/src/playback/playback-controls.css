@@ -115,10 +115,13 @@ body.autoplay-off #progress-controls .bar-control {
 
 #playback-controls .thumbnail-control {
   width: 50px;
+  min-width: 50px;
   height: 50px;
   margin-right: 25px;
   display: inline-block;
   cursor: pointer;
+  overflow: hidden;
+  border-radius: var(--button-border-radius);
 }
 
 #playback-controls .thumbnail-control.state-disabled {
@@ -132,9 +135,9 @@ body.autoplay-off #progress-controls .bar-control {
 
 #playback-controls .thumbnail-control img {
   width: 50px;
-  height: 50px;
+  height: 68px;
+  margin-top: -9px;
   object-fit: cover;
-  border-radius: var(--button-border-radius);
 }
 
 #playback-controls .timer-control {
@@ -408,6 +411,7 @@ body.autoplay-off .playing-animate::before {
 
   #playback-controls .thumbnail-control.show-on-mobile {
     width: 40px;
+    min-width: 40px;
     height: 40px;
     margin-right: 15px;
     display: inline-block;
@@ -416,10 +420,8 @@ body.autoplay-off .playing-animate::before {
 
   #playback-controls .thumbnail-control img {
     width: 40px;
-    height: 40px;
-    /*
-    border-radius: 0;
-    */
+    height: 54px;
+    margin-top: -7px;
   }
   
   #playback-controls .timer-control {

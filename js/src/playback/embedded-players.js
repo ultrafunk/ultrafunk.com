@@ -135,7 +135,7 @@ function getAllPlayers()
         /* eslint-enable */
       }
 
-      mediaPlayers.setArtistTitle(player, entryTitle);
+      mediaPlayers.setArtistTitle(entryTitle, player);
       players.add(player);
     });
   });

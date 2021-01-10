@@ -5,11 +5,15 @@
 //
 
 
-import * as debugLogger   from '../shared/debuglogger.js';
-import { shareModal }     from './interaction.js';
-import { KEY }            from '../shared/storage.js';
-import { replaceClass }   from '../shared/utils.js';
-import { setArtistTitle } from '../playback/mediaplayers.js';
+import * as debugLogger from '../shared/debuglogger.js';
+import { KEY }          from '../shared/storage.js';
+import { shareModal }   from './interaction.js';
+import { replaceClass } from '../shared/utils.js';
+
+import {
+  setArtistTitle,
+  getYouTubeImgUrl,
+} from '../playback/mediaplayers.js';
 
 import {
   fetchTracks,
@@ -27,6 +31,7 @@ export {
 
 const debug = debugLogger.newInstance('termlist');
 const artistTitleRegEx = /\s{1,}[–·-]\s{1,}|\s{1,}(&#8211;)\s{1,}/i;
+const iframeSrcRegEx   = /(?<=src=").*?(?=[?"])/i;
 
 
 // ************************************************************************************************
@@ -41,7 +46,8 @@ function init()
     const shuffleButton   = event.target.closest('div.shuffle-button');
     const shareFindButton = event.target.closest('div.share-find-button');
     const termlistHeader  = event.target.closest('div.termlist-header');
-  
+    const thumbnailPlay   = event.target.closest('div.thumbnail');
+
     if (playButton !== null)
       playShuffleButtonClick(event, playButton.querySelector('a').href);
     else if (shuffleButton !== null)
@@ -50,6 +56,8 @@ function init()
       shareFindButtonClick(shareFindButton);
     else if (termlistHeader !== null)
       termlistHeaderClick(event);
+    else if (thumbnailPlay !== null)
+      playShuffleButtonClick(event, thumbnailPlay.getAttribute('data-track-url'));
   });
 }
 
@@ -109,7 +117,7 @@ function fetchDataUpdateDOM(termlistEntry, termlistBody)
     let element = termlistBody.querySelector('.body-left');
 
     if (termData !== null)
-      insertListHtml(header, termData, element);
+      insertThumbnailListHtml(header, termData, element);
     else
       element.innerHTML = `<b>Error!</b><br>Unable to fetch track data...`;
 
@@ -129,18 +137,38 @@ function fetchDataUpdateDOM(termlistEntry, termlistBody)
   });
 }
 
-function insertListHtml(header, termData, destElement)
+function getThumbnailUrl(contentHtml)
+{
+  const iframeSrc = contentHtml.match(iframeSrcRegEx);
+
+  if (iframeSrc[0].toLowerCase().includes('soundcloud.com'))
+    return '/wp-content/themes/ultrafunk/inc/img/soundcloud_icon.png';
+  else
+    return getYouTubeImgUrl(iframeSrc);
+}
+
+function insertThumbnailListHtml(header, termData, destElement)
 {
   const artistTitle = {};
-  let html = `<b>${header}</b><ul>`;
+  let html = `<b>${header}</b>`;
 
   termData.forEach(item =>
   {
-    setArtistTitle(artistTitle, item.title.rendered, artistTitleRegEx);
-    html += `<li><div class="artist-title"><a href="${item.link}"><b>${artistTitle.artist}</b> &#8211; ${artistTitle.title}</a></div></li>`;
+    setArtistTitle(item.title.rendered, artistTitle, artistTitleRegEx);
+
+    html += `
+    <div class="track">
+      <div class="thumbnail" data-track-url="${item.link}" title="Play Track">
+        <img src="${getThumbnailUrl(item.content.rendered)}">
+        <div class="thumbnail-overlay"><span class="material-icons">play_arrow</span></div>
+      </div>
+      <div class="artist-title text-nowrap-ellipsis">
+        <a href="${item.link}" title="Go to track"><span><b>${artistTitle.artist}</b></span><br><span>${artistTitle.title}</span></a>
+      </div>
+    </div>`;
   });
   
-  destElement.innerHTML = html + '</ul>';
+  destElement.innerHTML = html;
 }
 
 function insertLinksHtml(header, termData, destElement)
