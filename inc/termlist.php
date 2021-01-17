@@ -67,7 +67,7 @@ function term_list_entries($term_type, $terms, $title, $term_path)
     $color_class = (($odd_even++ % 2) === 1) ? 'odd' : 'even';
 
     ?>
-    <div class="termlist-entry" data-term-id="<?php echo $term->term_id; ?>">
+    <div id="<?php echo "term-$term->term_id"; ?>" class="termlist-entry" data-term-id="<?php echo $term->term_id; ?>">
       <div class="termlist-header <?php echo $color_class; ?>" title="Show more or less">
         <div class="termlist-name"><?php echo "$term->name <span class='light-text'>($term->count)</span>"; ?></div>
         <div class="termlist-icons">

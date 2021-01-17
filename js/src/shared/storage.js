@@ -39,6 +39,8 @@ const observers = {};
 const KEY = {
 //sessionStorage keys
   UF_AUTOPLAY:          'UF_AUTOPLAY',
+  UF_TERMLIST_CACHE:    'UF_TERMLIST_CACHE',
+  UF_TERMLIST_STATE:    'UF_TERMLIST_STATE',
 //localStorage keys
   UF_PLAYBACK_SETTINGS: 'UF_PLAYBACK_SETTINGS',
   UF_SITE_SETTINGS:     'UF_SITE_SETTINGS',

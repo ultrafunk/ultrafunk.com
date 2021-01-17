@@ -57,9 +57,6 @@ document.addEventListener('DOMContentLoaded', () =>
     mElements.siteContentSearch.setSelectionRange(9999, 9999);
   }
 
-  resize.setTopMargin();
-  resize.setLastInnerWidth(window.innerWidth);
-
   setPreviousPageTitle();
 });
 
@@ -72,7 +69,6 @@ document.addEventListener(mConfig.settingsUpdatedEvent, () =>
 
 document.addEventListener(mConfig.fullscreenTrackEvent, (event) => mElements.fullscreenTarget = event.fullscreenTarget);
 
-window.addEventListener('load', () => resize.setTopMargin());
 //window.addEventListener('storage', windowEventStorage);
 
 
@@ -96,12 +92,13 @@ function initIndex()
   mElements.siteContent       = document.getElementById('site-content');
   mElements.siteContentSearch = document.querySelector('#site-content form input.search-field');
 
-  resize.addEventListener();
-  scroll.addEventListener();
-
   interaction.init(mSettings);
+
   navSearch.init();
   navMenu.init();
+  
+  resize.addEventListener();
+  scroll.addEventListener();
 }
 
 
@@ -144,7 +141,7 @@ document.addEventListener('keydown', (event) =>
         if (searchNotFocused() && notSettingsPage())
         {
           interaction.trackLayout.toggle(event);
-          resize.setTopMargin();
+          resize.trigger();
         }
         break;
 
@@ -203,6 +200,12 @@ function noPlayback()
   return (document.body.classList.contains('no-playback'));
 }
 
+function arrowKeyNav(destUrl)
+{
+  if (destUrl !== null)
+    window.location.href = destUrl;
+}
+
 
 // ************************************************************************************************
 // Misc. support functions
@@ -243,11 +246,12 @@ function showIntroBanner()
       if (mSettings.priv.banners[bannerProperty]) // eslint-disable-line no-undef
       {
         mElements.introBanner.style.display = 'block';
-  
+        resize.trigger();
+
         utils.addEventListeners('#intro-banner .intro-banner-close-button', 'click', () =>
         {
-          mElements.introBanner.style.display = '';
-          resize.setTopMargin();
+          mElements.introBanner.style.display    = '';
+          mElements.siteContent.style.marginTop  = '';
           mSettings.priv.banners[bannerProperty] = false; // eslint-disable-line no-undef
         });
       }
@@ -287,12 +291,6 @@ function setPreviousPageTitle()
       element.querySelector('.go-back-to').style.opacity  = 1;
     });
   }
-}
-
-function arrowKeyNav(destUrl)
-{
-  if (destUrl !== null)
-    window.location.href = destUrl;
 }
 
 
@@ -484,50 +482,33 @@ const navSearch = (() =>
 
 const resize = (() =>
 {
-  let headerHeight   = 0;
-  let lastInnerWidth = 0;
+  let headerHeight = 0;
 
   return {
-    getHeaderHeight()             { return headerHeight;         },
-    setLastInnerWidth(innerWidth) { lastInnerWidth = innerWidth; },
+    getHeaderHeight() { return headerHeight; },
     addEventListener,
-    setTopMargin,
+    trigger: resizeEvent,
   };
 
   function addEventListener()
   {
-    window.addEventListener('resize', () =>
-    {
-      const innerWidth = window.innerWidth;
-  
-      if (lastInnerWidth !== innerWidth)
-      {
-        setTopMargin();
-        lastInnerWidth = innerWidth;
-      }
-    });
+    resizeEvent();
+    window.addEventListener('resize', resizeEvent);
   }
   
-  function setTopMargin()
+  function resizeEvent()
   {
-    const contentMarginTop = utils.getCssPropValue('--site-content-margin-top');
-    
-    if (mElements.siteHeader.classList.contains('hide-nav-menu'))
-      headerHeight = mElements.siteHeader.offsetHeight;
+    noPlayback() ? headerHeight = utils.getCssPropValue('--site-header-height-no-playback') : headerHeight = utils.getCssPropValue('--site-header-height');
 
     if ((mElements.introBanner !== null) && (mElements.introBanner.style.display.length !== 0))
     {
       mElements.introBanner.style.marginTop = `${headerHeight}px`;
-      mElements.siteContent.style.marginTop = `${contentMarginTop}px`;
-    }
-    else
-    {
-      mElements.siteContent.style.marginTop = `${headerHeight + contentMarginTop}px`;
+      mElements.siteContent.style.marginTop = `${utils.getCssPropValue('--site-content-margin-top')}px`;
     }
   }
 })();
 
-
+  
 // ************************************************************************************************
 // window.addEventListener('scroll') handling
 // ************************************************************************************************
@@ -543,23 +524,26 @@ const scroll = (() =>
 
   function addEventListener()
   {
-    window.addEventListener('scroll', () =>
-    {
-      const scrollTop          = window.pageYOffset;
-      const scrollDownMenuHide = Math.round((resize.getHeaderHeight() > 150) ? (resize.getHeaderHeight() / 2) : (resize.getHeaderHeight() / 3));
+    scrollEvent();
+    window.addEventListener('scroll', scrollEvent);
+  }
+
+  function scrollEvent()
+  {
+    const scrollTop          = window.pageYOffset;
+    const scrollDownMenuHide = Math.round((resize.getHeaderHeight() > 150) ? (resize.getHeaderHeight() / 2) : (resize.getHeaderHeight() / 3));
+
+    if (scrollTop < 1)
+      scrolledTop();
+    else if ((scrollTop > scrollDownMenuHide) && (scrollTop > lastScrollTop))
+      scrolledDown();
+    else
+      scrolledUp();
     
-      if (scrollTop < 1)
-        scrolledTop();
-      else if ((scrollTop > scrollDownMenuHide) && (scrollTop > lastScrollTop))
-        scrolledDown();
-      else
-        scrolledUp();
-      
-      // Hide navigation search form on any scroll event
-      navSearch.hide();
-    
-      lastScrollTop = scrollTop;
-    });
+    // Hide navigation search form on any scroll event
+    navSearch.hide();
+  
+    lastScrollTop = scrollTop;
   }
 
   function scrolledTop()
@@ -567,7 +551,6 @@ const scroll = (() =>
     mElements.siteHeader.classList.remove('sticky-nav-down', 'sticky-nav-up');
     mElements.siteHeader.classList.add('hide-nav-menu');
     navMenu.scrolledTop();
-    resize.setTopMargin();
   }
 
   function scrolledDown()

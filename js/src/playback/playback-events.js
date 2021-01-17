@@ -18,7 +18,7 @@ export {
   addListener,
   dispatch,
   navigateTo,
-  scrollTo,
+  scrollToId,
 };
 
 
@@ -174,7 +174,7 @@ function mediaShow(playbackEvent)
   mediaEnded(null);
 
   if (playbackEvent.data.scrollToMedia)
-    scrollTo.id(playbackEvent.data.trackId);
+    scrollToId(playbackEvent.data.trackId);
 }
 
 function continueAutoplay(playbackEvent)
@@ -301,54 +301,36 @@ function navigateTo(destUrl, continueAutoplay = false)
 // Scrolling to specified # (track) module
 // ************************************************************************************************
 
-const scrollTo = (() =>
+function scrollToId(trackId)
 {
-  // Get CSS variables (px heigth) for multistate sticky top nav menu
-  const siteHeaderDownPx       = utils.getCssPropValue('--site-header-down');
-  const siteHeaderDownMobilePx = utils.getCssPropValue('--site-header-down-mobile');
-  const siteHeaderUpPx         = utils.getCssPropValue('--site-header-up');
-  const siteHeaderUpMobilePx   = utils.getCssPropValue('--site-header-up-mobile');
-
-  return {
-    id,
-  };
-
-  function id(trackId)
+  if (settings.user.autoScroll)
   {
-    if (settings.user.autoScroll)
+    // Actual functional 'offsetTop' calculation: https://stackoverflow.com/a/52477551
+    const offsetTop    = Math.round(window.scrollY + document.getElementById(trackId).getBoundingClientRect().top);
+    const scrollTop    = Math.round(window.pageYOffset); // Don't want float results that can cause jitter
+    let   headerHeight = getScrollHeaderHeight(offsetTop > scrollTop);
+
+    // If we get obscured by the sticky header menu, recalculate headerHeight to account for that
+    if ((scrollTop + headerHeight + getContentMarginTop()) > offsetTop)
+      headerHeight = getScrollHeaderHeight(false);
+
+    // ToDo: This will not be smooth on iOS... Needs polyfill?
+    window.scroll(
     {
-      // Actual functional 'offsetTop' calculation: https://stackoverflow.com/a/52477551
-      const offsetTop    = Math.round(window.scrollY + document.getElementById(trackId).getBoundingClientRect().top);
-      const scrollTop    = Math.round(window.pageYOffset); // Don't want float results that can cause jitter
-      let   headerHeight = getScrollHeaderHeight(offsetTop > scrollTop);
-
-      // If we get obscured by the sticky header menu, recalculate headerHeight to account for that
-      if ((scrollTop + headerHeight + getMarginTop()) > offsetTop)
-        headerHeight = getScrollHeaderHeight(false);
-
-      // ToDo: This will not be smooth on iOS... Needs polyfill
-      window.scroll(
-      {
-        top:      (offsetTop - (headerHeight + getMarginTop())),
-        left:     0,
-        behavior: (settings.user.smoothScrolling ? 'smooth' : 'auto'),
-      });
-    }
+      top:      (offsetTop - (headerHeight + getContentMarginTop())),
+      left:     0,
+      behavior: (settings.user.smoothScrolling ? 'smooth' : 'auto'),
+    });
   }
+}
 
-  function getScrollHeaderHeight(directionDown)
-  {
-    const matchesMaxWidthMobile = utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE);
-    
-    if (directionDown)
-      return (matchesMaxWidthMobile ? siteHeaderDownMobilePx : siteHeaderDownPx);
-    else
-      return (matchesMaxWidthMobile ? siteHeaderUpMobilePx : siteHeaderUpPx);
-  }
+function getScrollHeaderHeight(isScrollDown)
+{
+  return (isScrollDown ? utils.getCssPropValue('--site-header-height-down') : utils.getCssPropValue('--site-header-height-up'));
+}
 
-  function getMarginTop()
-  {
-    // -1 because of fractional pixels on HiDPI displays (iframe bottom 1 px would show on top)
-    return (utils.getCssPropValue('--site-content-margin-top') - 1);
-  }
-})();
+function getContentMarginTop()
+{
+  // -1 because of fractional pixels on HiDPI displays (iframe bottom 1 px would show on top)
+  return (utils.getCssPropValue('--site-content-margin-top') - 1);
+}

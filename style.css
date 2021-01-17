@@ -4,7 +4,7 @@ Theme URI:    https://github.com/ultrafunk/ultrafunk.com
 Author:       Ultrafunk
 Author URI:   https://ultrafunk.com
 Description:  ultrafunk.com WordPress theme
-Version:      1.17.2
+Version:      1.17.3
 Tested up to: 5.5
 Requires PHP: 7.4
 License:      Apache License 2.0
@@ -23,22 +23,18 @@ Tags:         entertainment, portfolio, grid-layout, one-column, two-columns, th
   --site-max-width: 1200px;
   --site-max-width-mobile: 500px;
 
-  --site-header-full: 145px;
-  --site-header-full-no-playback: 140px;
-  --site-header-mobile: 166px;
-  --site-header-mobile-no-playback: 100px;
+  --site-header-height: 145px;
+  --site-header-height-no-playback: 140px;
 
-  --site-header-down: 85px;
-  --site-header-down-mobile: 65px;
-  --site-header-up: 145px;
-  --site-header-up-mobile: 111px;
+  --site-header-height-down: 85px;
+  --site-header-height-up: 145px;
 
   --intro-banner-max-width: 1200px;
 
   --site-content-margin-top: 75px;
   --site-content-margin-bottom: 100px;
 
-  --site-content-track-layout-min-width: 1100px;
+  --site-track-layout-min-width: 1100px;
 
   --link-hover-color: #dd0000;
 
@@ -484,10 +480,6 @@ ul#menu-primary-menu {
   box-sizing: border-box;
   clear: both;
   color: var(--button-text-color);
-  /*
-  font-size: 26px;
-  line-height: 37px;
-  */
   padding: 50px 0;
 }
 
@@ -529,14 +521,14 @@ ul#menu-primary-menu {
 
 #site-content {
   max-width: var(--site-max-width);
-  margin: calc(var(--site-content-margin-top) + var(--site-header-full)) auto var(--site-content-margin-bottom) auto;
+  margin: calc(var(--site-content-margin-top) + var(--site-header-height)) auto var(--site-content-margin-bottom) auto;
   width: 100%;
   box-sizing: border-box;
   clear: both;
 }
 
 body.no-playback #site-content {
-  margin-top: calc(var(--site-content-margin-top) + var(--site-header-full-no-playback));
+  margin-top: calc(var(--site-content-margin-top) + var(--site-header-height-no-playback));
 }
 
 track-layout {
@@ -1587,6 +1579,12 @@ body.no-playback #site-header.sticky-nav-down {
 @media screen and (max-width: 500px) {
 
   :root {
+    --site-header-height: 166px;
+    --site-header-height-no-playback: 100px;
+
+    --site-header-height-down: 65px;
+    --site-header-height-up: 111px;
+
     --site-content-margin-top: 32px;
     --site-content-margin-bottom: 50px;
   }
@@ -1735,11 +1733,11 @@ body.no-playback #site-header.sticky-nav-down {
   }
 
   #site-content {
-    margin: calc(var(--site-content-margin-top) + var(--site-header-mobile)) auto var(--site-content-margin-bottom) auto;
+    margin: calc(var(--site-content-margin-top) + var(--site-header-height)) auto var(--site-content-margin-bottom) auto;
   }
   
   body.no-playback #site-content {
-    margin-top: calc(var(--site-content-margin-top) + var(--site-header-mobile-no-playback));
+    margin-top: calc(var(--site-content-margin-top) + var(--site-header-height-no-playback));
   }
 
   nav.navigation.pagination,

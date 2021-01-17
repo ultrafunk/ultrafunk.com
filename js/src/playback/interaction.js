@@ -428,7 +428,7 @@ function paginationNavClick(event, destUrl)
 function showCurrentTrack(event)
 {
   event.preventDefault();
-  playbackEvents.scrollTo.id(playback.getStatus().trackId);
+  playbackEvents.scrollToId(playback.getStatus().trackId);
 }
 
 function enterFullscreenTrack()

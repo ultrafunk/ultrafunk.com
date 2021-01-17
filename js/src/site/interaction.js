@@ -173,7 +173,7 @@ const trackLayout = (() =>
 
   const config = {
     toggleId: '#footer-track-layout-toggle',
-    minWidth: `(max-width: ${utils.getCssPropString('--site-content-track-layout-min-width')})`,
+    minWidth: `(max-width: ${utils.getCssPropString('--site-track-layout-min-width')})`,
   };
 
   const layouts = {

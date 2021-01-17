@@ -16,8 +16,12 @@ import {
 } from '../playback/mediaplayers.js';
 
 import {
-  fetchTracks,
-  fetchMeta,
+  fetchTermPosts,
+  fetchTermMeta,
+  readTermCache,
+  writeTermCache,
+  hasTermCache,
+  deleteTermCache,
 } from './term-rest.js';
 
 
@@ -29,49 +33,104 @@ export {
 /*************************************************************************************************/
 
 
-const debug = debugLogger.newInstance('termlist');
+const debug            = debugLogger.newInstance('termlist');
 const artistTitleRegEx = /\s{1,}[–·-]\s{1,}|\s{1,}(&#8211;)\s{1,}/i;
 const iframeSrcRegEx   = /(?<=src=").*?(?=[?"])/i;
 
 
 // ************************************************************************************************
-//
+// Setup module
 // ************************************************************************************************
 
 function init()
 {
+  debug.log('init()');
+
   document.getElementById('termlist-container').addEventListener('click', (event) =>
   {
-    const playButton      = event.target.closest('div.play-button');
-    const shuffleButton   = event.target.closest('div.shuffle-button');
-    const shareFindButton = event.target.closest('div.share-find-button');
-    const termlistHeader  = event.target.closest('div.termlist-header');
-    const thumbnailPlay   = event.target.closest('div.thumbnail');
+    const playButton = event.target.closest('div.play-button');
+    if (playButton !== null ) return playShuffleButtonClick(event, playButton.querySelector('a').href);
 
-    if (playButton !== null)
-      playShuffleButtonClick(event, playButton.querySelector('a').href);
-    else if (shuffleButton !== null)
-      playShuffleButtonClick(event, shuffleButton.querySelector('a').href);
-    else if (shareFindButton !== null)
-      shareFindButtonClick(shareFindButton);
-    else if (termlistHeader !== null)
-      termlistHeaderClick(event);
-    else if (thumbnailPlay !== null)
-      playShuffleButtonClick(event, thumbnailPlay.getAttribute('data-track-url'));
+    const shuffleButton = event.target.closest('div.shuffle-button');
+    if (shuffleButton !== null ) return playShuffleButtonClick(event, shuffleButton.querySelector('a').href);
+
+    const shareFindButton = event.target.closest('div.share-find-button');
+    if (shareFindButton !== null ) return shareFindButtonClick(shareFindButton);
+   
+    const termlistHeader = event.target.closest('div.termlist-header');
+    if (termlistHeader !== null ) return termlistHeaderClick(event);
+
+    const thumbnailPlay = event.target.closest('div.thumbnail');
+    if (thumbnailPlay !== null ) return playShuffleButtonClick(event, thumbnailPlay.getAttribute('data-track-url'));
+
+    const linkElement = event.target.closest('a');
+    if (linkElement !== null) return saveState();
   });
+
+  restoreState();
 }
 
 
 // ************************************************************************************************
-//
+// Save and restore Termlist state
+// ************************************************************************************************
+
+function saveState()
+{
+  if (hasTermCache())
+  {
+    const termListState = {
+      pageUrl:     window.location.href,
+      scrollPos:   Math.round(window.pageYOffset),
+      openTermIds: [],
+    };
+
+    document.querySelectorAll('.termlist-entry').forEach(element =>
+    {
+      if (element.classList.contains('open'))
+        termListState.openTermIds.push(element.id);
+    });
+    
+    sessionStorage.setItem(KEY.UF_TERMLIST_STATE, JSON.stringify(termListState));
+    writeTermCache();
+  }
+}
+
+function restoreState()
+{
+  readTermCache();
+  
+  if (performance.navigation.type !== performance.navigation.TYPE_RELOAD)
+  {
+    const termListState = JSON.parse(sessionStorage.getItem(KEY.UF_TERMLIST_STATE));
+ 
+    if ((termListState !== null) && (termListState.pageUrl === window.location.href))
+    {
+      history.scrollRestoration = 'manual';
+      termListState.openTermIds.forEach(item => document.getElementById(item).querySelector('div.termlist-header').click());
+      window.scroll({ top: termListState.scrollPos, left: 0, behavior: 'auto' });
+    }
+    else
+    {
+      history.scrollRestoration = 'auto';
+    }
+  }
+
+  sessionStorage.removeItem(KEY.UF_TERMLIST_STATE);
+  deleteTermCache();
+}
+
+
+// ************************************************************************************************
+// Click event functions
 // ************************************************************************************************
 
 function playShuffleButtonClick(event, destUrl)
 {
   event.preventDefault();
 
-//ToDo: Create a playbackSetting for this? Or use SHIFT + click to skip autoplay
-  sessionStorage.setItem(KEY.UF_AUTOPLAY, 'true');
+  saveState();
+  sessionStorage.setItem(KEY.UF_AUTOPLAY, 'true'); //ToDo: Create a playbackSetting for this? Or use SHIFT + click to skip autoplay
   window.location.href = destUrl;
 }
 
@@ -102,7 +161,7 @@ function termlistHeaderClick(event)
 
 
 // ************************************************************************************************
-//
+// Fetch data via REST API and update DOM with results
 // ************************************************************************************************
 
 function fetchDataUpdateDOM(termlistEntry, termlistBody)
@@ -111,7 +170,7 @@ function fetchDataUpdateDOM(termlistEntry, termlistBody)
   const termId        = parseInt(termlistEntry.getAttribute('data-term-id'));
   const isAllChannels = (termType === 'categories');
 
-  fetchTracks(termType, termId, (isAllChannels ? 10 : 50), (termData) => 
+  fetchTermPosts(termType, termId, (isAllChannels ? 10 : 50), (termData) => 
   {
     let header  = isAllChannels ? 'Latest Tracks' : 'All Tracks';
     let element = termlistBody.querySelector('.body-left');
@@ -123,7 +182,7 @@ function fetchDataUpdateDOM(termlistEntry, termlistBody)
 
     if (!isAllChannels && (termData !== null))
     {
-      fetchMeta(termData, termId, 50, (metaType, metadata) =>
+      fetchTermMeta(termData, termId, 50, (metaType, metadata) =>
       {
         header  = (metaType === 'tags') ? 'Related Artists' : 'In Channels';
         element = (metaType === 'tags') ? termlistBody.querySelector('.artists') : termlistBody.querySelector('.channels');
@@ -139,12 +198,10 @@ function fetchDataUpdateDOM(termlistEntry, termlistBody)
 
 function getThumbnailUrl(contentHtml)
 {
-  const iframeSrc = contentHtml.match(iframeSrcRegEx);
-
-  if (iframeSrc[0].toLowerCase().includes('soundcloud.com'))
+  if (contentHtml.includes('id="soundcloud-uid'))
     return '/wp-content/themes/ultrafunk/inc/img/soundcloud_icon.png';
   else
-    return getYouTubeImgUrl(iframeSrc);
+    return getYouTubeImgUrl(contentHtml.match(iframeSrcRegEx));
 }
 
 function insertThumbnailListHtml(header, termData, destElement)

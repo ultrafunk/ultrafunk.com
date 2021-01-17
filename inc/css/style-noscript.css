@@ -6,10 +6,8 @@
 */
 
 :root {
-  --site-header-full: 0px;
-  --site-header-full-no-playback: 0px;
-  --site-header-mobile: 0px;
-  --site-header-mobile-no-playback: 0px;
+  --site-header-height: 0px;
+  --site-header-height-no-playback: 0px;
 
   --link-hover-color: #dd0000;
 

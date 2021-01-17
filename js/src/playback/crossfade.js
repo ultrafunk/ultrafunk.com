@@ -38,6 +38,12 @@ const CURVE = {
   LINEAR:       1,
 };
 
+const STATE = {
+  NONE:   0,
+  INIT:   1,
+  FADING: 2,
+};
+
 const mConfig = {
   intervalEqPow:   33, // Milliseconds between each crossfade update event
   intervalLinear: 100,
@@ -53,7 +59,7 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
   const settings = playbackSettings;
   const players  = mediaPlayers;
 
-  let isFading        = false;
+  let fadeState       = STATE.NONE;
   let intervalId      = -1;
   let fadeOutPlayer   = null;
   let fadeInPlayer    = null;
@@ -69,7 +75,7 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
   */
 
   return {
-    isFading() { return isFading; },
+    isFading() { return (fadeState !== STATE.NONE); },
     init,
     start,
     stop,
@@ -78,11 +84,11 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
   
   function init(crossfadeType, crossfadePreset, fadeInUid = null)
   {
-    if ((isFading === false) && (set(fadeInUid) === true))
+    if ((fadeState === STATE.NONE) && (set(fadeInUid) === true))
     {
       debug.log(`init() - type: ${debug.getObjectKeyForValue(TYPE, crossfadeType)} - fadeInUid: ${fadeInUid} - preset: ${crossfadePreset.length} sec ${debug.getObjectKeyForValue(CURVE, crossfadePreset.curve)} (Name: ${crossfadePreset.name})`);
   
-      isFading        = true;
+      fadeState       = STATE.INIT;
       fadeStartVolume = settings.masterVolume;
       fadeType        = crossfadeType;
       fadePreset      = crossfadePreset;
@@ -102,8 +108,10 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
   
   function start()
   {
-    if (isFading)
+    if (fadeState === STATE.INIT)
     {
+      fadeState = STATE.FADING;
+
       fadeOutPlayer.getPosition((positionMilliseconds) =>
       {
         const updateInterval = (fadePreset.curve === CURVE.EQUAL_POWER) ? mConfig.intervalEqPow : mConfig.intervalLinear;
@@ -125,9 +133,9 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
   
   function stop()
   {
-    debug.log(`stop() - isFading: ${isFading}`);
+    debug.log(`stop() - fadeState: ${debug.getObjectKeyForValue(STATE, fadeState)}`);
   
-    if (isFading)
+    if (fadeState !== STATE.NONE)
     {
       /*
       const perfMean   = perfTimeTotal / perfCounter;
@@ -158,7 +166,7 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
       if (fadeInPlayer !== null)
         fadeInPlayer = null;
     
-      isFading        = false;
+      fadeState       = STATE.NONE;
       fadeLength      = 0;
       fadeStartVolume = 0;
       fadeType        = TYPE.NONE;
