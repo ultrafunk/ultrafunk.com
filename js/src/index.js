@@ -465,7 +465,19 @@ const navSearch = (() =>
     }
     else
     {
-      position = elements.brandingContainer.getBoundingClientRect();
+      if (elements.brandingContainer.offsetHeight !== 0)
+      {
+        position = elements.brandingContainer.getBoundingClientRect();
+      }
+      else
+      {
+        const clientRect = mElements.siteHeader.querySelector('.nav-bar-container').getBoundingClientRect();
+        
+        position.top    = clientRect.top;
+        position.left   = clientRect.left  + 105;
+        position.right  = clientRect.right - 107;
+        position.height = clientRect.height;
+      }
     }
   
     elements.searchContainer.style.top    = `${position.top}px`;
