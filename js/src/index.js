@@ -407,9 +407,13 @@ const navSearch = (() =>
   {
     if (elements.searchContainer.style.display.length === 0)
     {
+      // Has no visible site header at all, bail out...
+      if (mElements.siteHeader.offsetHeight === 0)
+        return;
+
+      // Is mobile with no visible nav bar, bail out...
       if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
       {
-        // Is mobile with no visible nav bar, bail out...
         if ((mElements.siteHeader.querySelector('.nav-bar-container-mobile-top').offsetHeight === 0) &&
             (mElements.siteHeader.querySelector('.nav-bar-container-mobile-up').offsetHeight  === 0))
         {
@@ -445,11 +449,12 @@ const navSearch = (() =>
     document.dispatchEvent(keyboardShortcutsEvent);
     elements.searchContainer.style.display = display;
     document.querySelectorAll('div.nav-search-toggle i').forEach(element => element.textContent = icon);
+    isVisible ? document.getElementById('playback-controls').classList.add('hide') : document.getElementById('playback-controls').classList.remove('hide');
   }
   
   function setPosSize()
   {
-    let position = DOMRect;
+    const position = DOMRect;
   
     if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
     {
@@ -467,16 +472,21 @@ const navSearch = (() =>
     {
       if (elements.brandingContainer.offsetHeight !== 0)
       {
-        position = elements.brandingContainer.getBoundingClientRect();
+        const clientRect = elements.brandingContainer.getBoundingClientRect();
+
+        position.top    = clientRect.top + 10;
+        position.left   = clientRect.left;
+        position.right  = clientRect.right;
+        position.height = clientRect.height - 20;
       }
       else
       {
         const clientRect = mElements.siteHeader.querySelector('.nav-bar-container').getBoundingClientRect();
         
-        position.top    = clientRect.top;
-        position.left   = clientRect.left  + 105;
-        position.right  = clientRect.right - 107;
-        position.height = clientRect.height;
+        position.top    = clientRect.top    + 2;
+        position.left   = clientRect.left   + 105;
+        position.right  = clientRect.right  - 105;
+        position.height = clientRect.height - 4;
       }
     }
   

@@ -4,7 +4,7 @@ Theme URI:    https://github.com/ultrafunk/ultrafunk.com
 Author:       Ultrafunk
 Author URI:   https://ultrafunk.com
 Description:  ultrafunk.com WordPress theme
-Version:      1.17.4
+Version:      1.17.5
 Tested up to: 5.5
 Requires PHP: 7.4
 License:      Apache License 2.0
@@ -23,11 +23,11 @@ Tags:         entertainment, portfolio, grid-layout, one-column, two-columns, th
   --site-max-width: 1200px;
   --site-max-width-mobile: 500px;
 
-  --site-header-height: 145px;
-  --site-header-height-no-playback: 140px;
+  --site-header-height: 135px;
+  --site-header-height-no-playback: 130px;
 
   --site-header-height-down: 85px;
-  --site-header-height-up: 145px;
+  --site-header-height-up: 135px;
 
   --intro-banner-max-width: 1200px;
 
@@ -217,7 +217,7 @@ body.page {
 .site-header-container {
   max-width: var(--site-max-width);
   padding-top: 8px;
-  padding-bottom: 16px;
+  padding-bottom: 11px;
   margin: 0 auto;
 }
 
@@ -273,9 +273,13 @@ body.no-playback #playback-controls {
   display: none;
 }
 
+#playback-controls.hide {
+  visibility: hidden;
+}
+
 #site-navigation {
   clear: both;
-  padding-top: 4px;
+  margin-top: -1px;
   display: block;
 }
 
@@ -344,10 +348,6 @@ body.no-playback #playback-controls {
   display: inline-flex;
 }
 
-.nav-bar-arrows a.nav-bar-prev-link {
-  margin-right: 5px;
-}
-
 .nav-bar-arrows a,
 .nav-bar-arrow-single a {
   display: inline-flex;
@@ -359,6 +359,10 @@ body.no-playback #playback-controls {
 .nav-bar-arrow-single a i:hover {
   color: var(--link-hover-color);
   text-decoration: none;
+}
+
+.nav-bar-arrow-back {
+  margin-right: 5px;
 }
 
 .nav-bar-arrow-back.disbled,
@@ -429,8 +433,8 @@ body.no-playback #playback-controls {
 
 .nav-menu-inner {
   width: 100%;
-  margin-top: 20px;
-  margin-bottom: 15px;
+  margin-top: 12px;
+  margin-bottom: 14px;
 }
 
 ul#menu-primary-menu {
@@ -1672,8 +1676,13 @@ body.no-playback .sticky-nav-up .site-header-container {
     margin-bottom: 4px;
   }
 
+  #playback-controls.hide {
+    visibility: unset;
+  }
+    
   #site-navigation {
     padding-top: 2px;
+    margin-top: 0;
   }
 
   body.no-playback #site-navigation {
@@ -1709,6 +1718,10 @@ body.no-playback .sticky-nav-up .site-header-container {
   .nav-bar-arrow-single.fwd {
     margin-right: -5px;
     padding-left: 10px;
+  }
+
+  .nav-bar-arrow-back {
+    margin-right: 0;
   }
 
   .nav-bar-title {
