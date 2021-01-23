@@ -37,7 +37,7 @@ const STRING  = 3;
 // ************************************************************************************************
 
 const playbackSchema = {
-  version: { description: '', type: INTEGER, values: [1, 999999], default: 26, valueStrings: [] },
+  version: { description: '', type: INTEGER, values: [1, 999999], default: 27, valueStrings: [] },
   user: {
     keyboardShortcuts:       { description: 'Keyboard Shortcuts',                 type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
     masterVolume:            { description: 'Master Volume',                      type: INTEGER, values: [0, 25, 50, 75, 100],    default: 100,   valueStrings: ['0%', '25%', '50%', '75%', '100%'] },
@@ -60,7 +60,6 @@ const playbackSchema = {
     trackThumbnailOnMobile:  { description: 'Show Track Thumbnail on mobile',     type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
   },
   priv: {
-    storageChangeSync:  { description: '', type: BOOLEAN, values: [true, false], default: false, valueStrings: [] },
     tips: {
       showLeftArrowHint:  { description: '', type: BOOLEAN, values: [true, false], default: true,  valueStrings: [] },
       showRightArrowHint: { description: '', type: BOOLEAN, values: [true, false], default: true,  valueStrings: [] },
@@ -92,10 +91,8 @@ const playbackSettings = {
     keepMobileScreenOn:      playbackSchema.user.keepMobileScreenOn.default,
     trackTimesOnMobile:      playbackSchema.user.trackTimesOnMobile.default,
     trackThumbnailOnMobile:  playbackSchema.user.trackThumbnailOnMobile.default,
-  //blurFocusBgChange:       false,
   },
   priv: {
-    storageChangeSync:  playbackSchema.priv.storageChangeSync.default,
     tips: {
       showLeftArrowHint:  playbackSchema.priv.tips.showLeftArrowHint.default,
       showRightArrowHint: playbackSchema.priv.tips.showRightArrowHint.default,
@@ -111,7 +108,7 @@ const playbackSettings = {
 // ************************************************************************************************
 
 const siteSchema = {
-  version: { description: '', type: INTEGER, values: [1, 999999], default: 7, valueStrings: [] },
+  version: { description: '', type: INTEGER, values: [1, 999999], default: 8, valueStrings: [] },
   user: {
     theme:             { description: 'Theme',                                    type: STRING,  values: ['light', 'dark', 'auto'],             default: 'auto',     valueStrings: ['Light', 'Dark', 'Auto / System']         },
     trackLayout:       { description: 'Track Layout',                             type: STRING,  values: ['list', '2-column', '3-column'],      default: '3-column', valueStrings: ['List', '2 Column', '3 / 4 Column']       },
@@ -119,7 +116,6 @@ const siteSchema = {
     keyboardShortcuts: { description: 'Keyboard Shortcuts',                       type: BOOLEAN, values: [true, false],                         default: true,       valueStrings: ['ON', 'OFF']                              },
   },
   priv: {
-    storageChangeSync: { description: '', type: BOOLEAN, values: [true, false], default: false, valueStrings: [] },
     banners: {
       showFrontpageIntro: { description: '', type: BOOLEAN, values: [true, false], default: true, valueStrings: [] },
       showPremiumIntro:   { description: '', type: BOOLEAN, values: [true, false], default: true, valueStrings: [] },
@@ -137,7 +133,6 @@ const siteSettings = {
     keyboardShortcuts: siteSchema.user.keyboardShortcuts.default,
   },
   priv: {
-    storageChangeSync: siteSchema.priv.storageChangeSync.default,
     banners: {
       showFrontpageIntro: siteSchema.priv.banners.showFrontpageIntro.default,
       showPremiumIntro:   siteSchema.priv.banners.showPremiumIntro.default,

@@ -4,7 +4,7 @@ Theme URI:    https://github.com/ultrafunk/ultrafunk.com
 Author:       Ultrafunk
 Author URI:   https://ultrafunk.com
 Description:  ultrafunk.com WordPress theme
-Version:      1.17.5
+Version:      1.17.6
 Tested up to: 5.5
 Requires PHP: 7.4
 License:      Apache License 2.0
@@ -52,8 +52,7 @@ Tags:         entertainment, portfolio, grid-layout, one-column, two-columns, th
 ***************************************************************************************************/
 
 .site-theme-light {
-  --body-background-focus: #fff;
-  --body-background-blurred: #ddd;
+  --body-background-color: #fff;
   --branding-logo-filter: unset;
 
   --primary-font-color: #111;
@@ -103,8 +102,7 @@ Tags:         entertainment, portfolio, grid-layout, one-column, two-columns, th
 ***************************************************************************************************/
 
 .site-theme-dark {
-  --body-background-focus: #222;
-  --body-background-blurred: #000;
+  --body-background-color: #222;
   --branding-logo-filter: invert(100%) brightness(200%);
 
   --primary-font-color: #efefef;
@@ -159,14 +157,10 @@ body {
   font-size: 25px;
   font-weight: 300;
   line-height: 35px;
-  background: var(--body-background-focus);
+  background: var(--body-background-color);
   margin: 0;
   padding: 0;
   transition: background 250ms ease-in-out, color 125ms ease;
-}
-
-body.blurred {
-  background: var(--body-background-blurred);
 }
 
 
@@ -1735,8 +1729,8 @@ body.no-playback .sticky-nav-up .site-header-container {
   }
 
   .nav-menu-inner {
-    margin-top: 15px;
-    margin-bottom: 10px;
+    margin-top: 10px;
+    margin-bottom: 6px;
   }
 
   #menu-primary-menu li {

@@ -128,9 +128,12 @@ function restoreState()
 function playShuffleButtonClick(event, destUrl)
 {
   event.preventDefault();
-
   saveState();
-  sessionStorage.setItem(KEY.UF_AUTOPLAY, 'true'); //ToDo: Create a playbackSetting for this? Or use SHIFT + click to skip autoplay
+
+  // ToDo: Create a playbackSetting for this? Or use SHIFT + click to skip autoplay
+  if (event.shiftKey === false)
+    sessionStorage.setItem(KEY.UF_AUTOPLAY, 'true');
+  
   window.location.href = destUrl;
 }
 

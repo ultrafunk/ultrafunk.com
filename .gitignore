@@ -2,4 +2,5 @@
 .vscode/
 .VSCodeCounter/
 /img/
+misc/
 node_modules/

@@ -69,8 +69,6 @@ document.addEventListener(mConfig.settingsUpdatedEvent, () =>
 
 document.addEventListener(mConfig.fullscreenTrackEvent, (event) => mElements.fullscreenTarget = event.fullscreenTarget);
 
-//window.addEventListener('storage', windowEventStorage);
-
 
 // ************************************************************************************************
 // Read settings and index init
@@ -210,31 +208,6 @@ function arrowKeyNav(destUrl)
 // ************************************************************************************************
 // Misc. support functions
 // ************************************************************************************************
-
-/*
-function windowEventStorage(event)
-{
-  if (mSettings.priv.storageChangeSync)
-  {
-    const oldSettings = storage.parseEventData(event, storage.KEY.UF_SITE_SETTINGS);
-
-    if (oldSettings !== null)
-    {
-      debug.log(`windowEventStorage(): ${event.key}`);
-  
-      // Stored settings have changed, read updated settings from storage
-      readSettings();
-  
-      // Check what has changed (old settings vs. new settings) and update data / UI where needed
-      if (mSettings.user.theme !== oldSettings.user.theme)
-        interaction.siteTheme.setCurrent();
-  
-      if (mSettings.user.trackLayout !== oldSettings.user.trackLayout)
-        interaction.trackLayout.setCurrent();
-    }
-  }
-}
-*/
 
 function showIntroBanner()
 {
@@ -405,28 +378,7 @@ const navSearch = (() =>
 
   function toggle()
   {
-    if (elements.searchContainer.style.display.length === 0)
-    {
-      // Has no visible site header at all, bail out...
-      if (mElements.siteHeader.offsetHeight === 0)
-        return;
-
-      // Is mobile with no visible nav bar, bail out...
-      if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
-      {
-        if ((mElements.siteHeader.querySelector('.nav-bar-container-mobile-top').offsetHeight === 0) &&
-            (mElements.siteHeader.querySelector('.nav-bar-container-mobile-up').offsetHeight  === 0))
-        {
-          return;
-        }
-      }
-
-      show();
-    }
-    else
-    {
-      hide();
-    }
+    hasVisibleSearchContainer() ? show() : hide();
   }
   
   function hide()
@@ -435,6 +387,30 @@ const navSearch = (() =>
       setProps(false, allowKeyboardShortcutsEvent, '', 'search');
   }
   
+  function hasVisibleSearchContainer()
+  {
+    if (elements.searchContainer.style.display.length === 0)
+    {
+      // Has no visible site header at all, bail out...
+      if (mElements.siteHeader.offsetHeight === 0)
+        return false;
+
+      // Is mobile with no visible nav-bar, bail out...
+      if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
+      {
+        if ((mElements.siteHeader.querySelector('.nav-bar-container-mobile-top').offsetHeight === 0) &&
+            (mElements.siteHeader.querySelector('.nav-bar-container-mobile-up').offsetHeight  === 0))
+        {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    return false;
+  }
+
   function show()
   {
     setPosSize();
@@ -451,11 +427,11 @@ const navSearch = (() =>
     document.querySelectorAll('div.nav-search-toggle i').forEach(element => element.textContent = icon);
     isVisible ? document.getElementById('playback-controls').classList.add('hide') : document.getElementById('playback-controls').classList.remove('hide');
   }
-  
+
   function setPosSize()
   {
-    const position = DOMRect;
-  
+    let position = {};
+
     if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
     {
       if (elements.brandingContainer.offsetHeight !== 0)
@@ -463,36 +439,25 @@ const navSearch = (() =>
       else
         position.top = mElements.siteHeader.querySelector('.nav-bar-container-mobile-up').offsetTop;
 
-      position.top   += 3;
-      position.left   = 63;
-      position.right  = document.body.clientWidth - 63;
-      position.height = 30;
+      position = new DOMRect(63, (position.top + 3), (document.body.clientWidth - 63), 30);
     }
     else
     {
       if (elements.brandingContainer.offsetHeight !== 0)
       {
-        const clientRect = elements.brandingContainer.getBoundingClientRect();
-
-        position.top    = clientRect.top + 10;
-        position.left   = clientRect.left;
-        position.right  = clientRect.right;
-        position.height = clientRect.height - 20;
+        const rect = elements.brandingContainer.getBoundingClientRect();
+        position   = new DOMRect(rect.left, (rect.top + 10), rect.right, (rect.height - 20));
       }
       else
       {
-        const clientRect = mElements.siteHeader.querySelector('.nav-bar-container').getBoundingClientRect();
-        
-        position.top    = clientRect.top    + 2;
-        position.left   = clientRect.left   + 105;
-        position.right  = clientRect.right  - 105;
-        position.height = clientRect.height - 4;
+        const rect = mElements.siteHeader.querySelector('.nav-bar-container').getBoundingClientRect();
+        position   = new DOMRect((rect.left + 105), (rect.top + 2), (rect.right - 105), (rect.height - 4));
       }
     }
   
-    elements.searchContainer.style.top    = `${position.top}px`;
     elements.searchContainer.style.left   = `${position.left}px`;
-    elements.searchContainer.style.width  = `${position.right - position.left}px`;
+    elements.searchContainer.style.top    = `${position.top}px`;
+    elements.searchContainer.style.width  = `${position.width - position.left}px`;
     elements.searchContainer.style.height = `${position.height}px`;
   }
 })();

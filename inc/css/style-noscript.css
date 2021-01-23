@@ -18,8 +18,7 @@
   --button-border-radius: 6px;
   --dialog-border-radius: 10px;
 
-  --body-background-focus: #fff;
-  --body-background-blurred: #ddd;
+  --body-background-color: #fff;
   --branding-logo-filter: unset;
 
   --primary-font-color: #111;

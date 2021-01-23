@@ -11,8 +11,8 @@
     <?php \Ultrafunk\ThemeTags\entry_title(); ?>
     <div class="entry-meta">
       <?php
-      echo '<div class="entry-meta-channels"><b><a href="/channels/">Channels:</a></b> ' . get_the_category_list(', ') . '</div>';
-      echo get_the_tag_list('<div class="entry-meta-artists"><b><a href="/artists/">Artists:</a></b> ', ', ', '</div>');
+      echo '<div class="entry-meta-channels"><b><a href="/channels/" title="Show All Channels">Channels:</a></b> ' . get_the_category_list(', ') . '</div>';
+      echo get_the_tag_list('<div class="entry-meta-artists"><b><a href="/artists/" title="Show All Artists">Artists:</a></b> ', ', ', '</div>');
       \Ultrafunk\ThemeTags\meta_controls();
       ?>
     </div>

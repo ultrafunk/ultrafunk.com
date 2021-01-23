@@ -72,9 +72,7 @@ document.addEventListener('webkitfullscreenchange', documentEventFullscreenChang
 document.addEventListener(mConfig.allowKeyboardShortcutsEvent, () => { if (mSettings.user.keyboardShortcuts) useKeyboardShortcuts = true;  });
 document.addEventListener(mConfig.denyKeyboardShortcutsEvent,  () => { if (mSettings.user.keyboardShortcuts) useKeyboardShortcuts = false; });
 
-window.addEventListener('blur',    windowEventBlur);
-//window.addEventListener('storage', windowEventStorage);
-//window.addEventListener('focus',   windowEventFocus);
+window.addEventListener('blur', windowEventBlur);
  
 
 // ************************************************************************************************
@@ -319,45 +317,8 @@ function windowEventBlur()
           document.activeElement.blur();
       }, 250);
     }
-    else // normal window blur (lost focus)
-    {
-      /*
-      if ((mSettings.user.autoplay === false) && mSettings.user.blurFocusBgChange)
-        document.body.classList.add('blurred');
-      */
-    }
   }, 0);
 }
-
-/*
-function windowEventFocus()
-{
-  if ((mSettings.user.autoplay === false) && mSettings.user.blurFocusBgChange)
-    document.body.classList.remove('blurred');
-}
-*/
-
-/*
-function windowEventStorage(event)
-{
-  if (mSettings.priv.storageChangeSync)
-  {
-    const oldSettings = parseEventData(event, KEY.UF_PLAYBACK_SETTINGS);
-
-    if (oldSettings !== null)
-    {
-      debug.log(`windowEventStorage(): ${event.key}`);
-  
-      // Stored settings have changed, read updated settings from storage
-      readSettings();
-  
-      // Check what has changed (old settings vs. new settings) and update data / UI where needed
-      if (settings.user.autoplay !== oldSettings.user.autoplay)
-        updateAutoplayData(settings.user.autoplay);
-    }
-  }
-}
-*/
 
 function documentEventFullscreenChange()
 {
@@ -408,9 +369,9 @@ function playbackDetailsClick(event)
   eventLog.add(eventLogger.SOURCE.MOUSE, eventLogger.EVENT.MOUSE_CLICK, null);
 
   if (event.target.tagName.toLowerCase() === 'img')
-    showInteractionHint('showTrackImageHint', '<b>Tip:</b> Double click or double tap on the Track Thumbnail for full screen');
+    showInteractionHint('showTrackImageHint', '<b>Tip:</b> Double click or tap on the Track Thumbnail for full screen');
   else
-    showInteractionHint('showDetailsHint', '<b>Tip:</b> Double click or double tap on Artist &amp; Title for full screen');
+    showInteractionHint('showDetailsHint', '<b>Tip:</b> Double click or tap on Artist &amp; Title for full screen');
 
   if (eventLog.doubleClicked(eventLogger.SOURCE.MOUSE, eventLogger.EVENT.MOUSE_CLICK, mConfig.doubleClickDelay))
     enterFullscreenTrack();
@@ -462,22 +423,9 @@ function autoplayToggle(event)
 function updateAutoplayDOM(autoplay)
 {
   debug.log(`updateAutoplayDOM() - autoplay: ${autoplay}`);
-
   mElements.autoplayToggle.querySelector('.autoplay-on-off').textContent = autoplay ? 'ON' : 'OFF';
   autoplay ? utils.replaceClass(document.body, 'autoplay-off', 'autoplay-on') : utils.replaceClass(document.body, 'autoplay-on', 'autoplay-off');
   autoplay ? mElements.crossfadeToggle.classList.remove('disabled')           : mElements.crossfadeToggle.classList.add('disabled');
-
-  /*
-  if (autoplay)
-  {
-    document.body.classList.remove('blurred');
-  }
-  else
-  {
-    if ((document.hasFocus() === false) && mSettings.user.blurFocusBgChange)
-      document.body.classList.add('blurred');
-  }
-  */
 }
 
 

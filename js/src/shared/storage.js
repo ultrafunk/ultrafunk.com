@@ -26,7 +26,6 @@ export {
   writeJson,
   readWriteSettingsProxy,
   addSettingsObserver,
-//parseEventData,
 };
 
 
@@ -388,29 +387,3 @@ function callSettingsObservers(property, oldValue, newValue)
     observers[property].forEach((observer) => observer(oldValue, newValue));
   }
 }
-
-
-// ************************************************************************************************
-// Helper for windowEventStorage
-// ************************************************************************************************
-
-/*
-function parseEventData(event, keyName)
-{
-  let oldData = null;
-
-  if (event.key === keyName)
-  {
-    try 
-    {
-      oldData = JSON.parse(event.oldValue);
-    }
-    catch(exception)
-    {
-      debug.error(exception);
-    }
-  }
-
-  return oldData;
-}
-*/
