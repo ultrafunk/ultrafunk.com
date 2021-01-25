@@ -199,10 +199,10 @@ function fetchDataUpdateDOM(termlistEntry, termlistBody)
   });
 }
 
-function getThumbnailUrl(contentHtml)
+function getThumbnail(contentHtml)
 {
   if (contentHtml.includes('id="soundcloud-uid'))
-    return '/wp-content/themes/ultrafunk/inc/img/soundcloud_icon.png';
+    return { src: '/wp-content/themes/ultrafunk/inc/img/soundcloud_icon.png', class: 'type-soundcloud' };
   else
     return getYouTubeImgUrl(contentHtml.match(iframeSrcRegEx));
 }
@@ -210,16 +210,18 @@ function getThumbnailUrl(contentHtml)
 function insertThumbnailListHtml(header, termData, destElement)
 {
   const artistTitle = {};
-  let html = `<b>${header}</b>`;
+  let thumbnail     = {};
+  let html          = `<b>${header}</b>`;
 
   termData.forEach(item =>
   {
     setArtistTitle(item.title.rendered, artistTitle, artistTitleRegEx);
+    thumbnail = getThumbnail(item.content.rendered);
 
     html += `
     <div class="track">
-      <div class="thumbnail" data-track-url="${item.link}" title="Play Track">
-        <img src="${getThumbnailUrl(item.content.rendered)}">
+      <div class="thumbnail ${thumbnail.class}" data-track-url="${item.link}" title="Play Track">
+        <img src="${thumbnail.src}">
         <div class="thumbnail-overlay"><span class="material-icons">play_arrow</span></div>
       </div>
       <div class="artist-title text-nowrap-ellipsis">

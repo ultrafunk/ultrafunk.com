@@ -135,9 +135,13 @@ body.autoplay-off #progress-controls .bar-control {
 
 #playback-controls .thumbnail-control img {
   width: 50px;
+  height: 50px;
+  object-fit: cover;
+}
+
+#playback-controls .thumbnail-control.type-youtube img {
   height: 68px;
   margin-top: -9px;
-  object-fit: cover;
 }
 
 #playback-controls .timer-control {
@@ -420,6 +424,10 @@ body.autoplay-off .playing-animate::before {
 
   #playback-controls .thumbnail-control img {
     width: 40px;
+    height: 40px;
+  }
+
+  #playback-controls .thumbnail-control.type-youtube img {
     height: 54px;
     margin-top: -7px;
   }

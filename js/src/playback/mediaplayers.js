@@ -25,6 +25,8 @@ const debug = debugLogger.newInstance('mediaplayers');
 
 // Used to split details string into Artist and Title strings
 const artistTitleRegEx = /\s{1,}[–·-]\s{1,}/i;
+// Default / fallback track thumbnail image URL
+const defThumbnailSrc = '/wp-content/themes/ultrafunk/inc/img/photo_filled_grey.png';
 
 
 // ************************************************************************************************
@@ -45,6 +47,7 @@ class MediaPlayer
     this.title    = null;
 
     this.thumbnailSrc       = null;
+    this.thumbnailClass     = 'type-default';
     this.thumbnail          = new Image();
     this.thumbnail.decoding = 'async';
   }
@@ -67,14 +70,16 @@ class MediaPlayer
   setTitle(title)       { this.title = title;                    }
 
   getThumbnailSrc()     { return this.thumbnailSrc;              }
+  getThumbnailClass()   { return this.thumbnailClass;            }
 
   seekTo(position)      { this.embeddedPlayer.seekTo(position);  }
   setVolume(volume)     { this.embeddedPlayer.setVolume(volume); }
 
-  setThumbnail(thumbnailSrc)
+  setThumbnail(thumbnail)
   {
-    this.thumbnailSrc  = thumbnailSrc;
-    this.thumbnail.src = thumbnailSrc;
+    this.thumbnailSrc   = thumbnail.src;
+    this.thumbnailClass = thumbnail.class;
+    this.thumbnail.src  = thumbnail.src;
   }
 }
 
@@ -190,13 +195,7 @@ class SoundCloud extends MediaPlayer
 
   setThumbnail()
   {
-    this.embeddedPlayer.getCurrentSound(soundObject =>
-    {
-      const thumbnailUrl = (soundObject.artwork_url !== null) ? soundObject.artwork_url : soundObject.user.avatar_url;
-
-      if ((thumbnailUrl !== null) && (thumbnailUrl !== undefined))
-        super.setThumbnail(thumbnailUrl);
-    });
+    this.embeddedPlayer.getCurrentSound(soundObject => super.setThumbnail(getSoundCloudImgUrl(soundObject)));
   }
 
   // Override parent getUid() because SoundCloud provides its own UID
@@ -287,20 +286,25 @@ function setArtistTitle(artistTitle, destination, matchRegEx = artistTitleRegEx)
   }
 }
 
-function getYouTubeImgUrl(iframeSrc, fallbackUrl = '/wp-content/themes/ultrafunk/inc/img/photo_filled_grey.png')
+function getYouTubeImgUrl(iframeSrc, defaultSrc = defThumbnailSrc)
 {
   const iframeSrcParts = new URL(decodeURIComponent(iframeSrc));
   const pathnameParts  = iframeSrcParts.pathname.split('/embed/');
 
   if ((pathnameParts.length === 2) && (pathnameParts[1].length === 11))
-  {
-    return `https://img.youtube.com/vi/${pathnameParts[1]}/default.jpg`;
-  }
+    return { src: `https://img.youtube.com/vi/${pathnameParts[1]}/default.jpg`, class: 'type-youtube' };
   else
-  {
-    debug.warn('getYouTubeImgUrl() failed for: ' + iframeSrc);
-    return fallbackUrl;
-  }
+    return { src: defaultSrc, class: 'type-default' };
+}
+
+function getSoundCloudImgUrl(soundObject, defaultSrc = defThumbnailSrc)
+{
+  const thumbnailSrc = (soundObject.artwork_url !== null) ? soundObject.artwork_url : soundObject.user.avatar_url;
+
+  if ((thumbnailSrc !== null) && (thumbnailSrc !== undefined))
+    return { src: thumbnailSrc, class: 'type-soundcloud' };
+  else
+    return { src: defaultSrc, class: 'type-default' };
 }
 
 
@@ -383,7 +387,7 @@ const getInstance = (() =>
       numTracks:    this.getNumTracks(),
       artist:       this.current.getArtist(),
       title:        this.current.getTitle(),
-      thumbnailSrc: this.current.getThumbnailSrc(),
+      thumbnail:    { src: this.current.getThumbnailSrc(), class: this.current.getThumbnailClass() },
     };
   }
 

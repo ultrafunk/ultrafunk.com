@@ -211,9 +211,13 @@
 
 .body-left .thumbnail img {
   width: 36px;
+  height: 36px;
+  object-fit: cover;
+}
+
+.body-left .thumbnail.type-youtube img {
   height: 48px;
   margin-top: -6px;
-  object-fit: cover;
 }
 
 .body-left .thumbnail-overlay {

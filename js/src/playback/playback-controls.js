@@ -235,17 +235,19 @@ function setDetails(playbackStatus)
 {
   controls.details.artistElement.textContent = playbackStatus.artist || ''; // Artist will contain the post title if all else fails
   controls.details.titleElement.textContent  = playbackStatus.title  || '';
-  setThumbnail(playbackStatus.thumbnailSrc);
+  setThumbnail(playbackStatus.thumbnail);
   setTimer(-1, -1);
 }
 
-function setThumbnail(thumbnailSrc)
+function setThumbnail(thumbnail)
 {
-  if (thumbnailSrc !== controls.thumbnail.img.src)
+  // Don't set thumbnail again if the image source / URL is unchanged
+  if (thumbnail.src !== controls.thumbnail.img.src)
   {
-    controls.thumbnail.element.classList.add('loading');
-    controls.thumbnail.img.src = thumbnailSrc;
-    controls.thumbnail.img.decode().then(() => { controls.thumbnail.element.classList.remove('loading'); });
+    controls.thumbnail.element.classList.remove('type-default', 'type-youtube', 'type-soundcloud');
+    controls.thumbnail.element.classList.add('loading', thumbnail.class);
+    controls.thumbnail.img.src = thumbnail.src;
+    controls.thumbnail.img.decode().then(() => controls.thumbnail.element.classList.remove('loading'));
   }
 }
 

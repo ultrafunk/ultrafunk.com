@@ -368,6 +368,21 @@ function content_pagination()
   echo $title_pagination;
 }
 
+/*
+function track_classes()
+{
+  global $wp_query;
+  $embed_class = [];
+  
+  if (stripos($wp_query->post->post_content,'youtube.com/') !== false)
+    $embed_class[] = 'embed-youtube';
+  else if (stripos($wp_query->post->post_content,'soundcloud.com/') !== false)
+    $embed_class[] = 'embed-soundcloud';
+
+  post_class($embed_class);  
+}
+*/
+
 function entry_title()
 {
   if (is_singular())
