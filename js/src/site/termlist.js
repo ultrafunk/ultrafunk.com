@@ -6,6 +6,7 @@
 
 
 import * as debugLogger from '../shared/debuglogger.js';
+import * as termRest    from './term-rest.js';
 import { KEY }          from '../shared/storage.js';
 import { shareModal }   from './interaction.js';
 import { replaceClass } from '../shared/utils.js';
@@ -14,15 +15,6 @@ import {
   setArtistTitle,
   getYouTubeImgUrl,
 } from '../playback/mediaplayers.js';
-
-import {
-  fetchTermPosts,
-  fetchTermMeta,
-  readTermCache,
-  writeTermCache,
-  hasTermCache,
-  deleteTermCache,
-} from './term-rest.js';
 
 
 export {
@@ -77,7 +69,7 @@ function init()
 
 function saveState()
 {
-  if (hasTermCache())
+  if (termRest.hasCache())
   {
     const termListState = {
       pageUrl:     window.location.href,
@@ -92,13 +84,13 @@ function saveState()
     });
     
     sessionStorage.setItem(KEY.UF_TERMLIST_STATE, JSON.stringify(termListState));
-    writeTermCache();
+    termRest.writeCache();
   }
 }
 
 function restoreState()
 {
-  readTermCache();
+  termRest.readCache();
   
   if (performance.navigation.type !== performance.navigation.TYPE_RELOAD)
   {
@@ -117,7 +109,7 @@ function restoreState()
   }
 
   sessionStorage.removeItem(KEY.UF_TERMLIST_STATE);
-  deleteTermCache();
+  termRest.deleteCache();
 }
 
 
@@ -173,7 +165,7 @@ function fetchDataUpdateDOM(termlistEntry, termlistBody)
   const termId        = parseInt(termlistEntry.getAttribute('data-term-id'));
   const isAllChannels = (termType === 'categories');
 
-  fetchTermPosts(termType, termId, (isAllChannels ? 10 : 50), (termData) => 
+  termRest.fetchPosts(termType, termId, (isAllChannels ? 10 : 50), (termData) => 
   {
     let header  = isAllChannels ? 'Latest Tracks' : 'All Tracks';
     let element = termlistBody.querySelector('.body-left');
@@ -185,7 +177,7 @@ function fetchDataUpdateDOM(termlistEntry, termlistBody)
 
     if (!isAllChannels && (termData !== null))
     {
-      fetchTermMeta(termData, termId, 50, (metaType, metadata) =>
+      termRest.fetchMeta(termData, termId, 50, (metaType, metadata) =>
       {
         header  = (metaType === 'tags') ? 'Related Artists' : 'In Channels';
         element = (metaType === 'tags') ? termlistBody.querySelector('.artists') : termlistBody.querySelector('.channels');

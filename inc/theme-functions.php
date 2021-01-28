@@ -188,6 +188,7 @@ function customize_title($title)
 }
 add_filter('document_title_parts', '\Ultrafunk\ThemeFunctions\customize_title');
 
+/*
 //
 // Use webfonts loader for async CSS
 //
@@ -204,6 +205,7 @@ function webfonts_script()
   <?php
 }
 add_action('wp_body_open', '\Ultrafunk\ThemeFunctions\webfonts_script');
+*/
 
 //
 // Add uniqid and other custom options for SoundCloud and YouTube iframe embeds

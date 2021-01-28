@@ -69,9 +69,8 @@ function pre_wp_head()
       document.documentElement.classList.add(trackLayoutClass);
     }
   </script>
-  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-  <link rel="preconnect" href="https://s.ytimg.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
   <?php
 
   global $ultrafunk_is_prod_build, $ultrafunk_js_preload_chunk;
@@ -177,9 +176,9 @@ function header_playback_controls()
 {
   ?>
   <div id="playback-controls">
-    <div class="details-control state-disabled" title="Current track"><span class="details-artist"></span><br><span class="details-title"></span></div>
-    <div class="thumbnail-control state-disabled" title="Current track thumbnail"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/inc/img/thumbnail_placeholder.png" alt=""></div>
-    <div class="timer-control state-disabled" title="Track position &amp; duration"><span class="timer-position"></span><br><span class="timer-duration"></span></div>
+    <div class="details-control state-disabled" title="Single: Show current track&#010;Double: Toggle Fullscreen (f)"><span class="details-artist"></span><br><span class="details-title"></span></div>
+    <div class="thumbnail-control state-disabled" title="Single: Show current track&#010;Double: Toggle Fullscreen (f)"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/inc/img/thumbnail_placeholder.png" alt=""></div>
+    <div class="timer-control state-disabled" title="Single: Toggle Autoplay (shift + a)"><span class="timer-position"></span><br><span class="timer-duration"></span></div>
     <div class="prev-control state-disabled" title="Previous track / seek (arrow left)"><i class="material-icons">skip_previous</i></div>
     <div class="play-pause-control state-disabled" title="Play / Pause (space)"><i class="material-icons">play_circle_filled</i></div>
     <div class="next-control state-disabled" title="Next track (arrow right)"><i class="material-icons">skip_next</i></div>

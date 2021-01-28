@@ -10,12 +10,12 @@ import { KEY }          from '../shared/storage.js';
 
 
 export {
-  fetchTermPosts,
-  fetchTermMeta,
-  readTermCache,
-  writeTermCache,
-  deleteTermCache,
-  hasTermCache,
+  fetchPosts,
+  fetchMeta,
+  readCache,
+  writeCache,
+  deleteCache,
+  hasCache,
 };
 
 
@@ -30,7 +30,7 @@ let termCache = {};
 // Fetch tracks (posts) for a given termType with termId (taxonomy: category or tag)
 // ************************************************************************************************
 
-function fetchTermPosts(termType, termId, maxItems, callback)
+function fetchPosts(termType, termId, maxItems, callback)
 { 
   if (termId in termCache)
   {
@@ -38,7 +38,7 @@ function fetchTermPosts(termType, termId, maxItems, callback)
   }
   else
   {
-    debug.log(`fetchTermPosts() - termType: ${termType} - termId: ${termId} - maxItems: ${maxItems}`);
+    debug.log(`fetchPosts() - termType: ${termType} - termId: ${termId} - maxItems: ${maxItems}`);
 
     fetch(`/wp-json/wp/v2/posts?${termType}=${termId}&per_page=${maxItems}&_fields=title,link,content,tags,categories`)
     .then(response => 
@@ -55,6 +55,11 @@ function fetchTermPosts(termType, termId, maxItems, callback)
     {
       termCache[termId] = { posts: data };
       callback(data);
+    })
+    .catch(reason =>
+    {
+      debug.warn(reason);
+      callback(null);
     });
   }
 }
@@ -64,7 +69,7 @@ function fetchTermPosts(termType, termId, maxItems, callback)
 // Merge then fetch metadata for a given termType with termIds (taxonomy: category or tag)
 // ************************************************************************************************
 
-function fetchTermMeta(termData, termId, maxItems, callback)
+function fetchMeta(termData, termId, maxItems, callback)
 {
   if (('categories' in termCache[termId]) && ('tags' in termCache[termId]))
   {
@@ -110,6 +115,11 @@ function fetchMetadata(termType, termId, termIds, maxItems, callback)
     {
       termCache[termId][termType] = data;
       callback(termType, data);
+    })
+    .catch(reason =>
+    {
+      debug.warn(reason);
+      callback(null);
     });
   }
   else
@@ -124,7 +134,7 @@ function fetchMetadata(termType, termId, termIds, maxItems, callback)
 // Term cache functions
 // ************************************************************************************************
 
-function readTermCache()
+function readCache()
 {
   termCache = JSON.parse(sessionStorage.getItem(KEY.UF_TERMLIST_CACHE));
   
@@ -132,17 +142,17 @@ function readTermCache()
     termCache = {};
 }
 
-function writeTermCache()
+function writeCache()
 {
   sessionStorage.setItem(KEY.UF_TERMLIST_CACHE, JSON.stringify(termCache));
 }
 
-function deleteTermCache()
+function deleteCache()
 {
   sessionStorage.removeItem(KEY.UF_TERMLIST_CACHE);
 }
 
-function hasTermCache()
+function hasCache()
 {
   return (Object.keys(termCache).length > 0);
 }

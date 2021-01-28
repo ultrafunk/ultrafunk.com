@@ -93,6 +93,7 @@ function ultrafunk_scripts()
   global $ultrafunk_is_prod_build;
   $version = \Ultrafunk\Globals\get_version();
 
+  wp_enqueue_style('google-fonts-roboto', 'https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;700&display=swap', array(), null);
   wp_enqueue_style('google-fonts-material-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons&display=block', array(), null);
   wp_enqueue_script('soundcloud-api-script', 'https://w.soundcloud.com/player/api.js', array(), null);
 
