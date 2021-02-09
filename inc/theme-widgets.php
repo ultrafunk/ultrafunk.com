@@ -79,4 +79,3 @@ add_action('widgets_init', function()
   register_widget('UF_Widget_Taxonomies');
 });
 
-?>

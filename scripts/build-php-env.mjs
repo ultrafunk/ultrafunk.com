@@ -51,7 +51,6 @@ if ((newestChunk !== undefined) && (process.argv.length === 3)) // eslint-disabl
 $ultrafunk_is_prod_build    = ${isProdBuild};
 $ultrafunk_js_preload_chunk = '/js/dist/${newestChunk['file']}';
 
-?>
 `;
 
   writeFile('./inc/build-env.php', template, (error) =>

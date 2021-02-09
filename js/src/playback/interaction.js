@@ -98,10 +98,10 @@ function initInteraction()
   mElements.crossfadeToggle            = document.getElementById(mConfig.crossfadeToggleId);
 
   /* eslint-disable */
-  utils.addEventListeners('i.nav-bar-arrow-back',                'click', paginationNavClick, navigationVars.prevUrl);
-  utils.addEventListeners('i.nav-bar-arrow-fwd',                 'click', paginationNavClick, navigationVars.nextUrl);
-  utils.addEventListeners('nav.post-navigation .nav-previous a', 'click', paginationNavClick, navigationVars.prevUrl);
-  utils.addEventListeners('nav.post-navigation .nav-next a',     'click', paginationNavClick, navigationVars.nextUrl);
+  utils.addEventListeners('i.nav-bar-arrow-back',                'click', paginationNavClick, navigationUrls.prev);
+  utils.addEventListeners('i.nav-bar-arrow-fwd',                 'click', paginationNavClick, navigationUrls.next);
+  utils.addEventListeners('nav.post-navigation .nav-previous a', 'click', paginationNavClick, navigationUrls.prev);
+  utils.addEventListeners('nav.post-navigation .nav-next a',     'click', paginationNavClick, navigationUrls.next);
   /* eslint-enable */
 }
 
@@ -188,13 +188,13 @@ function arrowLeftKey(event)
 
   if (event.shiftKey === true)
   {
-    paginationNavClick(event, navigationVars.prevUrl); // eslint-disable-line no-undef
+    paginationNavClick(event, navigationUrls.prev); // eslint-disable-line no-undef
   }
   else
   {
     eventLog.add(eventLogger.SOURCE.KEYBOARD, eventLogger.EVENT.KEY_ARROW_LEFT, null);
 
-    if (!doubleTapNavPrev(navigationVars.prevUrl, playback.getStatus())) // eslint-disable-line no-undef
+    if (!doubleTapNavPrev(navigationUrls.prev, playback.getStatus())) // eslint-disable-line no-undef
       playback.prevClick(event);
   }
 }
@@ -224,13 +224,13 @@ function arrowRightKey(event)
 
   if (event.shiftKey === true)
   {
-    paginationNavClick(event, navigationVars.nextUrl); // eslint-disable-line no-undef
+    paginationNavClick(event, navigationUrls.next); // eslint-disable-line no-undef
   }
   else
   {
     eventLog.add(eventLogger.SOURCE.KEYBOARD, eventLogger.EVENT.KEY_ARROW_RIGHT, null);
 
-    if (!doubleTapNavNext(navigationVars.nextUrl, playback.getStatus())) // eslint-disable-line no-undef
+    if (!doubleTapNavNext(navigationUrls.next, playback.getStatus())) // eslint-disable-line no-undef
       playback.nextClick(event);
   }
 }

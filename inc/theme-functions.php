@@ -9,14 +9,14 @@ namespace Ultrafunk\ThemeFunctions;
 
 
 use SimpleXMLElement;
-use function Ultrafunk\Request\ { get_term_field_by_slug };
+use function Ultrafunk\RequestShared\request_get_prev_next_urls;
 use function Ultrafunk\Globals\ {
   console_log,
   is_shuffle,
-  get_shuffle_params,
+  is_termlist,
+  get_request_params,
   get_cached_title,
   set_cached_title,
-  set_is_paged_404,
   get_dev_prod_const,
 };
 
@@ -32,7 +32,10 @@ function get_prev_next_urls()
   // Return empty Array because get_next_posts_link() returns results even when a 404 happens
   if (is_404())
     return array();
-  
+
+  if (is_termlist())
+    return request_get_prev_next_urls(get_request_params());
+
   if (is_single())
   {
     $prevPost = get_previous_post();
@@ -45,8 +48,8 @@ function get_prev_next_urls()
       $nextUrl = get_the_permalink($nextPost->ID);
     
     return array(
-      'prevUrl' => (isset($prevUrl) ? esc_url($prevUrl) : null),
-      'nextUrl' => (isset($nextUrl) ? esc_url($nextUrl) : null),
+      'prev' => (isset($prevUrl) ? esc_url($prevUrl) : null),
+      'next' => (isset($nextUrl) ? esc_url($nextUrl) : null),
     );
   }
   else
@@ -61,8 +64,8 @@ function get_prev_next_urls()
       $nextUrl = new SimpleXMLElement($nextLink);
     
     return array(
-      'prevUrl' => (isset($prevUrl) ? ((string) esc_url($prevUrl['href'])) : null),
-      'nextUrl' => (isset($nextUrl) ? ((string) esc_url($nextUrl['href'])) : null),
+      'prev' => (isset($prevUrl) ? ((string) esc_url($prevUrl['href'])) : null),
+      'next' => (isset($nextUrl) ? ((string) esc_url($nextUrl['href'])) : null),
     );
   }
 }
@@ -114,28 +117,17 @@ function set_posts_per_page($query)
 add_action('pre_get_posts', '\Ultrafunk\ThemeFunctions\set_posts_per_page', 1);
 
 //
-// Setup custom pagination for term-list pages
+// Get term field for slug
 //
-function set_page_pagination($found_posts, $query)
+function get_term_field_by_slug($slug, $taxonomy, $field)
 {
-  if (!is_admin() && $query->is_main_query())
-  {
-    if (is_page() && is_page(['artists', 'channels']))
-    {
-      $taxonomy   = ($query->query['pagename'] === 'artists') ? 'post_tag' : 'category';
-      $term_count = get_terms(array('taxonomy' => $taxonomy, 'fields' => 'count'));
-      
-      $query->max_num_pages = ($term_count > 30) ? ceil($term_count / 30) : 0;
-      $query->query_vars['posts_per_page'] = 30;
+  $term = get_term_by('slug', $slug, $taxonomy);
 
-      if (get_query_var('paged') > $query->max_num_pages)
-        set_is_paged_404();
-    }
-  }
+  if ($term !== false)
+    return $term->$field;
 
-  return $found_posts;
+  return null;
 }
-add_filter('found_posts', '\Ultrafunk\ThemeFunctions\set_page_pagination', 10, 2);
 
 //
 // Get current title from context
@@ -148,15 +140,21 @@ function get_title()
   if ($title !== null)
     return $title;
 
+  $params = get_request_params();
+
   if (!is_404() && is_shuffle())
   {
     $title = 'All Tracks';
 
-    if (get_shuffle_params()['type'] === 'artist')
-      $title = get_term_field_by_slug(get_shuffle_params()['slug'], 'post_tag', 'name');
+    if ($params['type'] === 'artist')
+      $title = get_term_field_by_slug($params['slug'], 'post_tag', 'name');
 
-    if (get_shuffle_params()['type'] === 'channel')
-      $title = get_term_field_by_slug(get_shuffle_params()['slug'], 'category', 'name');
+    if ($params['type'] === 'channel')
+      $title = get_term_field_by_slug($params['slug'], 'category', 'name');
+  }
+  else if (!is_404() && is_termlist())
+  {
+    $title = $params['is_artists'] ? ('Artists: ' . strtoupper($params['first_letter'])) : 'All Channels';
   }
   else
   {
@@ -183,29 +181,17 @@ function customize_title($title)
     $title['tagline'] = '';
     $title['site']    = esc_html(get_bloginfo('name'));
   }
+  else if (!is_404() && is_termlist())
+  {
+    if (get_request_params()['max_pages'] > 1)
+      $title['title'] = esc_html(get_title() . ' - Page ' . get_request_params()['current_page']);
+    else
+      $title['title'] = esc_html(get_title());
+  }
   
   return $title;
 }
 add_filter('document_title_parts', '\Ultrafunk\ThemeFunctions\customize_title');
-
-/*
-//
-// Use webfonts loader for async CSS
-//
-function webfonts_script()
-{
-  ?>
-  <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
-  <script>
-  WebFont.load({
-    google: { families: ['Roboto:100,300,400,700&display=swap'] },
-    classes: false, events: false,
-  });
-  </script>
-  <?php
-}
-add_action('wp_body_open', '\Ultrafunk\ThemeFunctions\webfonts_script');
-*/
 
 //
 // Add uniqid and other custom options for SoundCloud and YouTube iframe embeds
@@ -249,7 +235,7 @@ function get_shuffle_menu_item_url()
 
   if (is_shuffle())
   {
-    $request_url = '/shuffle/' . get_shuffle_params()['path'] . '/';
+    $request_url = '/shuffle/' . get_request_params()['path'] . '/';
   }
   else
   {
@@ -307,4 +293,3 @@ function setup_nav_menu_item($menu_item)
 }
 add_filter('wp_setup_nav_menu_item', '\Ultrafunk\ThemeFunctions\setup_nav_menu_item');
 
-?>

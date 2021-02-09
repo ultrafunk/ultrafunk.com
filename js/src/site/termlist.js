@@ -71,7 +71,7 @@ function saveState()
 {
   if (termRest.hasCache())
   {
-    const termListState = {
+    const termlistState = {
       pageUrl:     window.location.href,
       scrollPos:   Math.round(window.pageYOffset),
       openTermIds: [],
@@ -80,10 +80,10 @@ function saveState()
     document.querySelectorAll('.termlist-entry').forEach(element =>
     {
       if (element.classList.contains('open'))
-        termListState.openTermIds.push(element.id);
+        termlistState.openTermIds.push(element.id);
     });
     
-    sessionStorage.setItem(KEY.UF_TERMLIST_STATE, JSON.stringify(termListState));
+    sessionStorage.setItem(KEY.UF_TERMLIST_STATE, JSON.stringify(termlistState));
     termRest.writeCache();
   }
 }
@@ -94,13 +94,13 @@ function restoreState()
   
   if (performance.navigation.type !== performance.navigation.TYPE_RELOAD)
   {
-    const termListState = JSON.parse(sessionStorage.getItem(KEY.UF_TERMLIST_STATE));
+    const termlistState = JSON.parse(sessionStorage.getItem(KEY.UF_TERMLIST_STATE));
  
-    if ((termListState !== null) && (termListState.pageUrl === window.location.href))
+    if ((termlistState !== null) && (termlistState.pageUrl === window.location.href))
     {
       history.scrollRestoration = 'manual';
-      termListState.openTermIds.forEach(item => document.getElementById(item).querySelector('div.termlist-header').click());
-      window.scroll({ top: termListState.scrollPos, left: 0, behavior: 'auto' });
+      termlistState.openTermIds.forEach(item => document.getElementById(item).querySelector('div.termlist-header').click());
+      window.scroll({ top: termlistState.scrollPos, left: 0, behavior: 'auto' });
     }
     else
     {

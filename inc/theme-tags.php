@@ -10,10 +10,11 @@ namespace Ultrafunk\ThemeTags;
 
 use function Ultrafunk\Globals\ {
   console_log,
+  is_termlist,
   is_shuffle,
-  is_paged_404,
   get_dev_prod_const,
-  get_perf_data
+  get_perf_data,
+  get_request_params,
 };
 
 use function Ultrafunk\ThemeFunctions\ {
@@ -138,6 +139,9 @@ function body_attributes()
   if (is_page())
     $classes[] = 'page-' . $wp_query->query_vars['pagename'];
 
+  if (is_termlist() && !is_404())
+    $classes[] = 'termlist';
+
   if ($track_count === 0)
     $classes[] = 'no-playback';
   else if ($track_count === 1)
@@ -202,13 +206,13 @@ function get_nav_bar_arrows()
   
   if (array_filter($prev_next_urls))
   {
-    if (!empty($prev_next_urls['prevUrl']))
-      $nav_arrows['back'] = '<a href="' . $prev_next_urls['prevUrl'] . '" class="nav-bar-prev-link"><i class="material-icons nav-bar-arrow-back" title="Previous track / page (shift + arrow left)">arrow_backward</i></a>';
+    if (!empty($prev_next_urls['prev']))
+      $nav_arrows['back'] = '<a href="' . $prev_next_urls['prev'] . '" class="nav-bar-prev-link"><i class="material-icons nav-bar-arrow-back" title="Previous track / page (shift + arrow left)">arrow_backward</i></a>';
     else
       $nav_arrows['back'] = '<i class="material-icons nav-bar-arrow-back disbled">arrow_backward</i>';
 
-    if (!empty($prev_next_urls['nextUrl']))
-      $nav_arrows['fwd'] = '<a href="' . $prev_next_urls['nextUrl'] . '" class="nav-bar-next-link"><i class="material-icons nav-bar-arrow-fwd" title="Next track / page (shift + arrow right)">arrow_forward</i></a>';
+    if (!empty($prev_next_urls['next']))
+      $nav_arrows['fwd'] = '<a href="' . $prev_next_urls['next'] . '" class="nav-bar-next-link"><i class="material-icons nav-bar-arrow-fwd" title="Next track / page (shift + arrow right)">arrow_forward</i></a>';
     else
       $nav_arrows['fwd'] = '<i class="material-icons nav-bar-arrow-fwd disbled">arrow_forward</i>';
   }
@@ -256,12 +260,6 @@ function get_pagednum()
   return (get_query_var('paged') ? get_query_var('paged') : 1);
 }
 
-function is_paged_or_first()
-{
-  global $wp_query;
-  return ($wp_query->max_num_pages !== 0) || (is_paged());
-}
-
 function get_pagination($before = ' ( ', $separator = ' / ', $after = ' ) ')
 {
   global $wp_query;
@@ -300,24 +298,29 @@ function nav_bar_title()
     $title      = '';
     $pagination = '';
   }
-  else if (is_page() && !is_paged_404())
+  else if (is_page())
   {
-    if (is_paged_or_first())
-    {
-      $prefix = "<b>$title </b>";
-      $title  = '';
-    }
-    else
-    {
-      $prefix     = '<span class="go-back-to"><b>Go Back: </b><span class="go-back-title"></span></span>';
-      $title      = '';
-      $pagination = '';
-    }
+    $prefix     = '<span class="go-back-to"><b>Go Back: </b><span class="go-back-title"></span></span>';
+    $title      = '';
+    $pagination = '';
   }
-  else if (is_404() || is_paged_404())
+  else if (is_termlist() && !is_404())
+  {
+    $params     = get_request_params();
+    $prefix     = $params['is_artists'] ? '<b>All Artists</b>' : '<b>All Channels</b>';
+    $title      = '';
+    $pagination = '';
+  
+    if ($params['max_pages'] > 1)
+      $prefix = $prefix . ' ( ' . $params['current_page'] . ' / ' . $params['max_pages'] . ' )';
+    else if (isset($params['first_letter']))
+      $prefix = '<b>Artists: </b><span class="normal-text">' . strtoupper($params['first_letter']) . '</span> ( ' . $params['term_count'] . ' found )';
+    else
+      $prefix = '<span class="go-back-to"><b>Go Back: </b><span class="go-back-title"></span></span>';
+  }
+  else if (is_404())
   {
     $prefix     = '<b>Error / 404: </b>';
-    $title      =  is_paged_404() ? 'Page not found' : $title;
     $pagination = '';
   }
   else if (is_search())
@@ -348,12 +351,7 @@ function content_pagination()
   {
     $prefix = '<b>Artist: </b>';
   }
-  else if (is_page() && is_paged_or_first())
-  {
-    $prefix = $title;
-    $title  = '';
-  }
-  
+
   $title_pagination = get_the_posts_pagination(array(
     'mid_size'           => 4,
     'screen_reader_text' => ' ',
@@ -366,21 +364,6 @@ function content_pagination()
   
   echo $title_pagination;
 }
-
-/*
-function track_classes()
-{
-  global $wp_query;
-  $embed_class = [];
-  
-  if (stripos($wp_query->post->post_content,'youtube.com/') !== false)
-    $embed_class[] = 'embed-youtube';
-  else if (stripos($wp_query->post->post_content,'soundcloud.com/') !== false)
-    $embed_class[] = 'embed-soundcloud';
-
-  post_class($embed_class);  
-}
-*/
 
 function entry_title()
 {
@@ -443,7 +426,7 @@ function intro_banner()
   if ($show_banner)
   {
     ?>
-    <script>var bannerProperty = '<?php echo $property; ?>';</script>
+    <script>const bannerProperty = '<?php echo $property; ?>';</script>
     <div id="intro-banner">
       <div class="intro-banner-container">
         <?php echo $content; ?>
@@ -493,4 +476,3 @@ function perf_results()
   }
 }
 
-?>

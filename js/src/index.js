@@ -163,7 +163,7 @@ document.addEventListener('keydown', (event) =>
         if (event.shiftKey && noPlayback())
         {
           // eslint-disable-next-line no-undef
-          arrowKeyNav(navigationVars.prevUrl);
+          arrowKeyNav(navigationUrls.prev);
         }
         break;
 
@@ -171,7 +171,7 @@ document.addEventListener('keydown', (event) =>
         if (event.shiftKey && noPlayback())
         {
           // eslint-disable-next-line no-undef
-          arrowKeyNav(navigationVars.nextUrl);
+          arrowKeyNav(navigationUrls.next);
         }
         break;
     }
@@ -200,7 +200,7 @@ function noPlayback()
 
 function arrowKeyNav(destUrl)
 {
-  if (destUrl !== null)
+  if ((destUrl !== undefined) && (destUrl !== null) && (destUrl.length > 0))
     window.location.href = destUrl;
 }
 

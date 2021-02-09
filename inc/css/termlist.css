@@ -6,13 +6,55 @@
 */
 
 .site-theme-light {
+  --artist-letter-hover: #ccc;
+  --artist-letter-current: #ddd;
   --border-top-even-row: 2px solid #ccc;
   --border-top-odd-row: 2px solid #ccc;
 }
 
 .site-theme-dark {
+  --artist-letter-hover: #555;
+  --artist-letter-current: #444;
   --border-top-even-row: 2px solid #555;
   --border-top-odd-row: 2px solid #555;
+}
+
+.artist-letters-container {
+  margin-bottom: 75px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.artist-letter {
+  margin: 0 1px 1px 0;
+}
+
+.artist-letter a {
+  text-transform: uppercase;
+  display: block;
+  width: 37px;
+  text-align: center;
+  font-weight: 400;
+  padding: 10px 0;
+  text-decoration: none;
+  border-radius: var(--button-border-radius);
+}
+
+.artist-letter a:hover {
+  font-weight: 700;
+  text-decoration: none;
+  background-color: var(--artist-letter-hover);
+}
+
+.artist-letter.current a {
+  font-weight: 700;
+  background-color: var(--artist-letter-current);
+}
+
+.artist-letter.current a:hover {
+  color: var(--primary-font-color);
 }
 
 #termlist-container {
@@ -254,6 +296,7 @@
 
 @media screen and (max-width: 1350px) {
  
+  .artist-letters-container,
   #termlist-container {
     padding-left: 75px;
     padding-right: 75px;
@@ -263,6 +306,10 @@
 
 @media screen and (max-width: 1100px) {
  
+  .artist-letter a {
+    width: 40px;
+  }
+
   .termlist-icons .material-icons {
     font-size: 30px;
   }
@@ -289,9 +336,14 @@
 
 @media screen and (max-width: 900px) {
   
+  .artist-letters-container,
   #termlist-container {
     padding-left: 50px;
     padding-right: 50px;
+  }
+
+  .artist-letters-container {
+    margin-bottom: 50px;
   }
 
   .termlist-body {
@@ -302,9 +354,14 @@
 
 @media screen and (max-width: 768px) {
   
+  .artist-letters-container,
   #termlist-container {
     padding-left: 25px;
     padding-right: 25px;
+  }
+
+  .artist-letters-container {
+    margin-bottom: 40px;
   }
 
   .termlist-icons .material-icons {
@@ -344,9 +401,14 @@
 
 @media screen and (max-width: 500px) {
   
+  .artist-letters-container,
   #termlist-container {
     padding-left: 20px;
     padding-right: 20px;
+  }
+
+  .artist-letters-container {
+    margin-bottom: 32px;
   }
 
   .termlist-title {

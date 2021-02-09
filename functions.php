@@ -109,14 +109,14 @@ function ultrafunk_scripts()
     wp_enqueue_style('modal-style', get_theme_file_uri('/js/src/shared/modal.css'), array(), $version);
     wp_enqueue_style('snackbar-style', get_theme_file_uri('/js/src/shared/snackbar.css'), array(), $version);
     wp_enqueue_style('playback-controls-style', get_theme_file_uri('/js/src/playback/playback-controls.css'), array(), $version);
-    wp_enqueue_style('termlist-style', get_theme_file_uri('/js/src/site/termlist.css'), array(), $version);
     wp_enqueue_script('interaction-script', get_theme_file_uri('/js/src/playback/interaction.js'), array(), $version);
     wp_enqueue_script('ultrafunk-script', get_theme_file_uri('/js/src/index.js'), array(), $version);
     wp_enqueue_style('ultrafunk-style', get_stylesheet_uri(), array(), $version);
-    wp_enqueue_style('style-track-layout', get_theme_file_uri('/inc/css/style-track-layout.css'), array(), $version);
+    wp_enqueue_style('termlist-style', get_theme_file_uri('/inc/css/termlist.css'), array(), $version);
+    wp_enqueue_style('track-layout-style', get_theme_file_uri('/inc/css/track-layout.css'), array(), $version);
   }
 
-  wp_localize_script('interaction-script', 'navigationVars', \Ultrafunk\ThemeFunctions\get_prev_next_urls());
+  wp_localize_script('interaction-script', 'navigationUrls', \Ultrafunk\ThemeFunctions\get_prev_next_urls());
 }
 add_action('wp_enqueue_scripts', 'ultrafunk_scripts');
 
@@ -171,7 +171,10 @@ add_action('admin_menu', 'ultrafunk_reusable_blocks_admin_menu');
 // Get theme functions and tags
 //
 require get_template_directory() . '/inc/build-env.php';
-require get_template_directory() . '/inc/request.php';
+require get_template_directory() . '/inc/request/route-request.php';
+require get_template_directory() . '/inc/request/shared.php';
+require get_template_directory() . '/inc/request/request-shuffle.php';
+require get_template_directory() . '/inc/request/request-terms.php';
 require get_template_directory() . '/inc/theme-functions.php';
 require get_template_directory() . '/inc/theme-tags.php';
 require get_template_directory() . '/inc/theme-widgets.php';

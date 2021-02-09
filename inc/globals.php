@@ -20,7 +20,7 @@ $ultrafunk_is_prod_build = false;
 
 class Globals
 {
-  public static $version = '1.17.8';
+  public static $version = '1.18.0';
 
   public static $dev_prod_consts = array(
     'menu_item_all_id'         => WP_DEBUG ?  115 :  115,
@@ -32,15 +32,8 @@ class Globals
     'iframe_origin'            => WP_DEBUG ? 'https://wordpress.ultrafunk.com' : 'https://ultrafunk.com',
   );
 
-  public static $shuffle_params = array(
-    'is_shuffle' => false,
-    'type'       => null,
-    'slug'       => null,
-    'path'       => null,
-  );
-
-  public static $cached_title = null;
-  public static $is_paged_404 = false;
+  public static $request_params = array();
+  public static $cached_title   = null;
 
   public static $perf_data = array(
     'display_perf_results' => true,
@@ -56,22 +49,20 @@ function console_log($output)
     echo '<script>console.log(' . json_encode($output, JSON_HEX_TAG) . ');</script>';
 }
 
-function get_version()            { return Globals::$version;                      }
+function get_version()               { return Globals::$version; }
 
-function get_dev_prod_const($key) { return Globals::$dev_prod_consts[$key];        }
+function get_dev_prod_const($key)    { return Globals::$dev_prod_consts[$key]; }
 
-function is_shuffle()             { return Globals::$shuffle_params['is_shuffle']; }
+function get_request_params()        { return Globals::$request_params;    }
+function set_request_params($params) { Globals::$request_params = $params; }
 
-// Returns by reference so $shuffle_params[] can be changed if needed
-function &get_shuffle_params()    { return Globals::$shuffle_params;               }
+function is_termlist()               { return isset(Globals::$request_params['is_termlist']); }
+function is_shuffle()                { return isset(Globals::$request_params['is_shuffle']);  }
 
-function get_cached_title()       { return Globals::$cached_title;                 }
-function set_cached_title($title) { Globals::$cached_title = $title;               }
+function get_cached_title()          { return Globals::$cached_title;   }
+function set_cached_title($title)    { Globals::$cached_title = $title; }
 
-function is_paged_404()           { return Globals::$is_paged_404;                 }
-function set_is_paged_404()       { Globals::$is_paged_404 = true;                 }
-
-function get_perf_data()          { return Globals::$perf_data;                    }
+function get_perf_data()             { return Globals::$perf_data; }
 
 function perf_start()
 {

@@ -32,9 +32,10 @@ const mConfig = {
   nowPlayingIconsSelector: 'h2.entry-title',
 };
 
-const mElements = {
-  nowPlayingIcons: null,
-  snackbarId:      0,
+const mShared = {
+  nowPlayingIcons:  null,
+  snackbarId:       0,
+  tryNextTimeoutId: -1,
 };
 
 const EVENT = {
@@ -76,7 +77,7 @@ function init(playbackSettings)
 {
   debug.log('init()');
   settings = playbackSettings;
-  mElements.nowPlayingIcons = document.querySelectorAll(mConfig.nowPlayingIconsSelector);
+  mShared.nowPlayingIcons = document.querySelectorAll(mConfig.nowPlayingIconsSelector);
 }
 
 
@@ -120,7 +121,7 @@ function mediaPlaying(playbackEvent)
   debugEvent(playbackEvent);
   
   // If autoplayBlocked() snackbar is still visible, dismiss it when playback starts
-  dismissSnackbar(mElements.snackbarId);
+  dismissSnackbar(mShared.snackbarId);
 
   if (playbackEvent.data.numTracks > 1)
   {
@@ -180,7 +181,7 @@ function mediaShow(playbackEvent)
 function continueAutoplay(playbackEvent)
 {
   debugEvent(playbackEvent);
-  navigateTo(navigationVars.nextUrl, true); // eslint-disable-line no-undef
+  navigateTo(navigationUrls.next, true); // eslint-disable-line no-undef
 }
 
 function resumeAutoplay(playbackEvent)
@@ -201,7 +202,7 @@ function autoplayBlocked(playbackEvent)
 {
   debugEvent(playbackEvent);
 
-  mElements.snackbarId = showSnackbar('Autoplay blocked, Play to continue...', 0, 'play', () =>
+  mShared.snackbarId = showSnackbar('Autoplay blocked, Play to continue', 0, 'play', () =>
   {
     if (playbackEvent.data.isPlaying === false)
       playbackEvent.callback.togglePlayPause();
@@ -212,7 +213,7 @@ function playbackBlocked(playbackEvent)
 {
   debugEvent(playbackEvent);
 
-  showSnackbar('Unable to play track, skipping to next...', 5);
+  showSnackbar('Unable to play track, skipping to next', 5, 'Stop', stopSkipToTrack);
   playbackEventErrorTryNext(playbackEvent, 5);
 }
 
@@ -222,12 +223,12 @@ function mediaUnavailable(playbackEvent)
 
   if (isPremiumTrack(playbackEvent.data.trackId))
   {
-    showSnackbar('YouTube Premium track, skipping...', 5, 'help',  () => { window.location.href = '/channel/premium/'; });
+    showSnackbar('YouTube Premium track, skipping', 5, 'help',  () => { window.location.href = '/channel/premium/'; });
     playbackEventErrorTryNext(playbackEvent, 5);
   }
   else
   {
-    showSnackbar('Unable to play track, skipping to next...', 5);
+    showSnackbar('Unable to play track, skipping to next', 5, 'Stop', stopSkipToTrack);
     debugLogger.logErrorOnServer('EVENT_MEDIA_UNAVAILABLE', playbackEvent.data);
     playbackEventErrorTryNext(playbackEvent, 5);
   }
@@ -249,16 +250,25 @@ function debugEvent(playbackEvent = null)
 
 function resetNowPlayingIcons(nowPlayingElement)
 {
-  mElements.nowPlayingIcons.forEach(element =>
+  mShared.nowPlayingIcons.forEach(element =>
   {
     if (element !== nowPlayingElement)
       element.classList.remove('now-playing-icon', 'playing-animate', 'playing-paused');
   });
 }
 
+function stopSkipToTrack()
+{
+  if (mShared.tryNextTimeoutId !== -1)
+  {
+    clearTimeout(mShared.tryNextTimeoutId);
+    mShared.tryNextTimeoutId = -1;
+  }
+}
+
 function playbackEventErrorTryNext(playbackEvent, timeout = 5)
 {
-  setTimeout(() =>
+  mShared.tryNextTimeoutId = setTimeout(() =>
   {
     if (playbackEvent.data.currentTrack < playbackEvent.data.numTracks)
     {
@@ -267,10 +277,10 @@ function playbackEventErrorTryNext(playbackEvent, timeout = 5)
     }
     else
     {
-      if (navigationVars.nextUrl !== null)        // eslint-disable-line no-undef
-        navigateTo(navigationVars.nextUrl, true); // eslint-disable-line no-undef
+      if (navigationUrls.next !== null)        // eslint-disable-line no-undef
+        navigateTo(navigationUrls.next, true); // eslint-disable-line no-undef
     }
-  }, ((timeout * 1000) + 250));
+  }, ((timeout * 1000) + 750));
 }
 
 function isPremiumTrack(trackId)
@@ -287,7 +297,7 @@ function navigateTo(destUrl, continueAutoplay = false)
 {
   debug.log(`navigateTo(): ${destUrl} - continueAutoplay: ${continueAutoplay}`);
   
-  if ((destUrl !== null) && (destUrl.length > 0))
+  if ((destUrl !== undefined) && (destUrl !== null) && (destUrl.length > 0))
   {
     if (continueAutoplay)
       sessionStorage.setItem(KEY.UF_AUTOPLAY, 'true');
