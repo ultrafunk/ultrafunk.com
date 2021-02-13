@@ -10,6 +10,7 @@ namespace Ultrafunk\ThemeFunctions;
 
 use SimpleXMLElement;
 use function Ultrafunk\RequestShared\request_get_prev_next_urls;
+
 use function Ultrafunk\Globals\ {
   console_log,
   is_shuffle,

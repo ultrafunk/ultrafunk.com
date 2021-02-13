@@ -21,12 +21,12 @@ class RequestTerms
 {
   public function __construct(string $matched_route, array $url_parts)
   {
-    if ($matched_route === 'artists_letter')
+    if (($matched_route === 'artists') || ($matched_route === 'artists_letter'))
     {
       add_filter('terms_clauses', 'Ultrafunk\RequestTerms\modify_term_clauses', 10, 3);
 
       $this->is_artists     = true;
-      $this->first_letter   = $url_parts[1];
+      $this->first_letter   = ($matched_route === 'artists') ? 'a' : $url_parts[1];
       $this->letters_range  = range('a', 'z');
       $this->taxonomy       = 'post_tag';
       $this->term_type      = 'tags';
@@ -38,10 +38,10 @@ class RequestTerms
     }
     else
     {
-      $this->is_artists     = (($matched_route === 'artists') || ($matched_route === 'artists_page')) ? true : false;
-      $this->taxonomy       = $this->is_artists ? 'post_tag' : 'category';
-      $this->term_type      = $this->is_artists ? 'tags'     : 'categories';
-      $this->term_path      = $this->is_artists ? 'artist'   : 'channel';
+      $this->is_artists     = false;
+      $this->taxonomy       = 'category';
+      $this->term_type      = 'categories';
+      $this->term_path      = 'channel';
       $this->term_count     = intval(get_terms(array('taxonomy' => $this->taxonomy, 'fields' => 'count')));
       $this->terms_per_page = 30;
       $this->current_page   = isset($url_parts[2]) ? intval($url_parts[2]) : 1;
@@ -78,13 +78,6 @@ function modify_term_clauses($clauses, $taxonomies, $args)
 
 function request_callback(bool $do_parse, object $wp, string $matched_route, array $url_parts) : bool
 {
-  // Redirect previous "root" page for /artists/ => /artists/a/
-  if (($matched_route === 'artists') || ($matched_route === 'artists_page'))
-  {
-    wp_redirect('/artists/a/');
-    exit;
-  }
-
   $request = new RequestTerms($matched_route, $url_parts);
   
   if ($request->current_page <= $request->max_pages)
@@ -92,6 +85,7 @@ function request_callback(bool $do_parse, object $wp, string $matched_route, arr
     require_once get_template_directory() . '/template-parts/content-terms.php';
 
     $wp->send_headers();
+    
     get_header();
     \Ultrafunk\ContentTerms\term_list($request);
     get_footer();

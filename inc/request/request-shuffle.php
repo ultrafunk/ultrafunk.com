@@ -9,6 +9,7 @@ namespace Ultrafunk\RequestShuffle;
 
 
 use function Ultrafunk\ThemeFunctions\get_term_field_by_slug;
+
 use function Ultrafunk\Globals\ {
   console_log,
   set_request_params,
