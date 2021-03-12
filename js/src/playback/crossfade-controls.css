@@ -1,0 +1,93 @@
+/*
+* Crossfade UI controls
+*
+* https://ultrafunk.com
+*
+*/
+
+.crossfade-controls {
+  display: none;
+}
+
+body.autoplay-off.multiple-tracks .crossfade-controls {
+  display: contents;
+}
+
+.crossfade-controls .preset-control {
+  width: 32px;
+  height: 32px;
+  font-size: 21px;
+  line-height: 31px;
+  border-radius: var(--button-border-radius);
+  border-width: 2px;
+  border-color: var(--primary-icon-color);
+  border-style: solid;
+  text-align: center;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  margin-left: 20px;
+}
+
+.crossfade-controls .fadeto-control {
+  width: 51px;
+  height: 51px;
+  margin-left: 10px;
+  margin-right: -7px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.crossfade-controls .fadeto-control img {
+  width: 51px;
+  height: 51px;
+}
+
+.site-theme-dark .crossfade-controls .fadeto-control img {
+  filter: invert(1);
+}
+
+.crossfade-controls .preset-control.state-enabled:hover,
+.crossfade-controls .fadeto-control.state-enabled img:hover {
+  opacity: var(--control-hover-opacity);
+}
+
+@media not all and (pointer: fine) {
+
+  .crossfade-controls .preset-control.state-enabled:hover,
+  .crossfade-controls .fadeto-control.state-enabled img:hover {
+    opacity: 1;
+  }
+    
+}
+
+.crossfade-controls .preset-control.state-disabled,
+.crossfade-controls .fadeto-control.state-disabled {
+  opacity: var(--control-content-disabled-opacity);
+  cursor: default;
+}
+
+@media screen and (max-width: 500px) {
+
+  .crossfade-controls .preset-control {
+    width: 22px;
+    height: 22px;
+    font-size: 15px;
+    line-height: 23px;
+    margin-right: 5px;
+    margin-top: 6px;
+    margin-bottom: 6px;
+  }
+
+  .crossfade-controls .fadeto-control {
+    width: 38px;
+    height: 38px;
+    margin-right: -5px;
+  }
+
+  .crossfade-controls  .fadeto-control img {
+    width: 38px;
+    height: 38px;
+  }
+
+}

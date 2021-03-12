@@ -26,8 +26,9 @@ export {
 
 
 const debug            = debugLogger.newInstance('termlist');
-const artistTitleRegEx = /\s{1,}[–·-]\s{1,}|\s{1,}(&#8211;)\s{1,}/i;
+const artistTitleRegEx = /\s{1,}[–·-]\s{1,}|\s{1,}(&#8211;)\s{1,}/;
 const iframeSrcRegEx   = /(?<=src=").*?(?=[?"])/i;
+let termlistContainer  = null;
 
 
 // ************************************************************************************************
@@ -38,7 +39,9 @@ function init()
 {
   debug.log('init()');
 
-  document.getElementById('termlist-container').addEventListener('click', (event) =>
+  termlistContainer = document.getElementById('termlist-container');
+
+  termlistContainer.addEventListener('click', (event) =>
   {
     const playButton = event.target.closest('div.play-button');
     if (playButton !== null ) return playShuffleButtonClick(event, playButton.querySelector('a').href);
@@ -52,8 +55,8 @@ function init()
     const termlistHeader = event.target.closest('div.termlist-header');
     if (termlistHeader !== null ) return termlistHeaderClick(event);
 
-    const thumbnailPlay = event.target.closest('div.thumbnail');
-    if (thumbnailPlay !== null ) return playShuffleButtonClick(event, thumbnailPlay.getAttribute('data-track-url'));
+    const playTrackButton = event.target.closest('div.thumbnail');
+    if (playTrackButton !== null ) return playTrackButtonClick(event, playTrackButton);
 
     const linkElement = event.target.closest('a');
     if (linkElement !== null) return saveState();
@@ -117,25 +120,37 @@ function restoreState()
 // Click event functions
 // ************************************************************************************************
 
-function playShuffleButtonClick(event, destUrl)
+function playShuffleButtonClick(event, destUrl, autoplayValue = 'true')
 {
   event.preventDefault();
   saveState();
 
   // ToDo: Create a playbackSetting for this? Or use SHIFT + click to skip autoplay
   if (event.shiftKey === false)
-    sessionStorage.setItem(KEY.UF_AUTOPLAY, 'true');
+    sessionStorage.setItem(KEY.UF_AUTOPLAY, autoplayValue);
   
   window.location.href = destUrl;
 }
 
 function shareFindButtonClick(shareFindButton)
 {
-  const termType = shareFindButton.getAttribute('data-term-type');
+  const termPath = shareFindButton.getAttribute('data-term-path');
   const termName = shareFindButton.getAttribute('data-term-name');
   const termUrl  = shareFindButton.getAttribute('data-term-url');
 
-  shareModal.show({ title: `Share / Find ${termType}`, string: termName, url: termUrl, verb: 'Find' });
+  shareModal.show({ title: `Share / Find ${termPath}`, string: termName, url: termUrl, verb: 'Find' });
+}
+
+function playTrackButtonClick(event, playTrackButton)
+{
+  const termType = termlistContainer.getAttribute('data-term-type');
+  const termSlug = playTrackButton.getAttribute('data-term-slug');
+  const termUid  = playTrackButton.getAttribute('data-term-uid');
+
+  if ((termType === 'categories') || (termUid === null))
+    return playShuffleButtonClick(event, playTrackButton.getAttribute('data-track-url'));
+  else
+    return playShuffleButtonClick(event, `/player/artist/${termSlug}/`, termUid);
 }
 
 function termlistHeaderClick(event)
@@ -161,8 +176,9 @@ function termlistHeaderClick(event)
 
 function fetchDataUpdateDOM(termlistEntry, termlistBody)
 {
-  const termType      = document.getElementById('termlist-container').getAttribute('data-term-type');
+  const termType      = termlistContainer.getAttribute('data-term-type');
   const termId        = parseInt(termlistEntry.getAttribute('data-term-id'));
+  const termSlug      = termlistEntry.getAttribute('data-term-slug');
   const isAllChannels = (termType === 'categories');
 
   termRest.fetchPosts(termType, termId, (isAllChannels ? 10 : 50), (termData) => 
@@ -171,7 +187,7 @@ function fetchDataUpdateDOM(termlistEntry, termlistBody)
     let element = termlistBody.querySelector('.body-left');
 
     if (termData !== null)
-      insertThumbnailListHtml(header, termData, element);
+      insertThumbnailListHtml(header, termSlug, termData, element);
     else
       element.innerHTML = `<b>Error!</b><br>Unable to fetch track data...`;
 
@@ -199,20 +215,20 @@ function getThumbnail(contentHtml)
     return getYouTubeImgUrl(contentHtml.match(iframeSrcRegEx));
 }
 
-function insertThumbnailListHtml(header, termData, destElement)
+function insertThumbnailListHtml(header, termSlug, termData, destElement)
 {
   const artistTitle = {};
-  let thumbnail     = {};
-  let html          = `<b>${header}</b>`;
+  let html = `<b>${header}</b>`;
 
   termData.forEach(item =>
   {
     setArtistTitle(item.title.rendered, artistTitle, artistTitleRegEx);
-    thumbnail = getThumbnail(item.content.rendered);
+    const thumbnail   = getThumbnail(item.content.rendered);
+    const dataTermUid = (thumbnail?.uid !== undefined) ? `data-term-uid="${thumbnail.uid}"` : '' ;
 
     html += `
     <div class="track">
-      <div class="thumbnail ${thumbnail.class}" data-track-url="${item.link}" title="Play Track">
+      <div class="thumbnail ${thumbnail.class}" data-track-url="${item.link}" data-term-slug="${termSlug}" ${dataTermUid} title="Play Track">
         <img src="${thumbnail.src}">
         <div class="thumbnail-overlay"><span class="material-icons">play_arrow</span></div>
       </div>

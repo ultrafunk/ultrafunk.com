@@ -11,6 +11,7 @@ namespace Ultrafunk\ThemeTags;
 use function Ultrafunk\Globals\ {
   console_log,
   is_termlist,
+  is_player,
   is_shuffle,
   get_dev_prod_const,
   get_perf_data,
@@ -129,7 +130,7 @@ function body_attributes()
   // 404 never has any posts / tracks
   if (isset($wp_query) && $wp_query->have_posts() && !is_404())
   {
-    foreach ($wp_query->posts as $post)
+    foreach($wp_query->posts as $post)
     {
       if ($post->post_type === 'post')
         $track_count++;
@@ -139,10 +140,13 @@ function body_attributes()
   if (is_page())
     $classes[] = 'page-' . $wp_query->query_vars['pagename'];
 
-  if (is_termlist() && !is_404())
+  if (is_termlist())
     $classes[] = 'termlist';
 
-  if ($track_count === 0)
+  if (is_player())
+    $classes[] = 'player-playlist';
+
+  if (($track_count === 0) && !is_player())
     $classes[] = 'no-playback';
   else if ($track_count === 1)
     $classes[] = 'single-track';
@@ -291,6 +295,7 @@ function nav_bar_title()
   $prefix     = is_shuffle() ? '<b>Shuffle: </b>' : '<b>Channel: </b>';
   $title      = esc_html(get_title());
   $pagination = esc_html(get_pagination());
+  $params     = get_request_params();
 
   if (is_single())
   {
@@ -304,19 +309,23 @@ function nav_bar_title()
     $title      = '';
     $pagination = '';
   }
-  else if (is_termlist() && !is_404())
+  else if (is_termlist())
   {
-    $params     = get_request_params();
-    $prefix     = $params['is_artists'] ? '<b>All Artists</b>' : '<b>All Channels</b>';
+    $prefix     = $params['is_termlist_artists'] ? '<b>All Artists</b>' : '<b>All Channels</b>';
     $title      = '';
     $pagination = '';
   
     if ($params['max_pages'] > 1)
       $prefix = $prefix . ' ( ' . $params['current_page'] . ' / ' . $params['max_pages'] . ' )';
     else if (isset($params['first_letter']))
-      $prefix = '<b>Artists: </b><span class="normal-text">' . strtoupper($params['first_letter']) . '</span> ( ' . $params['term_count'] . ' found )';
+      $prefix = '<b>Artists: </b><span class="normal-text">' . strtoupper($params['first_letter']) . '</span> ( ' . $params['item_count'] . ' found )';
     else
       $prefix = '<span class="go-back-to"><b>Go Back: </b><span class="go-back-title"></span></span>';
+  }
+  else if (is_player())
+  {
+    $prefix     = ($params['is_player_artist'] === true) ? '<b>Artist: </b>' : '<b>Channel: </b>';
+    $pagination = ($params['max_pages'] > 1) ? ' ( ' . $params['current_page'] . ' / ' . $params['max_pages'] . ' )' : '';
   }
   else if (is_404())
   {

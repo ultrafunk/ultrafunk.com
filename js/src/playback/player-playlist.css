@@ -1,0 +1,337 @@
+/*
+* Standalone player UI
+*
+* https://ultrafunk.com
+* 
+*/
+
+body.player-playlist {
+  --site-max-width: calc(100% - 130px);
+  --site-content-margin-top: 60px;
+  --site-content-margin-bottom: 60px;
+  --footer-max-width: 1200px;
+}
+
+.site-theme-light {
+  --track-separator-color: #ddd;
+  --track-current-color: #ddd;
+}
+
+.site-theme-dark {
+  --track-separator-color: #444;
+  --track-current-color: #444;
+}
+
+.player-container {
+  display:flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.embedded-container {
+  width: 65%;
+}
+
+.embedded-container .wp-block-embed__wrapper {
+  width: 100%;
+}
+
+#tracklist-container {
+  width: 35.5%;
+  max-height: 855px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  margin-left: 65px;
+  display: block;
+  position: relative;
+}
+
+.track-entry {
+  font-size: 15px;
+  line-height: 20px;
+  padding: 10px;
+  border-bottom: 1px solid var(--track-separator-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.track-entry:first-of-type {
+  border-top: 1px solid var(--track-separator-color);
+}
+
+.track-entry:hover {
+  background: var(--list-row-hover-color);
+}
+
+@media not all and (pointer: fine) {
+
+  .track-entry:hover {
+    background: unset;
+  }
+
+}
+
+.track-entry.current {
+  background: var(--track-current-color);
+}
+
+.track-details {
+  display: contents;
+}
+
+.track-entry .thumbnail::before {
+  font-family: "Material Icons";
+  font-size: 30px;
+  line-height: 40px;
+  content: "\e037";
+  text-align: center;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.track-entry:hover .thumbnail::before {
+  opacity: 1;
+}
+
+.track-entry.playing .thumbnail::before {
+  content: "\e050";
+  opacity: 1;
+}
+
+.track-entry.current.playing:hover .thumbnail::before {
+  content: "\e034";
+  opacity: 1;
+}
+
+.track-entry.current.paused .thumbnail::before {
+  content: "\e037";
+  opacity: 1;
+}
+
+@media not all and (pointer: fine) {
+
+  .track-entry.current.playing .thumbnail::before,
+  .track-entry.current.playing:hover .thumbnail::before {
+    content: "\e050";
+    opacity: 1;
+  }
+
+}
+
+.track-entry .thumbnail {
+  margin-right: 10px;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  display: inline-block;
+  overflow: hidden;
+  position: relative;
+}
+
+.track-entry .thumbnail:hover {
+  cursor: pointer;
+}
+
+.track-entry .thumbnail img {
+  height: 54px;
+  width: 40px;
+  margin-top: -7px;
+  object-fit: cover;
+}
+
+.artist-title {
+  width: 100%;
+}
+
+.track-more {
+  display: flex;
+  margin-left: 5px;
+  align-items: center;
+}
+
+.track-more .track-duration {
+  margin: 0 10px 0 5px;
+  display: none;
+}
+
+.track-more .share-playon-button,
+.track-more .menu-button {
+  width: 30px;
+  height: 30px;
+  padding: 5px;
+  user-select: none;
+  border-radius: var(--button-border-radius);
+}
+
+.track-more .menu-button {
+  display: none;
+}
+
+.track-more .share-playon-button .material-icons,
+.track-more .menu-button .material-icons {
+  font-size: 30px;
+}
+
+@media all and (pointer: fine) {
+ 
+  .track-more .share-playon-button:hover,
+  .track-more .menu-button:hover {
+    background-color: var(--control-highlight-color);
+    cursor: pointer;
+  }
+    
+}
+
+@media not all and (pointer: fine) {
+
+  .track-more .share-playon-button,
+  .track-more .menu-button {
+    transition: background 100ms 0s ease-in;
+  }
+
+  .track-more .share-playon-button:active,
+  .track-more .menu-button:active {
+    background-color: var(--control-highlight-color);
+    transition: background 0s;
+  }
+
+}
+
+body.player-playlist #site-footer {
+  padding-left: unset;
+  padding-right: unset;
+}
+
+body.player-playlist .site-footer-container {
+  max-width: var(--footer-max-width);
+}
+
+
+/**************************************************************************************************
+* Responsive
+***************************************************************************************************/
+
+@media screen and (max-width: 1920px) {
+
+  #tracklist-container {
+    max-height: 611px;
+    width: 37.2%;
+  }
+
+}
+
+@media screen and (max-width: 1350px) {
+
+  body.player-playlist .site-header-container {
+    padding-left: unset;
+    padding-right: unset;
+  }
+  
+  body.player-playlist #site-content {
+    max-width: var(--site-max-width);
+  }
+
+  body.player-playlist nav.navigation {
+    padding-left: unset;
+    padding-right: unset;
+  }
+
+  body.player-playlist .site-footer-container {
+    max-width: var(--site-max-width);
+  }
+  
+}
+
+@media screen and (max-width: 1200px) {
+
+  .player-container {
+    display: block;
+  }
+
+  .embedded-container {
+    width: 100%;
+  }
+
+  #tracklist-container {
+    width: 100%;
+    max-height: none;
+    margin-left: 0;
+    margin-top: var(--site-content-margin-top);
+  }
+
+  .track-more .share-playon-button {
+    display: block;    
+  }
+
+}
+
+@media screen and (max-width: 900px) {
+  
+  body.player-playlist {
+    --site-max-width: calc(100% - 100px);
+    --site-content-margin-top: 50px;
+    --site-content-margin-bottom: 50px;
+  }
+
+}
+
+@media screen and (max-width: 768px) {
+  
+  body.player-playlist {
+    --site-max-width: calc(100% - 50px);
+    --site-content-margin-top: 25px;
+    --site-content-margin-bottom: 25px;
+  }
+
+}
+
+@media screen and (max-width: 500px) {
+  
+  body.player-playlist {
+    --site-max-width: calc(100% - 40px);
+    --site-content-margin-top: 20px;
+    --site-content-margin-bottom: 20px;
+  }
+
+  .track-entry {
+    font-size: 14px;
+    line-height: 18px;
+  }
+
+  .track-entry .thumbnail::before {
+    font-size: 26px;
+    line-height: 36px;
+  }
+
+  .track-entry .thumbnail {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+  }
+  
+  .track-entry .thumbnail img {
+    width: 36px;
+    height: 48px;
+    margin-top: -6px;
+  }
+
+  .track-more .share-playon-button,
+  .track-more .menu-button {
+    width: 26px;
+    height: 26px;
+    padding: 5px;
+  }
+  
+  .track-more .share-playon-button .material-icons,
+  .track-more .menu-button .material-icons {
+    font-size: 26px;
+  }
+
+}

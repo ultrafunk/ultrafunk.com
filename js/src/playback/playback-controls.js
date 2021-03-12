@@ -6,12 +6,12 @@
 
 
 import * as debugLogger        from '../shared/debuglogger.js';
-import { addSettingsObserver } from '../shared/storage.js';
 import { replaceClass }        from '../shared/utils.js';
-import { presetList }          from '../shared/settings.js';
+import { addSettingsObserver } from '../shared/storage.js';
 
 
 export {
+  STATE,
   init,
   ready,
   updateProgressPosition,
@@ -35,11 +35,8 @@ let settings = {};
 let players  = {};
 
 const mConfig = {
-  progressControlsId:      'progress-controls',
-  playbackControlsId:      'playback-controls',
-  crossfadePresetSelector: '.crossfade-controls .preset-control',
-  crossfadePresetData:     'data-crossfade-preset',
-  crossfadeToSelector:     '.crossfade-controls .fadeto-control',
+  progressControlsId: 'progress-controls',
+  playbackControlsId: 'playback-controls',
 };
 
 const STATE = {
@@ -49,7 +46,7 @@ const STATE = {
   PAUSE:    'state-pause',
 };
 
-const controls = {
+const mControls = {
 //Progress Controls
   progressSeek:    { element:  null, state: STATE.DISABLED, click: null },
   progressBar:     { element:  null, state: STATE.DISABLED },
@@ -62,9 +59,6 @@ const controls = {
   nextTrack:       { element:  null, state: STATE.DISABLED },
   shuffle:         { element:  null, state: STATE.DISABLED },
   mute:            { element:  null, state: STATE.DISABLED, iconElement: null },
-//Crossfade Controls
-  crossfadePreset: { elements: null },
-  crossfadeTo:     { elements: null, click: null },
 };
 
 
@@ -72,7 +66,7 @@ const controls = {
 // Init and make ready all controls
 // ************************************************************************************************
 
-function init(playbackSettings, mediaPlayers, seekClickCallback, crossfadeClickCallback)
+function init(playbackSettings, mediaPlayers, seekClickCallback)
 {
   debug.log('init()');
 
@@ -83,9 +77,9 @@ function init(playbackSettings, mediaPlayers, seekClickCallback, crossfadeClickC
 
   if (playbackProgress !== null)
   {
-    controls.progressSeek.element = playbackProgress.querySelector('.seek-control');
-    controls.progressSeek.click   = seekClickCallback;
-    controls.progressBar.element  = playbackProgress.querySelector('.bar-control');
+    mControls.progressSeek.element = playbackProgress.querySelector('.seek-control');
+    mControls.progressSeek.click   = seekClickCallback;
+    mControls.progressBar.element  = playbackProgress.querySelector('.bar-control');
   }
   else
   {
@@ -96,80 +90,60 @@ function init(playbackSettings, mediaPlayers, seekClickCallback, crossfadeClickC
 
   if (playbackControls !== null)
   {
-    controls.details.element       = playbackControls.querySelector('.details-control');
-    controls.details.artistElement = controls.details.element.querySelector('.details-artist');
-    controls.details.titleElement  = controls.details.element.querySelector('.details-title');
-    controls.thumbnail.element     = playbackControls.querySelector('.thumbnail-control');
-    controls.thumbnail.img         = controls.thumbnail.element.querySelector('img');
-    controls.timer.element         = playbackControls.querySelector('.timer-control');
-    controls.timer.positionElement = controls.timer.element.querySelector('.timer-position');
-    controls.timer.durationElement = controls.timer.element.querySelector('.timer-duration');
-    controls.prevTrack.element     = playbackControls.querySelector('.prev-control');
-    controls.playPause.element     = playbackControls.querySelector('.play-pause-control');
-    controls.playPause.iconElement = controls.playPause.element.querySelector('i');
-    controls.nextTrack.element     = playbackControls.querySelector('.next-control');
-    controls.shuffle.element       = playbackControls.querySelector('.shuffle-control');
-    controls.mute.element          = playbackControls.querySelector('.mute-control');
-    controls.mute.iconElement      = controls.mute.element.querySelector('i');
+    mControls.details.element       = playbackControls.querySelector('.details-control');
+    mControls.details.artistElement = mControls.details.element.querySelector('.details-artist');
+    mControls.details.titleElement  = mControls.details.element.querySelector('.details-title');
+    mControls.thumbnail.element     = playbackControls.querySelector('.thumbnail-control');
+    mControls.thumbnail.img         = mControls.thumbnail.element.querySelector('img');
+    mControls.timer.element         = playbackControls.querySelector('.timer-control');
+    mControls.timer.positionElement = mControls.timer.element.querySelector('.timer-position');
+    mControls.timer.durationElement = mControls.timer.element.querySelector('.timer-duration');
+    mControls.prevTrack.element     = playbackControls.querySelector('.prev-control');
+    mControls.playPause.element     = playbackControls.querySelector('.play-pause-control');
+    mControls.playPause.iconElement = mControls.playPause.element.querySelector('i');
+    mControls.nextTrack.element     = playbackControls.querySelector('.next-control');
+    mControls.shuffle.element       = playbackControls.querySelector('.shuffle-control');
+    mControls.mute.element          = playbackControls.querySelector('.mute-control');
+    mControls.mute.iconElement      = mControls.mute.element.querySelector('i');
   }
   else
   {
     debug.error(`init(): Unable to getElementById() for '#${mConfig.playbackControlsId}'`);
   }
-
-  controls.crossfadePreset.elements = document.querySelectorAll(mConfig.crossfadePresetSelector);
-  controls.crossfadeTo.elements     = document.querySelectorAll(mConfig.crossfadeToSelector);
-
-  if ((controls.crossfadePreset.elements.length > 1) && (controls.crossfadeTo.elements.length > 1))
-  {
-    controls.crossfadePreset.elements.forEach((element) => setCrossfadePreset(element, settings.trackCrossfadeDefPreset));
-    controls.crossfadeTo.click = crossfadeClickCallback;
-  }
 }
 
-function ready(prevClick, playPauseClick, nextClick, muteClick)
+function ready(prevClickCallback, playPauseClickCallback, nextClickCallback, muteClickCallback)
 {
   debug.log('ready()');
 
-  setState(controls.progressSeek, STATE.ENABLED);
-  controls.progressSeek.element.addEventListener('click', progressSeekClick);
-  setState(controls.progressBar, STATE.ENABLED);
+  setState(mControls.progressSeek, STATE.ENABLED);
+  mControls.progressSeek.element.addEventListener('click', progressSeekClick);
+  setState(mControls.progressBar, STATE.ENABLED);
   
-  setState(controls.details, STATE.ENABLED);
-  setState(controls.thumbnail, STATE.ENABLED);
-  setState(controls.timer, STATE.ENABLED);
+  setState(mControls.details, STATE.ENABLED);
+  setState(mControls.thumbnail, STATE.ENABLED);
+  setState(mControls.timer, STATE.ENABLED);
 
   if (settings.trackThumbnailOnMobile)
-    controls.thumbnail.element.classList.add('show-on-mobile');
+    mControls.thumbnail.element.classList.add('show-on-mobile');
 
   if (settings.trackTimesOnMobile)
-    controls.timer.element.classList.add('show-on-mobile');
+    mControls.timer.element.classList.add('show-on-mobile');
 
-  setState(controls.prevTrack, STATE.DISABLED);
-  controls.prevTrack.element.addEventListener('click', prevClick);
+  setState(mControls.prevTrack, STATE.DISABLED);
+  mControls.prevTrack.element.addEventListener('click', prevClickCallback);
 
-  setState(controls.playPause, STATE.PLAY);
-  controls.playPause.element.addEventListener('click', playPauseClick);
+  setState(mControls.playPause, STATE.PLAY);
+  mControls.playPause.element.addEventListener('click', playPauseClickCallback);
 
-  setState(controls.nextTrack, ((players.getNumTracks() > 1) ? STATE.ENABLED : STATE.DISABLED));
-  controls.nextTrack.element.addEventListener('click', nextClick);
+  setState(mControls.nextTrack, ((players.getNumTracks() > 1) ? STATE.ENABLED : STATE.DISABLED));
+  mControls.nextTrack.element.addEventListener('click', nextClickCallback);
 
-  setState(controls.shuffle, STATE.ENABLED);
+  setState(mControls.shuffle, STATE.ENABLED);
 
-  setState(controls.mute, STATE.ENABLED);
-  controls.mute.element.addEventListener('click', muteClick);
+  setState(mControls.mute, STATE.ENABLED);
+  mControls.mute.element.addEventListener('click', muteClickCallback);
   updateMuteState();
-
-  if (players.getNumTracks() > 1)
-  {
-    controls.crossfadePreset.elements.forEach(element =>
-    {
-      element.addEventListener('click', crossfadePresetClick);
-      replaceClass(element, STATE.DISABLED, STATE.ENABLED);
-    });
-
-    controls.crossfadeTo.elements.forEach(element => element.addEventListener('click', crossfadeToClick));
-  }
 
   addSettingsObserver('autoplay',   updateAutoplayState);
   addSettingsObserver('masterMute', updateMuteState);
@@ -181,9 +155,9 @@ function setState(control, state = STATE.DISABLED)
   control.state = state;
   
   if (state === STATE.PLAY)
-    controls.playPause.iconElement.textContent = 'play_circle_filled';
+    mControls.playPause.iconElement.textContent = 'play_circle_filled';
   else if (state === STATE.PAUSE)
-    controls.playPause.iconElement.textContent = 'pause_circle_filled';
+    mControls.playPause.iconElement.textContent = 'pause_circle_filled';
 }
 
 
@@ -207,21 +181,21 @@ function updateProgressPercent(progressPercent)
 
 function updateProgressBar(scaleX)
 {
-  controls.progressBar.element.style.transform = `scaleX(${scaleX})`;
+  mControls.progressBar.element.style.transform = `scaleX(${scaleX})`;
 }
 
 function progressSeekClick(event)
 {
-  if (controls.timer.durationSeconds > 0)
+  if (mControls.timer.durationSeconds > 0)
   {
     const progressPercent = ((event.clientX / document.documentElement.clientWidth) * 100);
-    const seekPosSeconds  = Math.round((controls.timer.durationSeconds * progressPercent) / 100);
-    controls.progressSeek.click(seekPosSeconds);
+    const seekPosSeconds  = Math.round((mControls.timer.durationSeconds * progressPercent) / 100);
+    mControls.progressSeek.click(seekPosSeconds);
 
     if (isPlaying() === false)
     {
       updateProgressPercent(progressPercent);
-      setTimer(seekPosSeconds, controls.timer.durationSeconds);
+      setTimer(seekPosSeconds, mControls.timer.durationSeconds);
     }
   }
 }
@@ -233,8 +207,8 @@ function progressSeekClick(event)
 
 function setDetails(playbackStatus)
 {
-  controls.details.artistElement.textContent = playbackStatus.artist || ''; // Artist will contain the post title if all else fails
-  controls.details.titleElement.textContent  = playbackStatus.title  || '';
+  mControls.details.artistElement.textContent = playbackStatus.artist || ''; // Artist will contain the post title if all else fails
+  mControls.details.titleElement.textContent  = playbackStatus.title  || '';
   setThumbnail(playbackStatus.thumbnail);
   setTimer(-1, -1);
 }
@@ -242,39 +216,39 @@ function setDetails(playbackStatus)
 function setThumbnail(thumbnail)
 {
   // Don't set thumbnail again if the image source / URL is unchanged
-  if (thumbnail.src !== controls.thumbnail.img.src)
+  if (thumbnail.src !== mControls.thumbnail.img.src)
   {
-    controls.thumbnail.element.classList.remove('type-default', 'type-youtube', 'type-soundcloud');
-    controls.thumbnail.element.classList.add('loading', thumbnail.class);
-    controls.thumbnail.img.src = thumbnail.src;
-    controls.thumbnail.img.decode().then(() => controls.thumbnail.element.classList.remove('loading'));
+    mControls.thumbnail.element.classList.remove('type-default', 'type-youtube', 'type-soundcloud');
+    mControls.thumbnail.element.classList.add('loading', thumbnail.class);
+    mControls.thumbnail.img.src = thumbnail.src;
+    mControls.thumbnail.img.decode().then(() => mControls.thumbnail.element.classList.remove('loading'));
   }
 }
 
 function setTimer(positionSeconds, durationSeconds)
 {
-  if ((positionSeconds !== -1) && (controls.timer.positionSeconds !== positionSeconds))
+  if ((positionSeconds !== -1) && (mControls.timer.positionSeconds !== positionSeconds))
   {
-    controls.timer.positionSeconds = positionSeconds;
+    mControls.timer.positionSeconds = positionSeconds;
 
     if (settings.autoplay === false)
       positionSeconds = durationSeconds - positionSeconds;
     
-    setTimerText(controls.timer.positionElement, positionSeconds);
+    setTimerText(mControls.timer.positionElement, positionSeconds);
   }
-  else if ((positionSeconds === -1) && (controls.timer.positionSeconds === -1))
+  else if ((positionSeconds === -1) && (mControls.timer.positionSeconds === -1))
   {
-    controls.timer.positionElement.textContent = '00:00';
+    mControls.timer.positionElement.textContent = '00:00';
   }
 
-  if ((durationSeconds !== -1) && (controls.timer.durationSeconds !== durationSeconds))
+  if ((durationSeconds !== -1) && (mControls.timer.durationSeconds !== durationSeconds))
   {
-    controls.timer.durationSeconds = durationSeconds;
-    setTimerText(controls.timer.durationElement, durationSeconds);
+    mControls.timer.durationSeconds = durationSeconds;
+    setTimerText(mControls.timer.durationElement, durationSeconds);
   }
-  else if ((durationSeconds === -1) && (controls.timer.durationSeconds === -1))
+  else if ((durationSeconds === -1) && (mControls.timer.durationSeconds === -1))
   {
-    controls.timer.durationElement.textContent = '00:00';
+    mControls.timer.durationElement.textContent = '00:00';
   }
 }
 
@@ -286,8 +260,10 @@ function setTimerText(element, seconds)
 
 function clearTimer()
 {
-  controls.timer.positionElement.textContent = '00:00';
-  controls.timer.durationElement.textContent = '00:00';
+  mControls.timer.positionElement.textContent = '00:00';
+  mControls.timer.durationElement.textContent = '00:00';
+  mControls.timer.positionSeconds = 0;
+  mControls.timer.durationSeconds = 0;
 }
 
 
@@ -298,7 +274,7 @@ function clearTimer()
 function isPlaying()
 {
   // ToDo: THIS NEEDS TO BE CONTROLLED IN playback.js instead of relying on UI state!?!?
-  return ((controls.playPause.state === STATE.PAUSE) ? true : false);    
+  return ((mControls.playPause.state === STATE.PAUSE) ? true : false);    
 }
 
 function updatePrevState()
@@ -309,34 +285,32 @@ function updatePrevState()
   setDetails(playersStatus);
 
   if ((isPlaying() === false) && (playersStatus.currentTrack <= 1))
-    setState(controls.prevTrack, STATE.DISABLED);
+    setState(mControls.prevTrack, STATE.DISABLED);
   
   if (playersStatus.currentTrack < playersStatus.numTracks)
-    setState(controls.nextTrack, STATE.ENABLED);
+    setState(mControls.nextTrack, STATE.ENABLED);
 }
 
 function setPlayState()
 {
   const playersStatus = players.getStatus();
 
-  setState(controls.playPause, STATE.PAUSE);
-  setState(controls.prevTrack, STATE.ENABLED);
+  setState(mControls.playPause, STATE.PAUSE);
+  setState(mControls.prevTrack, STATE.ENABLED);
   setDetails(playersStatus);
-  updateCrossfadeToState(true, playersStatus.currentTrack);
 }
 
 function setPauseState()
 {
-  setState(controls.playPause, STATE.PLAY);
-  updateCrossfadeToState(false);
+  setState(mControls.playPause, STATE.PLAY);
 }
 
 function blinkPlayPause(toggleBlink)
 {
   if (toggleBlink)
-    controls.playPause.element.classList.toggle('time-remaining-warning');
+    mControls.playPause.element.classList.toggle('time-remaining-warning');
   else
-    controls.playPause.element.classList.remove('time-remaining-warning');
+    mControls.playPause.element.classList.remove('time-remaining-warning');
 }
 
 function updateNextState()
@@ -345,75 +319,22 @@ function updateNextState()
   
   clearTimer();
   setDetails(playersStatus);
-  setState(controls.prevTrack, STATE.ENABLED);
+  setState(mControls.prevTrack, STATE.ENABLED);
   
   if (playersStatus.currentTrack >= playersStatus.numTracks)
-    setState(controls.nextTrack, STATE.DISABLED);
+    setState(mControls.nextTrack, STATE.DISABLED);
 }
 
 function updateMuteState()
 {
-  controls.mute.iconElement.textContent = settings.masterMute ? 'volume_off' : 'volume_up';
+  mControls.mute.iconElement.textContent = settings.masterMute ? 'volume_off' : 'volume_up';
 }
-
-
-// ************************************************************************************************
-// Crossfade controls (preset and fadeTo)
-// ************************************************************************************************
-
-function setCrossfadePreset(element, presetIndex)
-{
-  element.setAttribute(mConfig.crossfadePresetData, presetIndex);
-  element.textContent = `${presetIndex + 1}`;
-  element.title       = `Preset: ${presetList.crossfade[presetIndex].name}`;
-}
-
-function crossfadePresetClick(event)
-{
-  let presetIndex = parseInt(event.target.getAttribute(mConfig.crossfadePresetData));
-  ((presetIndex + 1) < presetList.crossfade.length) ? presetIndex++ : presetIndex = 0;
-  setCrossfadePreset(event.target, presetIndex);
-}
-
-function crossfadeToClick(event)
-{
-  if (isPlaying() && (players.crossfade.isFading() === false))
-  {
-    const element = event.target.closest('single-track');
-
-    if (element !== null)
-    {
-      const iframe      = element.querySelector('iframe');
-      const presetIndex = element.querySelector(mConfig.crossfadePresetSelector).getAttribute(mConfig.crossfadePresetData);
-
-      replaceClass(event.target.closest('div.fadeto-control'), STATE.ENABLED, STATE.DISABLED);
-      controls.crossfadeTo.click(players.uIdFromIframeId(iframe.id), presetList.crossfade[presetIndex]);
-    }
-  }
-}
-
-function updateCrossfadeToState(isPlaying, currentTrack = -1)
-{
-  controls.crossfadeTo.elements.forEach((element, index) =>
-  {
-    if (currentTrack === (index + 1))
-      replaceClass(element, (isPlaying ? STATE.ENABLED : STATE.DISABLED), (isPlaying ? STATE.DISABLED : STATE.ENABLED));
-    else
-      replaceClass(element, (isPlaying ? STATE.DISABLED : STATE.ENABLED), (isPlaying ? STATE.ENABLED : STATE.DISABLED));
-  });
-}
-
-
-// ************************************************************************************************
-// Autoplay state changes
-// ************************************************************************************************
 
 function updateAutoplayState()
 {
-  if ((isPlaying() === false) && (controls.timer.positionSeconds !== -1) && ((controls.timer.durationSeconds !== -1)))
+  if ((isPlaying() === false) && (mControls.timer.positionSeconds !== -1) && ((mControls.timer.durationSeconds !== -1)))
   {
-    setTimerText(controls.timer.positionElement, settings.autoplay ? controls.timer.positionSeconds : (controls.timer.durationSeconds - controls.timer.positionSeconds));
-    setTimerText(controls.timer.durationElement, controls.timer.durationSeconds);
+    setTimerText(mControls.timer.positionElement, settings.autoplay ? mControls.timer.positionSeconds : (mControls.timer.durationSeconds - mControls.timer.positionSeconds));
+    setTimerText(mControls.timer.durationElement, mControls.timer.durationSeconds);
   }
 }
-

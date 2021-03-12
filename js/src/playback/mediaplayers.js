@@ -12,6 +12,7 @@ import * as crossfadeModule from './crossfade.js';
 export {
   YouTube,
   SoundCloud,
+  Playlist,
   setArtistTitle,
   getYouTubeImgUrl,
   getInstance,
@@ -22,11 +23,6 @@ export {
 
 
 const debug = debugLogger.newInstance('mediaplayers');
-
-// Used to split details string into Artist and Title strings
-const artistTitleRegEx = /\s{1,}[–·-]\s{1,}/i;
-// Default / fallback track thumbnail image URL
-const defThumbnailSrc = '/wp-content/themes/ultrafunk/inc/img/photo_filled_grey.png';
 
 
 // ************************************************************************************************
@@ -94,7 +90,7 @@ class YouTube extends MediaPlayer
   {
     super(trackId, iframeId, embeddedPlayer);
     this.previousPlayerState = -1;
-    this.setThumbnail(getYouTubeImgUrl(iframeSrc));
+    super.setThumbnail(getYouTubeImgUrl(iframeSrc));
   }
 
   pause() { this.embeddedPlayer.pauseVideo(); }
@@ -266,8 +262,47 @@ class SoundCloud extends MediaPlayer
 
 
 // ************************************************************************************************
+// Playlist child class
+// ************************************************************************************************
+
+class Playlist extends MediaPlayer
+{
+  constructor(embeddedPlayer)
+  {
+    super(null, null, embeddedPlayer);
+    this.numTracks    = 3;
+    this.currentTrack = 2;
+  }
+
+  get embedded()    { return this.embeddedPlayer; }
+  getNumTracks()    { return this.numTracks;      }
+  getCurrentTrack() { return this.currentTrack;   }
+
+  setArtistTitleThumbnail(artistTitle, video_id)
+  {
+    setArtistTitle(artistTitle, this);
+    super.setThumbnail(getYouTubeImgUrl(`https://www.youtube.com/embed/${video_id}`));
+  }
+
+  getStatus()
+  {
+    return {
+      currentTrack: this.getCurrentTrack(),
+      numTracks:    this.getNumTracks(),
+      artist:       this.getArtist(),
+      title:        this.getTitle(),
+      thumbnail:    { src: this.getThumbnailSrc(), class: this.getThumbnailClass() },
+    };
+  }
+}
+
+
+// ************************************************************************************************
 // MediaPlayer class support functions
 // ************************************************************************************************
+
+// Used to split details string into Artist and Title strings
+const artistTitleRegEx = /\s{1,}[–·-]\s{1,}/;
 
 function setArtistTitle(artistTitle, destination, matchRegEx = artistTitleRegEx)
 {
@@ -286,13 +321,16 @@ function setArtistTitle(artistTitle, destination, matchRegEx = artistTitleRegEx)
   }
 }
 
+// Default / fallback track thumbnail image URL
+const defThumbnailSrc = '/wp-content/themes/ultrafunk/inc/img/photo_filled_grey.png';
+
 function getYouTubeImgUrl(iframeSrc, defaultSrc = defThumbnailSrc)
 {
   const iframeSrcParts = new URL(decodeURIComponent(iframeSrc));
   const pathnameParts  = iframeSrcParts.pathname.split('/embed/');
 
   if ((pathnameParts.length === 2) && (pathnameParts[1].length === 11))
-    return { src: `https://img.youtube.com/vi/${pathnameParts[1]}/default.jpg`, class: 'type-youtube' };
+    return { src: `https://img.youtube.com/vi/${pathnameParts[1]}/default.jpg`, class: 'type-youtube', uid: pathnameParts[1] };
   else
     return { src: defaultSrc, class: 'type-default' };
 }

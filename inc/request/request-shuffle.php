@@ -8,8 +8,6 @@
 namespace Ultrafunk\RequestShuffle;
 
 
-use function Ultrafunk\ThemeFunctions\get_term_field_by_slug;
-
 use function Ultrafunk\Globals\ {
   console_log,
   set_request_params,
@@ -28,10 +26,11 @@ class RequestShuffle
   private $shuffle_slug      = false;
   private $shuffle_slug_page = false;
 
-  private $params = array(
+  public $params = array(
     'is_shuffle' => true,
     'type'       => 'all',
     'slug'       => '',
+    'slug_name'  => null,
     'path'       => 'all',
     'page_num'   => 0,
   );
@@ -68,10 +67,6 @@ class RequestShuffle
 
     if ($this->shuffle_slug || $this->shuffle_slug_page)
       $this->params['path'] = ($this->params['type'] . '/' . $this->params['slug']);
-
-    set_request_params($this->params);
-    
-  //console_log($this->params);
   }
 
   //
@@ -106,10 +101,10 @@ class RequestShuffle
     if ($this->shuffle_slug)
     {
       if ($this->params['type'] === 'artist')
-        $args['tag_id'] = get_term_field_by_slug($this->params['slug'], 'post_tag', 'term_id');
+        $args['tag_id'] = $this->get_term_field_from_slug($this->params['slug'], 'post_tag', 'term_id');
 
       if ($this->params['type'] === 'channel')
-        $args['cat'] = get_term_field_by_slug($this->params['slug'], 'category', 'term_id');
+        $args['cat'] = $this->get_term_field_from_slug($this->params['slug'], 'category', 'term_id');
 
       if (!isset($args['tag_id']) && !isset($args['cat']))
         return null;
@@ -119,10 +114,30 @@ class RequestShuffle
   }
 
   //
-  // Get shuffle path parameter
+  // Get term field from slug
   //
-  public function get_path() { return $this->params['path']; }
-  
+  private function get_term_field_from_slug($slug, $taxonomy, $field)
+  {
+    $wp_term = get_term_by('slug', $slug, $taxonomy);
+
+    if ($wp_term !== false)
+      return $wp_term->$field;
+
+    return null;
+  }
+
+  //
+  // Get term name from slug
+  //
+  public function set_slug_name()
+  {
+    if ($this->params['type'] === 'artist')
+      $this->params['slug_name'] = $this->get_term_field_from_slug($this->params['slug'], 'post_tag', 'name');
+
+    if ($this->params['type'] === 'channel')
+      $this->params['slug_name'] = $this->get_term_field_from_slug($this->params['slug'], 'category', 'name');
+  }
+
   //
   // Get unique ID cookie for random shuffle
   //
@@ -196,7 +211,7 @@ class RequestShuffle
 /**************************************************************************************************************************/
 
 
-function request_callback(bool $do_parse, object $wp, string $matched_route, array $url_parts) : bool
+function request_callback(bool $do_parse, object $wp_env, string $matched_route, array $url_parts) : bool
 {
   $shuffle = new RequestShuffle($matched_route, $url_parts);
   $paged   = $shuffle->get_page_num(9999);
@@ -217,7 +232,7 @@ function request_callback(bool $do_parse, object $wp, string $matched_route, arr
       $transient = get_transient($shuffle->get_transient_name());
   
       // We got a stored transient, check if it is the correct one for this request (path match)
-      if (($transient !== false) && ($shuffle->get_path() !== $transient['shuffle']))
+      if (($transient !== false) && ($shuffle->params['path'] !== $transient['shuffle']))
         $transient = false;
   
       perf_stop('get_rnd_transient');
@@ -225,7 +240,10 @@ function request_callback(bool $do_parse, object $wp, string $matched_route, arr
   
     if ($transient !== false)
     {
-      $wp->query_vars = array(
+      $shuffle->set_slug_name();
+      set_request_params($shuffle->params);
+
+      $wp_env->query_vars = array(
         'orderby'  => 'post__in',
         'post__in' => $transient['postIds'],
         'paged'    => $paged, 

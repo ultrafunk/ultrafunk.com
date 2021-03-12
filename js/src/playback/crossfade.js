@@ -6,7 +6,6 @@
 
 
 import * as debugLogger from '../shared/debuglogger.js';
-//import { showSnackbar } from '../shared/snackbar.js';
 
 
 export {
@@ -68,11 +67,6 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
   let fadeType        = TYPE.NONE;
   let fadePreset      = null;
   let fadeStartTime   = 0;
-
-  /*
-  let perfCounter   = 0;
-  let perfTimeTotal = 0;
-  */
 
   return {
     isFading() { return (fadeState !== STATE.NONE); },
@@ -137,13 +131,6 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
   
     if (fadeState !== STATE.NONE)
     {
-      /*
-      const perfMean   = perfTimeTotal / perfCounter;
-      const perfString = `${fadePreset.name} | <b>Intervals:</b> ${perfCounter} | <b>Total Time:</b> ${perfTimeTotal.toFixed(0)} ms | <b>Mean:</b> ${perfMean.toFixed(2)} ms`;
-      showSnackbar(perfString, 30);
-      debug.log(perfString);
-      */
-
       if (intervalId !== -1)
       {
         clearInterval(intervalId);
@@ -172,11 +159,6 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
       fadeType        = TYPE.NONE;
       fadePreset      = null;
       fadeStartTime   = 0;
-
-      /*
-      perfCounter   = 0;
-      perfTimeTotal = 0;
-      */
     }
   }
   
@@ -202,11 +184,6 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
   //
   function equalPowerFade()
   {
-    /*
-    let startTime = performance.now();
-    perfCounter++;
-    */
-
     fadeOutPlayer.getPosition((positionMilliseconds) =>
     {
       // Clamp negative position values
@@ -220,14 +197,6 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
       const fadeOutVolume = Math.round(Math.sqrt(fadeStartVolume * fadeVolume));
       const fadeInVolume  = Math.round(Math.sqrt(fadeStartVolume * (fadeStartVolume - fadeVolume)));
   
-      /*
-      if (debug.isDebug())
-      {
-        if ((fadeOutVolume >= (VOLUME.MAX - 1)) || (fadeInVolume >= (VOLUME.MAX - 1)))
-          debug.log(`fadePosition: ${fadePosition.toFixed(3)} - fadeVolume: ${fadeVolume.toFixed(3)} - fadeOutVolume: ${fadeOutVolume} - fadeInVolume: ${fadeInVolume}`);
-      }
-      */
-
       if ((fadePosition >= fadeLength) && (fadeVolume <= VOLUME.MIN) && (fadeInVolume >= fadeStartVolume))
       {
         fadeOutPlayer.setVolume(VOLUME.MIN);
@@ -239,33 +208,16 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
         fadeOutPlayer.setVolume(fadeOutVolume);
         fadeInPlayer.setVolume(fadeInVolume);
       }
-
-      /*
-      perfTimeTotal += (performance.now() - startTime);
-      */
     });
   }
   
   function linearFade()
   {
-    /*
-    let startTime = performance.now();
-    perfCounter++;
-    */
-
     fadeOutPlayer.getPosition((positionMilliseconds) =>
     {
       const fadePosition  = ((positionMilliseconds / 1000) - fadeStartTime);
       const fadeInVolume  = Math.round(fadeStartVolume * (fadePosition / fadeLength));
       const fadeOutVolume = fadeStartVolume - fadeInVolume;
-  
-      /*
-      if (debug.isDebug())
-      {
-        if ((fadeOutVolume >= (VOLUME.MAX - 1)) || (fadeInVolume >= (VOLUME.MAX - 1)))
-          debug.log(`fadePosition: ${fadePosition.toFixed(3)} - fadeInVolume: ${fadeInVolume} - fadeOutVolume: ${fadeOutVolume}`);
-      }
-      */
   
       if ((fadePosition > fadeLength) && (fadeOutVolume < VOLUME.MIN) && (fadeInVolume > fadeStartVolume))
       {
@@ -278,10 +230,6 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
         fadeOutPlayer.setVolume(fadeOutVolume);
         fadeInPlayer.setVolume(fadeInVolume);
       }
-
-      /*
-      perfTimeTotal += (performance.now() - startTime);
-      */
     });
   }
 });

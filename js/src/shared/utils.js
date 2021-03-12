@@ -15,6 +15,7 @@ export {
   getCssPropValue,
   matchesMedia,
   replaceClass,
+  fullscreenElement,
 };
 
 
@@ -95,3 +96,53 @@ function replaceClass(element, removeClass, addClass)
   element.classList.remove(removeClass);
   element.classList.add(addClass);
 }
+
+
+// ************************************************************************************************
+// Fullscreen Element module
+// ************************************************************************************************
+
+const fullscreenElement = (() =>
+{
+  const fseEvent = new Event('fullscreenElement');
+  let fseTarget  = null;
+
+  return {
+    init,
+    enter,
+    exit,        
+    toggle,
+  };
+
+  function init()
+  {
+    document.addEventListener('fullscreenchange',       fullscreenChange);
+    document.addEventListener('webkitfullscreenchange', fullscreenChange);
+  }
+
+  function fullscreenChange()
+  {
+    fseTarget = (document.fullscreenElement !== null) ? document.fullscreenElement.id : null;
+    fseEvent.fullscreenTarget = fseTarget;
+    document.dispatchEvent(fseEvent);
+  }
+
+  function enter(fullscreenElement)
+  {
+    fullscreenElement.requestFullscreen();
+  }
+  
+  function exit()
+  {
+    if (fseTarget !== null)
+    {
+      document.exitFullscreen();
+      fseTarget = null;
+    }
+  }
+
+  function toggle(fullscreenElement)
+  {
+    (fseTarget === null) ? enter(fullscreenElement) : exit();
+  }
+})();

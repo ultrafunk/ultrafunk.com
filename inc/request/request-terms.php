@@ -8,16 +8,14 @@
 namespace Ultrafunk\RequestTerms;
 
 
-use function Ultrafunk\Globals\ {
-  console_log,
-  set_request_params,
-};
+use Ultrafunk\SharedRequest\Request;
+use function Ultrafunk\Globals\set_request_params;
 
 
 /**************************************************************************************************************************/
 
 
-class RequestTerms
+class RequestTerms extends Request
 {
   public function __construct(string $matched_route, array $url_parts)
   {
@@ -25,38 +23,51 @@ class RequestTerms
     {
       add_filter('terms_clauses', 'Ultrafunk\RequestTerms\modify_term_clauses', 10, 3);
 
-      $this->is_artists     = true;
+      $this->is_termlist_artists = true;
+      $this->route_path     = 'artists';
       $this->first_letter   = ($matched_route === 'artists') ? 'a' : $url_parts[1];
       $this->letters_range  = range('a', 'z');
       $this->taxonomy       = 'post_tag';
       $this->term_type      = 'tags';
       $this->term_path      = 'artist';
-      $this->term_count     = intval(get_terms(array('taxonomy' => $this->taxonomy, 'fields' => 'count', 'first_letter' => $this->first_letter)));
-      $this->terms_per_page = $this->term_count;
+      $this->item_count     = intval(get_terms(array('taxonomy' => $this->taxonomy, 'fields' => 'count', 'first_letter' => $this->first_letter)));
+      $this->items_per_page = $this->item_count;
       $this->current_page   = 1;
       $this->max_pages      = 1;
     }
     else
     {
-      $this->is_artists     = false;
+      $this->is_termlist_artists = false;
+      $this->route_path     = 'channels';
       $this->taxonomy       = 'category';
       $this->term_type      = 'categories';
       $this->term_path      = 'channel';
-      $this->term_count     = intval(get_terms(array('taxonomy' => $this->taxonomy, 'fields' => 'count')));
-      $this->terms_per_page = 30;
+      $this->item_count     = intval(get_terms(array('taxonomy' => $this->taxonomy, 'fields' => 'count')));
+      $this->items_per_page = 50;
       $this->current_page   = isset($url_parts[2]) ? intval($url_parts[2]) : 1;
-      $this->max_pages      = ($this->term_count > $this->terms_per_page) ? ceil($this->term_count / $this->terms_per_page) : 1;
+      $this->max_pages      = ($this->item_count > $this->items_per_page) ? ceil($this->item_count / $this->items_per_page) : 1;
+    }
+  }
+
+  public function is_valid()
+  {
+    if ($this->current_page <= $this->max_pages)
+    {
+      $this->is_valid = true;
+      
+      set_request_params(array(
+        'is_termlist'         => true,
+        'is_termlist_artists' => $this->is_termlist_artists,
+        'route_path'          => $this->route_path,
+        'item_count'          => $this->item_count,
+        'current_page'        => $this->current_page,
+        'max_pages'           => $this->max_pages,
+        'first_letter'        => (isset($this->first_letter)  ? $this->first_letter  : null),
+        'letters_range'       => (isset($this->letters_range) ? $this->letters_range : null),
+      ));
     }
 
-    set_request_params(array(
-      'is_termlist'   => true,
-      'is_artists'    => $this->is_artists,
-      'term_count'    => $this->term_count,
-      'current_page'  => $this->current_page,
-      'max_pages'     => $this->max_pages,
-      'first_letter'  => (isset($this->first_letter)  ? $this->first_letter  : null),
-      'letters_range' => (isset($this->letters_range) ? $this->letters_range : null),
-    ));
+    return $this->is_valid;
   }
 }
 
@@ -76,24 +87,12 @@ function modify_term_clauses($clauses, $taxonomies, $args)
 /**************************************************************************************************************************/
 
 
-function request_callback(bool $do_parse, object $wp, string $matched_route, array $url_parts) : bool
+function request_callback(bool $do_parse, object $wp_env, string $matched_route, array $url_parts) : bool
 {
   $request = new RequestTerms($matched_route, $url_parts);
-  
-  if ($request->current_page <= $request->max_pages)
-  {
-    require_once get_template_directory() . '/template-parts/content-terms.php';
 
-    $wp->send_headers();
-    
-    get_header();
-    \Ultrafunk\ContentTerms\term_list($request);
-    get_footer();
-
-  //console_log($request);
-    
-    exit;
-  }
+  if ($request->is_valid())
+    $request->render_content($wp_env, 'content-terms.php', '\Ultrafunk\ContentTerms\termlist');
 
   return $do_parse;
 }

@@ -163,6 +163,7 @@ body.autoplay-off #progress-controls .bar-control {
 #playback-controls .shuffle-control,
 #playback-controls .mute-control {
   display: inline-block;
+  user-select: none;
 }
 
 #playback-controls .prev-control.state-disabled,

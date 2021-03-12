@@ -7,7 +7,7 @@
 
 .track-layout-2-column,
 .track-layout-3-column {
-  --site-max-width: 2420px;
+  --site-max-width: calc(100% - 130px);
   --site-content-margin-top: 30px;
   --footer-max-width: 1200px;
 }

@@ -35,7 +35,6 @@ const mConfig = {
 const mShared = {
   nowPlayingIcons:  null,
   snackbarId:       0,
-  tryNextTimeoutId: -1,
 };
 
 const EVENT = {
@@ -187,15 +186,13 @@ function continueAutoplay(playbackEvent)
 function resumeAutoplay(playbackEvent)
 {
   const autoplayValue = sessionStorage.getItem(KEY.UF_AUTOPLAY);
+  sessionStorage.removeItem(KEY.UF_AUTOPLAY);
 
   debugEvent(playbackEvent);
   debug.log(`RESUME_AUTOPLAY: ${(autoplayValue !== null) ? 'true' : 'false'}`);
 
   if (autoplayValue !== null)
-  {
-    sessionStorage.removeItem(KEY.UF_AUTOPLAY);
     playbackEvent.callback.resumeAutoplay();
-  }
 }
 
 function autoplayBlocked(playbackEvent)
@@ -212,9 +209,7 @@ function autoplayBlocked(playbackEvent)
 function playbackBlocked(playbackEvent)
 {
   debugEvent(playbackEvent);
-
-  showSnackbar('Unable to play track, skipping to next', 5, 'Stop', stopSkipToTrack);
-  playbackEventErrorTryNext(playbackEvent, 5);
+  showSnackbar('Unable to play track, skipping to next', 5, 'Stop', () => {}, () => playbackEventErrorTryNext(playbackEvent));
 }
 
 function mediaUnavailable(playbackEvent)
@@ -223,14 +218,12 @@ function mediaUnavailable(playbackEvent)
 
   if (isPremiumTrack(playbackEvent.data.trackId))
   {
-    showSnackbar('YouTube Premium track, skipping', 5, 'help',  () => { window.location.href = '/channel/premium/'; });
-    playbackEventErrorTryNext(playbackEvent, 5);
+    showSnackbar('YouTube Premium track, skipping', 5, 'help',  () => { window.location.href = '/channel/premium/'; }, () => playbackEventErrorTryNext(playbackEvent));
   }
   else
   {
-    showSnackbar('Unable to play track, skipping to next', 5, 'Stop', stopSkipToTrack);
+    showSnackbar('Unable to play track, skipping to next', 5, 'Stop', () => {}, () => playbackEventErrorTryNext(playbackEvent));
     debugLogger.logErrorOnServer('EVENT_MEDIA_UNAVAILABLE', playbackEvent.data);
-    playbackEventErrorTryNext(playbackEvent, 5);
   }
 }
 
@@ -257,30 +250,18 @@ function resetNowPlayingIcons(nowPlayingElement)
   });
 }
 
-function stopSkipToTrack()
+function playbackEventErrorTryNext(playbackEvent)
 {
-  if (mShared.tryNextTimeoutId !== -1)
+  if (playbackEvent.data.currentTrack < playbackEvent.data.numTracks)
   {
-    clearTimeout(mShared.tryNextTimeoutId);
-    mShared.tryNextTimeoutId = -1;
+    // Only supports skipping FORWARD for now...
+    playbackEvent.callback.skipToTrack(playbackEvent.data.currentTrack + 1, true);
   }
-}
-
-function playbackEventErrorTryNext(playbackEvent, timeout = 5)
-{
-  mShared.tryNextTimeoutId = setTimeout(() =>
+  else
   {
-    if (playbackEvent.data.currentTrack < playbackEvent.data.numTracks)
-    {
-      // Only supports skipping FORWARD for now...
-      playbackEvent.callback.skipToTrack(playbackEvent.data.currentTrack + 1, true);
-    }
-    else
-    {
-      if (navigationUrls.next !== null)        // eslint-disable-line no-undef
-        navigateTo(navigationUrls.next, true); // eslint-disable-line no-undef
-    }
-  }, ((timeout * 1000) + 750));
+    if (navigationUrls.next !== null)        // eslint-disable-line no-undef
+      navigateTo(navigationUrls.next, true); // eslint-disable-line no-undef
+  }
 }
 
 function isPremiumTrack(trackId)

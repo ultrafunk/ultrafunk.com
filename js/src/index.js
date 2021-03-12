@@ -20,9 +20,9 @@ const debug   = debugLogger.newInstance('index');
 let mSettings = {};
 
 const mConfig = {
-  smoothScrolling:      false,
-  settingsUpdatedEvent: 'settingsUpdated',
-  fullscreenTrackEvent: 'fullscreenTrack',
+  smoothScrolling:        false,
+  settingsUpdatedEvent:   'settingsUpdated',
+  fullscreenElementEvent: 'fullscreenElement',
 };
 
 const mElements = {
@@ -58,16 +58,17 @@ document.addEventListener('DOMContentLoaded', () =>
   }
 
   setPreviousPageTitle();
-});
 
-document.addEventListener(mConfig.settingsUpdatedEvent, () =>
-{
-  readSettings();
-  interaction.settingsUpdated(mSettings);
-  storage.setCookie(storage.KEY.UF_TRACKS_PER_PAGE, mSettings.user.tracksPerPage, (60 * 60 * 24 * 365 * 5));
+  document.addEventListener(mConfig.settingsUpdatedEvent, () =>
+  {
+    readSettings();
+    interaction.settingsUpdated(mSettings);
+    storage.setCookie(storage.KEY.UF_TRACKS_PER_PAGE, mSettings.user.tracksPerPage, (60 * 60 * 24 * 365 * 5));
+  });
+  
+  document.addEventListener(mConfig.fullscreenElementEvent, (event) => mElements.fullscreenTarget = event.fullscreenTarget);
+  document.addEventListener('keydown', documentEventKeyDown);
 });
-
-document.addEventListener(mConfig.fullscreenTrackEvent, (event) => mElements.fullscreenTarget = event.fullscreenTarget);
 
 
 // ************************************************************************************************
@@ -104,10 +105,10 @@ function initIndex()
 // Keyboard events handling
 // ************************************************************************************************
 
-document.addEventListener('keydown', (event) =>
+function documentEventKeyDown(event)
 {
   // UI keyboard events (cannot be disable by the user)
-  if ((event.ctrlKey === false) && (event.altKey === false))
+  if ((event.repeat === false) && (event.ctrlKey === false) && (event.altKey === false))
   {
     switch (event.key)
     {
@@ -122,7 +123,7 @@ document.addEventListener('keydown', (event) =>
   }
 
   // User enabled keyboard shortcuts (on by default)
-  if (mSettings.user.keyboardShortcuts && (event.ctrlKey === false) && (event.altKey === false))
+  if (mSettings.user.keyboardShortcuts && (event.repeat === false) && (event.ctrlKey === false) && (event.altKey === false))
   {
     switch (event.key)
     {
@@ -145,7 +146,7 @@ document.addEventListener('keydown', (event) =>
 
       case 's':
       case 'S':
-        if (searchNotFocused() && notFullscreenTrack())
+        if (searchNotFocused() && notFullscreenElement())
         {
           event.preventDefault();
           navSearch.toggle();
@@ -160,7 +161,7 @@ document.addEventListener('keydown', (event) =>
         break;
 
       case 'ArrowLeft':
-        if (event.shiftKey && noPlayback())
+        if (event.shiftKey && noPlaybackInteraction())
         {
           // eslint-disable-next-line no-undef
           arrowKeyNav(navigationUrls.prev);
@@ -168,7 +169,7 @@ document.addEventListener('keydown', (event) =>
         break;
 
       case 'ArrowRight':
-        if (event.shiftKey && noPlayback())
+        if (event.shiftKey && noPlaybackInteraction())
         {
           // eslint-disable-next-line no-undef
           arrowKeyNav(navigationUrls.next);
@@ -176,7 +177,7 @@ document.addEventListener('keydown', (event) =>
         break;
     }
   }
-});
+}
 
 function searchNotFocused()
 {
@@ -188,14 +189,14 @@ function notSettingsPage()
   return (document.body.classList.contains('page-settings') === false);
 }
 
-function notFullscreenTrack()
+function notFullscreenElement()
 {
   return ((mElements.fullscreenTarget === null) ? true : false);
 }
 
-function noPlayback()
+function noPlaybackInteraction()
 {
-  return (document.body.classList.contains('no-playback'));
+  return (document.body.classList.contains('no-playback') || document.body.classList.contains('player-playlist'));
 }
 
 function arrowKeyNav(destUrl)
@@ -485,7 +486,7 @@ const resize = (() =>
   
   function resizeEvent()
   {
-    noPlayback() ? headerHeight = utils.getCssPropValue('--site-header-height-no-playback') : headerHeight = utils.getCssPropValue('--site-header-height');
+    noPlaybackInteraction() ? headerHeight = utils.getCssPropValue('--site-header-height-no-playback') : headerHeight = utils.getCssPropValue('--site-header-height');
 
     if ((mElements.introBanner !== null) && (mElements.introBanner.style.display.length !== 0))
     {

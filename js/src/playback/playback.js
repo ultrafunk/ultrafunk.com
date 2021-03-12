@@ -5,13 +5,14 @@
 //
 
 
-import * as debugLogger   from '../shared/debuglogger.js';
-import * as eventLogger   from './eventlogger.js';
-import * as mediaPlayers  from './mediaplayers.js';
-import * as embedded      from './embedded-players.js';
-import * as events        from './playback-events.js';
-import * as controls      from './playback-controls.js';
-import { CROSSFADE_TYPE } from './crossfade.js';
+import * as debugLogger       from '../shared/debuglogger.js';
+import * as eventLogger       from './eventlogger.js';
+import * as mediaPlayers      from './mediaplayers.js';
+import * as embedded          from './embedded-players.js';
+import * as events            from './playback-events.js';
+import * as controls          from './playback-controls.js';
+import * as crossfadeControls from './crossfade-controls.js';
+import { CROSSFADE_TYPE }     from './crossfade.js';
 
 
 export {
@@ -54,7 +55,8 @@ function init(playbackSettings)
   players = mediaPlayers.getInstance();
   players.init(settings, playTrack);
 
-  controls.init(settings, players, seekClick, crossfadeToClick);
+  controls.init(settings, players, seekClick);
+  crossfadeControls.init(settings, players, crossfadeToClick);
   embedded.init({ settings: settings, players: players, playbackState: playbackState, playbackTimer: playbackTimer });
 }
 
@@ -210,6 +212,7 @@ function embeddedEventHandler(embeddedEvent, embeddedEventData = null)
     
     case events.EVENT.READY:
       controls.ready(prevClick, togglePlayPause, nextClick, toggleMute);
+      crossfadeControls.ready();
       events.dispatch(events.EVENT.READY);
       events.dispatch(events.EVENT.RESUME_AUTOPLAY, null, { 'resumeAutoplay': resumeAutoplay });
       break;
@@ -303,10 +306,10 @@ const playbackTimer = (() =>
 {
   let intervalId     = -1;
   let lastPosSeconds = 0;
-  let isPageVisible  = true;
+  let isVisible      = true;
 
   // Can be called on IIFE execution since it has no other dependencies
-  document.addEventListener('visibilitychange', visibilityChange);
+  document.addEventListener('visibilitychange', () => { isVisible = (document.visibilityState === 'visible') ? true : false; });
 
   return {
     start,
@@ -317,7 +320,7 @@ const playbackTimer = (() =>
   function start()
   {
     stop(false);
-    intervalId = setInterval(update, mConfig.updateTimerInterval);
+    intervalId = setInterval(() => { if (isVisible) players.current.getPosition(updateCallback); }, mConfig.updateTimerInterval);
   }
   
   function stop(mediaEnded = false)
@@ -336,18 +339,6 @@ const playbackTimer = (() =>
 
     lastPosSeconds = 0;
     controls.blinkPlayPause(false);
-  }
-  
-  function visibilityChange()
-  {
-    isPageVisible = (document.visibilityState === 'visible') ? true : false;
-  }
-  
-  function update()
-  {
-    // Save CPU & GPU resources by only updating the DOM if the document / page is visible
-    if (isPageVisible)
-      players.current.getPosition(updateCallback);
   }
   
   function updateCallback(positionMilliseconds, durationSeconds = 0)

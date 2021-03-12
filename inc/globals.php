@@ -20,7 +20,7 @@ $ultrafunk_is_prod_build = false;
 
 class Globals
 {
-  public static $version = '1.18.1';
+  public static $version = '1.19.0';
 
   public static $dev_prod_consts = array(
     'menu_item_all_id'         => WP_DEBUG ?  115 :  115,
@@ -57,6 +57,7 @@ function get_request_params()        { return Globals::$request_params;    }
 function set_request_params($params) { Globals::$request_params = $params; }
 
 function is_termlist()               { return isset(Globals::$request_params['is_termlist']); }
+function is_player()                 { return isset(Globals::$request_params['is_player']);   }
 function is_shuffle()                { return isset(Globals::$request_params['is_shuffle']);  }
 
 function get_cached_title()          { return Globals::$cached_title;   }

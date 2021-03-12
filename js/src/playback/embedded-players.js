@@ -186,6 +186,15 @@ function initYouTubeAPI()
   debug.log('initYouTubeAPI()');
   eventHandler(EVENT.LOADING, getLoadingPercent());
 
+  window.onYouTubeIframeAPIReady = function()
+  {
+    debug.log('onYouTubeIframeAPIReady()');
+    eventHandler(EVENT.LOADING, getLoadingPercent());
+  
+    // ToDo: THIS SHOULD NOT BE TRIGGERED HERE ONLY?
+    getAllPlayers();
+  };
+
   const tag = document.createElement('script');
   tag.id    = 'youtube-iframe-api';
   tag.src   = 'https://www.youtube.com/iframe_api';
@@ -193,15 +202,6 @@ function initYouTubeAPI()
   firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 }
   
-window.onYouTubeIframeAPIReady = function()
-{
-  debug.log('onYouTubeIframeAPIReady()');
-  eventHandler(EVENT.LOADING, getLoadingPercent());
-
-  // ToDo: THIS SHOULD NOT BE TRIGGERED HERE ONLY?
-  getAllPlayers();
-};
-
 function onYouTubePlayerReady()
 {
   debug.log('onYouTubePlayerReady()');

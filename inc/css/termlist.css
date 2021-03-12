@@ -157,6 +157,7 @@
   .termlist-icons .share-find-button:hover,
   .termlist-icons .expand-toggle:hover {
     background-color: var(--control-highlight-color);
+    border-radius: var(--button-border-radius);
   }
   
 }
@@ -173,6 +174,7 @@
   .termlist-icons .shuffle-button:active,
   .termlist-icons .share-find-button:active {
     background-color: var(--control-highlight-color);
+    border-radius: var(--button-border-radius);
     transition: background 0s;
   }
 

@@ -9,12 +9,13 @@ namespace Ultrafunk\ThemeFunctions;
 
 
 use SimpleXMLElement;
-use function Ultrafunk\RequestShared\request_get_prev_next_urls;
+use function Ultrafunk\SharedRequest\request_get_prev_next_urls;
 
 use function Ultrafunk\Globals\ {
   console_log,
   is_shuffle,
   is_termlist,
+  is_player,
   get_request_params,
   get_cached_title,
   set_cached_title,
@@ -34,8 +35,8 @@ function get_prev_next_urls()
   if (is_404())
     return array();
 
-  if (is_termlist())
-    return request_get_prev_next_urls(get_request_params());
+  if (is_termlist() || is_player())
+    return request_get_prev_next_urls();
 
   if (is_single())
   {
@@ -118,19 +119,6 @@ function set_posts_per_page($query)
 add_action('pre_get_posts', '\Ultrafunk\ThemeFunctions\set_posts_per_page', 1);
 
 //
-// Get term field for slug
-//
-function get_term_field_by_slug($slug, $taxonomy, $field)
-{
-  $term = get_term_by('slug', $slug, $taxonomy);
-
-  if ($term !== false)
-    return $term->$field;
-
-  return null;
-}
-
-//
 // Get current title from context
 //
 function get_title()
@@ -143,19 +131,17 @@ function get_title()
 
   $params = get_request_params();
 
-  if (!is_404() && is_shuffle())
+  if (is_shuffle())
   {
-    $title = 'All Tracks';
-
-    if ($params['type'] === 'artist')
-      $title = get_term_field_by_slug($params['slug'], 'post_tag', 'name');
-
-    if ($params['type'] === 'channel')
-      $title = get_term_field_by_slug($params['slug'], 'category', 'name');
+    $title = isset($params['slug_name']) ? $params['slug_name'] : 'All Tracks';
   }
-  else if (!is_404() && is_termlist())
+  else if (is_termlist())
   {
-    $title = $params['is_artists'] ? ('Artists: ' . strtoupper($params['first_letter'])) : 'All Channels';
+    $title = $params['is_termlist_artists'] ? ('Artists: ' . strtoupper($params['first_letter'])) : 'All Channels';
+  }
+  else if (is_player())
+  {
+    $title = isset($params['WP_Term']) ? $params['WP_Term']->name : 'All Tracks';
   }
   else
   {
@@ -176,18 +162,27 @@ function get_title()
 //
 function customize_title($title)
 {
-  if (!is_404() && is_shuffle())
+  $params = get_request_params();
+
+  if (is_shuffle())
   {
     $title['title']   = esc_html('Shuffle: ' . get_title());
     $title['tagline'] = '';
     $title['site']    = esc_html(get_bloginfo('name'));
   }
-  else if (!is_404() && is_termlist())
+  else if (is_termlist())
   {
-    if (get_request_params()['max_pages'] > 1)
-      $title['title'] = esc_html(get_title() . ' - Page ' . get_request_params()['current_page']);
+    if ($params['max_pages'] > 1)
+      $title['title'] = esc_html(get_title() . ' - Page ' . $params['current_page']);
     else
       $title['title'] = esc_html(get_title());
+  }
+  else if (is_player())
+  {
+    if ($params['is_player_artist'])
+      $title['title'] = esc_html('Artist: ' . get_title());
+    else
+      $title['title'] = esc_html(get_title() . ' - Page ' . $params['current_page']);
   }
   
   return $title;
@@ -214,6 +209,18 @@ function embed_iframe_setparams($cached_html)
   return $cached_html;
 }
 add_filter('embed_oembed_html', '\Ultrafunk\ThemeFunctions\embed_iframe_setparams', 10, 1);
+
+//
+// Disable iframe lazy loading
+//
+function disable_iframe_lazy_loading($default, $tag_name, $context)
+{
+  if ('iframe' === $tag_name)
+    return false;  
+
+  return $default;
+}
+add_filter('wp_lazy_loading_enabled', '\Ultrafunk\ThemeFunctions\disable_iframe_lazy_loading', 10, 3);
 
 //
 // Customize the default WordPress search form
@@ -262,7 +269,7 @@ function get_shuffle_menu_item_title()
 {
   $title = '';
 
-  if (!is_404() && is_shuffle())
+  if (is_shuffle())
     $title = 'Shuffle: ' . get_title();
   else
     $title = single_term_title('Shuffle: ', false);
@@ -281,7 +288,7 @@ function setup_nav_menu_item($menu_item)
   if (is_front_page() && !is_shuffle() && ($menu_item->ID === get_dev_prod_const('menu_item_all_id')))
     $menu_item->classes[] = 'current-menu-item';
   
-  if (!is_404() && is_shuffle() && ($menu_item->ID === get_dev_prod_const('menu_item_shuffle_id')))
+  if (is_shuffle() && ($menu_item->ID === get_dev_prod_const('menu_item_shuffle_id')))
     $menu_item->classes[] = 'current-menu-item';
 
   if ($menu_item->ID === get_dev_prod_const('menu_item_shuffle_id'))

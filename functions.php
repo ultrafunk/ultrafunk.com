@@ -24,11 +24,11 @@ remove_action('wp_head', 'wlwmanifest_link');
 // Remove Gutenberg CSS for visitors
 remove_action('wp_enqueue_scripts', 'wp_common_block_scripts_and_styles');
 
-// Remove Gutenberg CSS for admins
-// remove_action('admin_enqueue_scripts', 'wp_common_block_scripts_and_styles');
+// Remove RSD link
+remove_action('wp_head', 'rsd_link');
 
-// Remove built in XML sitemaps
-// add_filter( 'wp_sitemaps_enabled', '__return_false' );
+// Remove Shortlink
+remove_action('wp_head', 'wp_shortlink_wp_head');
 
 //
 // Theme setup
@@ -109,11 +109,13 @@ function ultrafunk_scripts()
     wp_enqueue_style('modal-style', get_theme_file_uri('/js/src/shared/modal.css'), array(), $version);
     wp_enqueue_style('snackbar-style', get_theme_file_uri('/js/src/shared/snackbar.css'), array(), $version);
     wp_enqueue_style('playback-controls-style', get_theme_file_uri('/js/src/playback/playback-controls.css'), array(), $version);
+    wp_enqueue_style('crossfade-controls-style', get_theme_file_uri('/js/src/playback/crossfade-controls.css'), array(), $version);
     wp_enqueue_script('interaction-script', get_theme_file_uri('/js/src/playback/interaction.js'), array(), $version);
     wp_enqueue_script('ultrafunk-script', get_theme_file_uri('/js/src/index.js'), array(), $version);
     wp_enqueue_style('ultrafunk-style', get_stylesheet_uri(), array(), $version);
     wp_enqueue_style('termlist-style', get_theme_file_uri('/inc/css/termlist.css'), array(), $version);
     wp_enqueue_style('track-layout-style', get_theme_file_uri('/inc/css/track-layout.css'), array(), $version);
+    wp_enqueue_style('player-playlist-style', get_theme_file_uri('/js/src/playback/player-playlist.css'), array(), $version);
   }
 
   wp_localize_script('interaction-script', 'navigationUrls', \Ultrafunk\ThemeFunctions\get_prev_next_urls());
@@ -172,9 +174,10 @@ add_action('admin_menu', 'ultrafunk_reusable_blocks_admin_menu');
 //
 require get_template_directory() . '/inc/build-env.php';
 require get_template_directory() . '/inc/request/route-request.php';
-require get_template_directory() . '/inc/request/shared.php';
+require get_template_directory() . '/inc/request/shared-request.php';
 require get_template_directory() . '/inc/request/request-shuffle.php';
 require get_template_directory() . '/inc/request/request-terms.php';
+require get_template_directory() . '/inc/request/request-player.php';
 require get_template_directory() . '/inc/theme-functions.php';
 require get_template_directory() . '/inc/theme-tags.php';
 require get_template_directory() . '/inc/theme-widgets.php';

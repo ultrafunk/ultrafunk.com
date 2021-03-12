@@ -11,6 +11,7 @@ import * as playback        from './playback.js';
 import * as playbackEvents  from './playback-events.js';
 import * as screenWakeLock  from './screen-wakelock.js';
 import * as utils           from '../shared/utils.js';
+import * as playerPlaylist  from './player-playlist.js';
 import { showSnackbar }     from '../shared/snackbar.js';
 import { playbackSettings } from '../shared/settings.js';
 
@@ -34,13 +35,11 @@ const mConfig = {
   crossfadeToggleId:           'footer-crossfade-toggle',
   allowKeyboardShortcutsEvent: 'allowKeyboardShortcuts',
   denyKeyboardShortcutsEvent:  'denyKeyboardShortcuts',
-  fullscreenTrackEvent:        new Event('fullscreenTrack'),
   doubleClickDelay:            500,
 };
 
 const mElements = {
   playbackControls: { details: null, thumbnail: null, timer: null, statePlaying: false },
-  fullscreenTarget: null,
   autoplayToggle:   null,
   crossfadeToggle:  null,
 };
@@ -63,17 +62,16 @@ document.addEventListener('DOMContentLoaded', () =>
     updateAutoplayDOM(mSettings.user.autoplay);
     updateCrossfadeDOM(mSettings.user.autoCrossfade);
   }
+  else if (document.getElementById('player-playlist'))
+  {
+    mElements.autoplayToggle  = document.getElementById(mConfig.autoplayToggleId);
+    mElements.crossfadeToggle = document.getElementById(mConfig.crossfadeToggleId);
+    updateAutoplayDOM(mSettings.user.autoplay);
+
+    playerPlaylist.init(mSettings, autoplayToggle);
+  }
 });
 
-document.addEventListener('fullscreenchange',       documentEventFullscreenChange);
-document.addEventListener('webkitfullscreenchange', documentEventFullscreenChange);
-
-// Listen for triggered events to toggle keyboard capture = allow other input elements to use shortcut keys
-document.addEventListener(mConfig.allowKeyboardShortcutsEvent, () => { if (mSettings.user.keyboardShortcuts) useKeyboardShortcuts = true;  });
-document.addEventListener(mConfig.denyKeyboardShortcutsEvent,  () => { if (mSettings.user.keyboardShortcuts) useKeyboardShortcuts = false; });
-
-window.addEventListener('blur', windowEventBlur);
- 
 
 // ************************************************************************************************
 // Read settings and interaction init
@@ -90,6 +88,8 @@ function initInteraction()
 {
   debug.log('initInteraction()');
 
+  utils.fullscreenElement.init();
+
   useKeyboardShortcuts                 = mSettings.user.keyboardShortcuts;
   mElements.playbackControls.details   = document.getElementById('playback-controls').querySelector('.details-control');
   mElements.playbackControls.thumbnail = document.getElementById('playback-controls').querySelector('.thumbnail-control');
@@ -103,6 +103,13 @@ function initInteraction()
   utils.addEventListeners('nav.post-navigation .nav-previous a', 'click', paginationNavClick, navigationUrls.prev);
   utils.addEventListeners('nav.post-navigation .nav-next a',     'click', paginationNavClick, navigationUrls.next);
   /* eslint-enable */
+  
+  // Listen for triggered events to toggle keyboard capture = allow other input elements to use shortcut keys
+  document.addEventListener(mConfig.allowKeyboardShortcutsEvent, () => { if (mSettings.user.keyboardShortcuts) useKeyboardShortcuts = true;  });
+  document.addEventListener(mConfig.denyKeyboardShortcutsEvent,  () => { if (mSettings.user.keyboardShortcuts) useKeyboardShortcuts = false; });
+  document.addEventListener('keydown', documentEventKeyDown);
+  
+  window.addEventListener('blur', windowEventBlur);
 }
 
 function initPlayback()
@@ -119,9 +126,9 @@ function initPlayback()
 // Keyboard events handler and functions
 // ************************************************************************************************
 
-document.addEventListener('keydown', (event) =>
+function documentEventKeyDown(event)
 {
-  if (isPlaybackReady && useKeyboardShortcuts && (event.ctrlKey === false) && (event.altKey === false))
+  if (isPlaybackReady && useKeyboardShortcuts && (event.repeat === false) && (event.ctrlKey === false) && (event.altKey === false))
   {
     switch(event.code)
     {
@@ -151,7 +158,8 @@ document.addEventListener('keydown', (event) =>
 
       case 'f':
       case 'F':
-        fullscreenTrackToggle(event);
+        event.preventDefault();
+        utils.fullscreenElement.toggle(document.getElementById(playback.getStatus().iframeId));
         break;
 
       case 'm':
@@ -170,16 +178,6 @@ document.addEventListener('keydown', (event) =>
         break;
     }
   }
-});
-
-function fullscreenTrackToggle(event)
-{
-  event.preventDefault();
-
-  if (mElements.fullscreenTarget === null)
-    enterFullscreenTrack();
-  else
-    exitFullscreenTrack();
 }
 
 function arrowLeftKey(event)
@@ -286,13 +284,13 @@ function playbackEventReady()
 function playbackEventMediaEnded()
 {
   if (mSettings.user.autoExitFullscreen)
-    exitFullscreenTrack();
+    utils.fullscreenElement.exit();
 }
 
 function playbackEventMediaTimeRemaining(playbackEvent)
 {
   if (mSettings.user.autoExitFsOnWarning && (playbackEvent.data.timeRemainingSeconds <= mSettings.user.timeRemainingSeconds))
-    exitFullscreenTrack();
+    utils.fullscreenElement.exit();
 }
 
 
@@ -318,13 +316,6 @@ function windowEventBlur()
       }, 250);
     }
   }, 0);
-}
-
-function documentEventFullscreenChange()
-{
-  mElements.fullscreenTarget = (document.fullscreenElement !== null) ? document.fullscreenElement.id : null;
-  mConfig.fullscreenTrackEvent.fullscreenTarget = mElements.fullscreenTarget;
-  document.dispatchEvent(mConfig.fullscreenTrackEvent);
 }
 
 function documentEventVisibilityChange()
@@ -374,7 +365,7 @@ function playbackDetailsClick(event)
     showInteractionHint('showDetailsHint', '<b>Tip:</b> Double click or tap on Artist &amp; Title for full screen');
 
   if (eventLog.doubleClicked(eventLogger.SOURCE.MOUSE, eventLogger.EVENT.MOUSE_CLICK, mConfig.doubleClickDelay))
-    enterFullscreenTrack();
+    utils.fullscreenElement.enter(document.getElementById(playback.getStatus().iframeId));
 }
 
 function paginationNavClick(event, destUrl)
@@ -390,21 +381,6 @@ function showCurrentTrack(event)
 {
   event.preventDefault();
   playbackEvents.scrollToId(playback.getStatus().trackId);
-}
-
-function enterFullscreenTrack()
-{
-  const element = document.getElementById(playback.getStatus().iframeId);
-  element.requestFullscreen();
-}
-
-function exitFullscreenTrack()
-{
-  if (mElements.fullscreenTarget !== null)
-  {
-    document.exitFullscreen();
-    mElements.fullscreenTarget = null;
-  }
 }
 
 

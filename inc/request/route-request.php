@@ -44,6 +44,15 @@ class RouteRequest
       'routes'   => array(
         'channels'      => '/^channels$/',
       //'channels_page' => '/^channels\/page\/(?!0)\d{1,6}$/',
+    )),
+    'player' => array(
+      'callback' => 'Ultrafunk\RequestPlayer\request_callback',
+      'routes'   => array(
+        'player_all'          => '/^player$/',
+        'player_all_page'     => '/^player\/page\/(?!0)\d{1,6}$/',
+        'player_artist'       => '/^player\/artist\/[a-z0-9-]*$/',
+      //'player_channel'      => '/^player\/channel\/[a-z0-9-]*$/',
+      //'player_channel_page' => '/^player\/channel\/[a-z0-9-]\/page\/(?!0)\d{1,6}*$/',
       )
     )
   );
@@ -95,7 +104,7 @@ function is_rest_request()
 //
 // Filter do_parse_request to check for any custom routes
 //
-function parse_request(bool $do_parse, object $wp) : bool
+function parse_request(bool $do_parse, object $wp_env) : bool
 {
   if ((is_admin() === false) && (wp_doing_ajax() === false) && (is_rest_request() === false))
   {
@@ -116,7 +125,7 @@ function parse_request(bool $do_parse, object $wp) : bool
       }
       else
       {
-        return call_user_func($route_request->route_callback, $do_parse, $wp, $route_request->matched_route, $route_request->url_parts);
+        return call_user_func($route_request->route_callback, $do_parse, $wp_env, $route_request->matched_route, $route_request->url_parts);
       }
     }
   }
