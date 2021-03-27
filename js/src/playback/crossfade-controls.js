@@ -67,7 +67,7 @@ function ready()
     mControls.crossfadePreset.elements.forEach(element =>
     {
       element.addEventListener('click', crossfadePresetClick);
-      replaceClass(element, STATE.DISABLED, STATE.ENABLED);
+      replaceClass(element, STATE.DISABLED.CLASS, STATE.ENABLED.CLASS);
     });
 
     mControls.crossfadeTo.elements.forEach(element => element.addEventListener('click', crossfadeToClick));
@@ -107,7 +107,7 @@ function crossfadeToClick(event)
       const iframe      = element.querySelector('iframe');
       const presetIndex = element.querySelector(mConfig.crossfadePresetSelector).getAttribute(mConfig.crossfadePresetData);
 
-      replaceClass(event.target.closest('div.fadeto-control'), STATE.ENABLED, STATE.DISABLED);
+      replaceClass(event.target.closest('div.fadeto-control'), STATE.ENABLED.CLASS, STATE.DISABLED.CLASS);
       mControls.crossfadeTo.click(players.uIdFromIframeId(iframe.id), presetList.crossfade[presetIndex]);
     }
   }
@@ -123,8 +123,8 @@ function updateCrossfadeToState()
   mControls.crossfadeTo.elements.forEach((element, index) =>
   {
     if (currentTrack === (index + 1))
-      replaceClass(element, (isPlayingState ? STATE.ENABLED : STATE.DISABLED), (isPlayingState ? STATE.DISABLED : STATE.ENABLED));
+      replaceClass(element, (isPlayingState ? STATE.ENABLED.CLASS : STATE.DISABLED.CLASS), (isPlayingState ? STATE.DISABLED.CLASS : STATE.ENABLED.CLASS));
     else
-      replaceClass(element, (isPlayingState ? STATE.DISABLED : STATE.ENABLED), (isPlayingState ? STATE.ENABLED : STATE.DISABLED));
+      replaceClass(element, (isPlayingState ? STATE.DISABLED.CLASS : STATE.ENABLED.CLASS), (isPlayingState ? STATE.ENABLED.CLASS : STATE.DISABLED.CLASS));
   });
 }

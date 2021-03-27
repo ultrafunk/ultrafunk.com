@@ -11,6 +11,7 @@ namespace Ultrafunk\SharedRequest;
 use function Ultrafunk\Globals\ {
   console_log,
   get_request_params,
+  set_request_params,
 };
 
 
@@ -21,23 +22,28 @@ abstract class Request
 {
   protected $is_valid = false;
   
-  protected $default_query_args = array('posts_per_page' => 25);
-  protected $route_query_args   = array();
-
-  protected $default_term_args = array('orderby' => 'name', 'order' => 'ASC', 'hide_empty' => true);
-  protected $route_term_args   = array();
+  public $items_per_page = WP_DEBUG ? 36 : 36;
+  public $current_page   = 1;
+  public $max_pages      = 1;
+  public $query_args     = array();
   
-  abstract public function is_valid();
-
-  protected function set_query_args()
+  protected function set_request_params(array $bool_params = array(), array $null_params = array())
   {
-    $this->query_args = array_merge($this->default_query_args, $this->route_query_args);
+    foreach ($bool_params as $key)
+      $params[$key] = isset($this->$key) ? $this->$key : false;
+
+    foreach ($null_params as $key)
+      $params[$key] = isset($this->$key) ? $this->$key : null;
+
+    $params['route_path']   = (isset($this->route_path)  ? $this->route_path  : null);
+    $params['title_parts']  = (isset($this->title_parts) ? $this->title_parts : null);
+    $params['current_page'] = $this->current_page;
+    $params['max_pages']    = $this->max_pages;
+
+    set_request_params($params);
   }
 
-  protected function set_term_args()
-  {
-    $this->term_args = array_merge($this->default_term_args, $this->route_term_args);
-  }
+  abstract public function is_valid() : bool;
 
   public function render_content($wp_env, $template_name, $template_function)
   {
@@ -60,6 +66,11 @@ abstract class Request
 /**************************************************************************************************************************/
 
 
+function get_max_pages($item_count, $items_per_page)
+{
+  return ($item_count > $items_per_page) ? ceil($item_count / $items_per_page) : 1;  
+}
+
 function request_pagination($request)
 {
   if (isset($request->max_pages) && ($request->max_pages > 1))
@@ -74,10 +85,12 @@ function request_pagination($request)
       'prev_text' => '&#10094;&#10094; Prev.',
       'next_text' => 'Next &#10095;&#10095;',
     );
+
+    $nav_header_text = $request->title_parts['prefix'] . ': <span class="light-text">' . $request->title_parts['title'] . '</span>';
   
     ?>
     <nav class="navigation pagination" role="navigation" aria-label=" ">
-      <h2 class="screen-reader-text"><?php echo $request->pagination_header; ?></h2>
+      <h2 class="screen-reader-text"><?php echo $nav_header_text; ?></h2>
       <div class="nav-links">
         <?php echo paginate_links($args); ?>
       </div>

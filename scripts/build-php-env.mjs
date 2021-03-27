@@ -13,7 +13,7 @@ import { join } from "path";
 
 
 const jsChunksPath      = './js/dist/';
-const jsChunkFilesRegEx = /chunk\..*\.js$/i;
+const jsChunkFilesRegEx = /^chunk.*\.js$/i;
 
 
 // ************************************************************************************************

@@ -156,8 +156,8 @@ function documentEventKeyDown(event)
 function scrollPlayerIntoView()
 {
   let scrollTop = 0;
-         
-  if (document.documentElement.scrollTop === 0)
+
+  if (window.pageYOffset < 1)
     scrollTop = utils.getCssPropValue('--site-header-height') - utils.getCssPropValue('--site-header-height-down');
 
   window.scroll(
@@ -214,6 +214,11 @@ function observerCallback(entries)
 
 function setCurrentTrack(nextTrackId, playNextTrack = true, isPointerClick = false)
 {
+//https://wordpress.ultrafunk.com/player/shuffle/all/page/30/
+//Breakestra - You Don't Need a Dance
+//Unable to play last track in list needs better error handling / state reset
+  debug.log(nextTrackId);
+
   if (nextTrackId === undefined)
   {
     setPlayStateClass(false);
@@ -310,7 +315,8 @@ function skipToNextTrack()
     eventLog.add(eventLogger.SOURCE.YOUTUBE, -1, current.element.nextElementSibling?.id);
   }
 
-  advanceToNextTrack(true);
+  if (controls.isPlaying() === false)
+    advanceToNextTrack(true);
 }
 
 function stopSkipToNextTrack()
@@ -419,11 +425,10 @@ function onYouTubeStatePlaying(event)
     
     setTimeout(() =>
     {
-    //if ((document.documentElement.scrollTop === 0) && utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
-      if ((document.documentElement.scrollTop === 0) && settings.user.autoplay)
+      if (settings.user.autoplay && controls.isPlaying() && (window.pageYOffset < 1))
         scrollPlayerIntoView();
     },
-    3000);
+    5000);
   }
 }
 

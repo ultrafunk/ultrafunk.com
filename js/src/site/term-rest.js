@@ -87,7 +87,7 @@ function fetchMeta(termData, termId, maxItems, callback)
       tags.push.apply(tags, item.tags);
     });
   
-    tags = tags.filter(item => item !== termId);
+    tags = tags.filter(item => (item !== termId));
   
     fetchMetadata('categories', termId, [...new Set(categories)], maxItems, callback);
     fetchMetadata('tags',       termId, [...new Set(tags)],       maxItems, callback);

@@ -92,52 +92,45 @@ function getAllPlayers()
 
   entries.forEach(entry => 
   {
-    const trackId    = entry.id;
-    const entryTitle = entry.getAttribute(mConfig.artistTrackTitleData);
-    const iframes    = entry.querySelectorAll('iframe');
+    const iframe = entry.querySelector('iframe');
+    let   player = {};
 
-    iframes.forEach(iframe =>
+    if (mConfig.youTubeIframeIdRegEx.test(iframe.id)) 
     {
-      const iframeId = iframe.id;
-      let   player   = {};
-
-      if (mConfig.youTubeIframeIdRegEx.test(iframeId)) 
+      const embeddedPlayer = new YT.Player(iframe.id, // eslint-disable-line no-undef
       {
-        const embeddedPlayer = new YT.Player(iframeId, // eslint-disable-line no-undef
+        events:
         {
-          events:
-          {
-            onReady:       onYouTubePlayerReady,
-            onStateChange: onYouTubePlayerStateChange,
-            onError:       onYouTubePlayerError,
-          }
-        });
+          onReady:       onYouTubePlayerReady,
+          onStateChange: onYouTubePlayerStateChange,
+          onError:       onYouTubePlayerError,
+        }
+      });
 
-        player = new mediaPlayers.YouTube(trackId, iframeId, embeddedPlayer, iframe.src);
-      }
-      else if (mConfig.soundCloudIframeIdRegEx.test(iframeId))
+      player = new mediaPlayers.YouTube(entry.id, iframe.id, embeddedPlayer, iframe.src);
+    }
+    else if (mConfig.soundCloudIframeIdRegEx.test(iframe.id))
+    {
+      /* eslint-disable */
+      const embeddedPlayer = SC.Widget(iframe.id);
+      player = new mediaPlayers.SoundCloud(entry.id, iframe.id, embeddedPlayer, iframe.src);
+
+      // Preload thumbnail image as early as possible
+      embeddedPlayer.bind(SC.Widget.Events.READY, () =>
       {
-        /* eslint-disable */
-        const embeddedPlayer = SC.Widget(iframeId);
-        player = new mediaPlayers.SoundCloud(trackId, iframeId, embeddedPlayer, iframe.src);
+        player.setThumbnail();
+        onSoundCloudPlayerEventReady();
+      });
 
-        // Preload thumbnail image as early as possible
-        embeddedPlayer.bind(SC.Widget.Events.READY, () =>
-        {
-          player.setThumbnail();
-          onSoundCloudPlayerEventReady();
-        });
+      embeddedPlayer.bind(SC.Widget.Events.PLAY,   onSoundCloudPlayerEventPlay);
+      embeddedPlayer.bind(SC.Widget.Events.PAUSE,  onSoundCloudPlayerEventPause);
+      embeddedPlayer.bind(SC.Widget.Events.FINISH, onSoundCloudPlayerEventFinish);
+      embeddedPlayer.bind(SC.Widget.Events.ERROR,  onSoundCloudPlayerEventError);
+      /* eslint-enable */
+    }
 
-        embeddedPlayer.bind(SC.Widget.Events.PLAY,   onSoundCloudPlayerEventPlay);
-        embeddedPlayer.bind(SC.Widget.Events.PAUSE,  onSoundCloudPlayerEventPause);
-        embeddedPlayer.bind(SC.Widget.Events.FINISH, onSoundCloudPlayerEventFinish);
-        embeddedPlayer.bind(SC.Widget.Events.ERROR,  onSoundCloudPlayerEventError);
-        /* eslint-enable */
-      }
-
-      mediaPlayers.setArtistTitle(entryTitle, player);
-      players.add(player);
-    });
+    mediaPlayers.setArtistTitle(entry.getAttribute(mConfig.artistTrackTitleData), player);
+    players.add(player);
   });
 }
 

@@ -39,6 +39,7 @@ function init(siteSettings)
 
   settings = siteSettings;
 
+  initPlayerSelection();
   siteTheme.init();
   trackLayout.init();
 
@@ -58,6 +59,30 @@ function trackShareControlClick(event)
   const trackUrl         = event.target.getAttribute('data-track-url');
  
   shareModal.show({ string: artistTrackTitle, filterString: true, url: trackUrl });
+}
+
+
+// ************************************************************************************************
+// Player selection handling
+// ************************************************************************************************
+
+function initPlayerSelection()
+{
+  const isCompact = document.body.classList.contains('player-playlist');
+  document.querySelector('#footer-player-toggle span').textContent = isCompact ? 'Compact' : 'Gallery';
+
+  utils.addEventListeners('#footer-player-toggle', 'click', (event) =>
+  {
+    event.preventDefault();
+
+    // Remove pagination since it does not match between the two players
+    const currentUrl = window.location.href.replace(/\/page\/(?!0)\d{1,6}\//, '');
+
+    if (isCompact)
+      window.location.href = currentUrl.replace(/player\//, '');
+    else
+      window.location.href = currentUrl.replace(/ultrafunk\.com\//, 'ultrafunk.com/player/');
+  });
 }
 
 

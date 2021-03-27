@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 /*
- * Standalone player playlist template
+ * Player playlist template
  *
  */
 
@@ -28,8 +28,12 @@ function content_player($request)
           <div id="youtube-player"></div>
         </div>
       </div>
-      <track-list id="tracklist-container">
+      <track-list id="tracklist-container"
+        data-taxonomy="<?php echo isset($request->taxonomy) ? $request->taxonomy : ''; ?>"
+        data-term-id="<?php echo isset($request->WP_Term) ? $request->WP_Term->term_id : ''; ?>"
+        >
         <?php
+      //$start = microtime();
         if (tracklist_entries($request, $tracks) === 0)
         {
           ?>
@@ -39,6 +43,7 @@ function content_player($request)
           or to the <a href="/">Ultrafunk front page</a>.</p>
           <?php
         }
+      //console_log(((float)microtime() - (float)$start) * 1000);
         ?>
       </track-list>
     </div>
@@ -64,6 +69,7 @@ function find_video_id_pos($content)
 
 function tracklist_entries($request, $tracks)
 {
+  global $ultrafunk_is_prod_build;
   $artist_title_regex = '/\s{1,}[–·-]\s{1,}/u'; // '/u' option MUST be set to handle Unicode
   $track_count        = 0;
   $home_url           = home_url();
@@ -77,15 +83,23 @@ function tracklist_entries($request, $tracks)
     {
       $youtube_video_id = substr($track->post_content, ($video_id_pos[0] + $video_id_pos[1]), 11);
       $track_url        = esc_url("$home_url/$track->post_name/"); // Faster than calling get_permalink() lots of times...
-    //$track_terms      = get_the_terms($track, 'post_tag');
+      $track_tags       = get_the_terms($track, 'post_tag');
       $track_count++;
 
       ?>
-      <div class="track-entry" id="<?php echo $youtube_video_id; ?>" data-artist-track-title="<?php echo esc_html($track->post_title); ?>" data-track-url="<?php echo $track_url; ?>" data-post-id="<?php //echo $track->ID; ?>" data-term-ids="<?php //echo implode(",", array_column($track_terms, 'term_id')); ?>">
+      <div class="track-entry" id="<?php echo $youtube_video_id; ?>"
+        data-post-id="<?php echo $track->ID; ?>"
+        data-tag-ids="<?php echo isset($track_tags) ? implode(",", array_column($track_tags, 'term_id')) : ''; ?>"
+        data-artist-track-title="<?php echo esc_html($track->post_title); ?>"
+        data-track-url="<?php echo $track_url; ?>"
+        >
         <div class="track-details">
           <div class="thumbnail" title="Play Track">
-            <img src="https://img.youtube.com/vi/<?php echo $youtube_video_id; ?>/default.jpg" alt="Track thumbnail">
-       <!-- <img src="/wp-content/themes/ultrafunk/inc/img/photo_filled_grey.png" alt="Track thumbnail"> -->
+          <?php if ($ultrafunk_is_prod_build) { ?>
+            <img src="https://img.youtube.com/vi/<?php echo $youtube_video_id; ?>/default.jpg" alt="Play / Pause track">
+          <?php } else { ?>
+            <img src="/wp-content/themes/ultrafunk/inc/img/photo_filled_grey.png" alt="Play / Pause track">
+          <?php } ?>
           </div>
           <div class="artist-title text-nowrap-ellipsis"><span><b><?php echo esc_html($artist_title[0]); ?></b></span><br><span><?php echo esc_html($artist_title[1]); ?></span></div>
         </div>

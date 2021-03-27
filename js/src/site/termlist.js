@@ -148,7 +148,7 @@ function playTrackButtonClick(event, playTrackButton)
   const termUid  = playTrackButton.getAttribute('data-term-uid');
 
   if ((termType === 'categories') || (termUid === null))
-    return playShuffleButtonClick(event, playTrackButton.getAttribute('data-track-url'));
+    return playShuffleButtonClick(event, playTrackButton.getAttribute('data-term-url'));
   else
     return playShuffleButtonClick(event, `/player/artist/${termSlug}/`, termUid);
 }
@@ -228,9 +228,8 @@ function insertThumbnailListHtml(header, termSlug, termData, destElement)
 
     html += `
     <div class="track">
-      <div class="thumbnail ${thumbnail.class}" data-track-url="${item.link}" data-term-slug="${termSlug}" ${dataTermUid} title="Play Track">
+      <div class="thumbnail ${thumbnail.class}" data-term-url="${item.link}" data-term-slug="${termSlug}" ${dataTermUid} title="Play Track">
         <img src="${thumbnail.src}">
-        <div class="thumbnail-overlay"><span class="material-icons">play_arrow</span></div>
       </div>
       <div class="artist-title text-nowrap-ellipsis">
         <a href="${item.link}" title="Go to track"><span><b>${artistTitle.artist}</b></span><br><span>${artistTitle.title}</span></a>

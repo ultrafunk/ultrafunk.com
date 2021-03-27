@@ -141,7 +141,7 @@ function get_title()
   }
   else if (is_player())
   {
-    $title = isset($params['WP_Term']) ? $params['WP_Term']->name : 'All Tracks';
+    $title = $params['title_parts']['title'];
   }
   else
   {
@@ -179,10 +179,12 @@ function customize_title($title)
   }
   else if (is_player())
   {
-    if ($params['is_player_artist'])
-      $title['title'] = esc_html('Artist: ' . get_title());
-    else
-      $title['title'] = esc_html(get_title() . ' - Page ' . $params['current_page']);
+    $title_parts = $params['is_player_shuffle'] ? ($params['title_parts']['prefix'] . ': ' . get_title()) : get_title();
+
+    if ($params['max_pages'] > 1)
+      $title_parts .= ' - Page ' . $params['current_page'];
+
+    $title['title'] = esc_html($title_parts);
   }
   
   return $title;
@@ -237,13 +239,27 @@ add_filter('get_search_form', '\Ultrafunk\ThemeFunctions\style_search_form');
 //
 // Get shuffle menu item URL from current context
 //
-function get_shuffle_menu_item_url()
+function get_shuffle_menu_item_url() : string
 {
-  $request_url = '/shuffle/all/';
+  $params = get_request_params();
+
+  if (is_player())
+  {
+    $request_path = '/player/shuffle/all/';
+
+    if ($params['is_player_shuffle'])
+      $request_path = '/' . $params['route_path'] . '/';
+    else if ($params['is_player_channel'] || $params['is_player_artist'])
+      $request_path = '/' . str_ireplace('player/', 'player/shuffle/', $params['route_path']) . '/';
+    
+    return $request_path;
+  }
+
+  $request_path = '/shuffle/all/';
 
   if (is_shuffle())
   {
-    $request_url = '/shuffle/' . get_request_params()['path'] . '/';
+    $request_path = '/shuffle/' . $params['path'] . '/';
   }
   else
   {
@@ -252,21 +268,24 @@ function get_shuffle_menu_item_url()
     if (isset($queried_object) && isset($queried_object->taxonomy) && isset($queried_object->slug))
     {
       if ($queried_object->taxonomy === 'category')
-        $request_url = '/shuffle/channel/' . $queried_object->slug . '/';
+        $request_path = '/shuffle/channel/' . $queried_object->slug . '/';
   
       if ($queried_object->taxonomy === 'post_tag')
-        $request_url = '/shuffle/artist/' . $queried_object->slug . '/';
+        $request_path = '/shuffle/artist/' . $queried_object->slug . '/';
     }
   }
 
-  return (get_site_url() . $request_url);
+  return $request_path;
 }
 
 //
 // Get shuffle menu item title from current context
 //
-function get_shuffle_menu_item_title()
+function get_shuffle_menu_item_title() : string
 {
+  if (is_player())
+    return ('Shuffle: ' . get_request_params()['title_parts']['title']);
+
   $title = '';
 
   if (is_shuffle())
@@ -278,26 +297,49 @@ function get_shuffle_menu_item_title()
 }
 
 //
-// Do needed magic to the menu items here from context
+// Do needed magic to the nav menu items here from context
 //
 function setup_nav_menu_item($menu_item)
 {
   if (is_admin())
     return $menu_item;
 
-  if (is_front_page() && !is_shuffle() && ($menu_item->ID === get_dev_prod_const('menu_item_all_id')))
-    $menu_item->classes[] = 'current-menu-item';
-  
-  if (is_shuffle() && ($menu_item->ID === get_dev_prod_const('menu_item_shuffle_id')))
-    $menu_item->classes[] = 'current-menu-item';
+  $menu_item_all_id     = get_dev_prod_const('menu_item_all_id');
+  $menu_item_shuffle_id = get_dev_prod_const('menu_item_shuffle_id');
 
-  if ($menu_item->ID === get_dev_prod_const('menu_item_shuffle_id'))
+  if (is_player())
+  {
+    $params = get_request_params();
+
+    if ($menu_item->ID === $menu_item_all_id)
+      $menu_item->url = '/player/';
+    else
+      $menu_item->url = str_replace('ultrafunk.com', 'ultrafunk.com/player', $menu_item->url);
+
+    if (($menu_item->ID === $menu_item_all_id) && ($params['is_player_all']))
+      $menu_item->classes[] = 'current-menu-item';
+  
+    if (($menu_item->ID === $menu_item_shuffle_id) && ($params['is_player_shuffle']))
+      $menu_item->classes[] = 'current-menu-item';
+
+    if (isset($params['WP_Term']) && ($params['WP_Term']->term_id === intval($menu_item->object_id)))
+      $menu_item->classes[] = 'current-menu-item';
+  }
+  else
+  {
+    if (($menu_item->ID === $menu_item_all_id) && is_front_page() && !is_shuffle())
+      $menu_item->classes[] = 'current-menu-item';
+  
+    if (($menu_item->ID === $menu_item_shuffle_id) && is_shuffle())
+      $menu_item->classes[] = 'current-menu-item';
+  }
+  
+  if ($menu_item->ID === $menu_item_shuffle_id)
   {
     $menu_item->url        = esc_url(get_shuffle_menu_item_url());
     $menu_item->attr_title = esc_attr(get_shuffle_menu_item_title());
   }
-  
+
   return $menu_item;
 }
 add_filter('wp_setup_nav_menu_item', '\Ultrafunk\ThemeFunctions\setup_nav_menu_item');
-

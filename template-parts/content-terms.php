@@ -71,7 +71,12 @@ function termlist_entries($request, $terms)
         <div class="termlist-icons">
           <div class="play-button" title="Play All - <?php echo $term_name; ?>"><a href="<?php echo "/$request->term_path/$term_slug/"; ?>" target="_blank"><span class="material-icons">play_arrow</span></a></div>
           <div class="shuffle-button" title="Shuffle &amp; Play All - <?php echo $term_name; ?>"><a href="<?php echo "/shuffle/$request->term_path/$term_slug/"; ?>" target="_blank"><span class="material-icons">shuffle</span></a></div>
-          <div class="share-find-button" title="Share <?php echo $term_name; ?> / Find On" data-term-path="<?php echo $request->term_path; ?>" data-term-name="<?php echo $term_name; ?>" data-term-url="<?php echo "$home_url/$request->term_path/$term_slug/"; ?>"><span class="material-icons">share</span></div>
+          <div class="share-find-button" title="Share <?php echo $term_name; ?> / Find On"
+            data-term-path="<?php echo $request->term_path; ?>"
+            data-term-name="<?php echo $term_name; ?>"
+            data-term-url="<?php echo "$home_url/$request->term_path/$term_slug/"; ?>">
+            <span class="material-icons">share</span>
+          </div>
           <div class="expand-toggle" title="Show more or less"><span class="material-icons">expand_more</span></div>
         </div>
       </div>

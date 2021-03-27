@@ -20,10 +20,10 @@ $ultrafunk_is_prod_build = false;
 
 class Globals
 {
-  public static $version = '1.19.0';
+  public static $version = '1.19.1';
 
   public static $dev_prod_consts = array(
-    'menu_item_all_id'         => WP_DEBUG ?  115 :  115,
+    'menu_item_all_id'         => WP_DEBUG ? 2556 :  115,
     'menu_item_shuffle_id'     => WP_DEBUG ? 2251 : 2251,
     'block_frontpage_intro_id' => WP_DEBUG ?  808 :  808,
     'block_premium_intro_id'   => WP_DEBUG ? 1500 : 1500,

@@ -115,7 +115,7 @@ function ultrafunk_scripts()
     wp_enqueue_style('ultrafunk-style', get_stylesheet_uri(), array(), $version);
     wp_enqueue_style('termlist-style', get_theme_file_uri('/inc/css/termlist.css'), array(), $version);
     wp_enqueue_style('track-layout-style', get_theme_file_uri('/inc/css/track-layout.css'), array(), $version);
-    wp_enqueue_style('player-playlist-style', get_theme_file_uri('/js/src/playback/player-playlist.css'), array(), $version);
+    wp_enqueue_style('player-playlist-style', get_theme_file_uri('/inc/css/player-playlist.css'), array(), $version);
   }
 
   wp_localize_script('interaction-script', 'navigationUrls', \Ultrafunk\ThemeFunctions\get_prev_next_urls());

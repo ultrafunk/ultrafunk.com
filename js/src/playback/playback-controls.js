@@ -40,25 +40,25 @@ const mConfig = {
 };
 
 const STATE = {
-  DISABLED: 'state-disabled',
-  ENABLED:  'state-enabled',
-  PLAY:     'state-play',
-  PAUSE:    'state-pause',
+  DISABLED: { CLASS: 'state-disabled', ID: 1 },
+  ENABLED:  { CLASS: 'state-enabled',  ID: 2 },
+  PLAYING:  { CLASS: 'state-playing',  ID: 3 },
+  PAUSED:   { CLASS: 'state-paused',   ID: 4 },
 };
 
 const mControls = {
 //Progress Controls
-  progressSeek:    { element:  null, state: STATE.DISABLED, click: null },
-  progressBar:     { element:  null, state: STATE.DISABLED },
+  progressSeek:    { element:  null, STATE: STATE.DISABLED, click: null },
+  progressBar:     { element:  null, STATE: STATE.DISABLED },
 //Playback Controls
-  details:         { element:  null, state: STATE.DISABLED, artistElement: null, titleElement: null },
-  thumbnail:       { element:  null, state: STATE.DISABLED, img: null },
-  timer:           { element:  null, state: STATE.DISABLED, positionElement: null, durationElement: null, positionSeconds: -1, durationSeconds: -1 },
-  prevTrack:       { element:  null, state: STATE.DISABLED },
-  playPause:       { element:  null, state: STATE.DISABLED, iconElement: null },
-  nextTrack:       { element:  null, state: STATE.DISABLED },
-  shuffle:         { element:  null, state: STATE.DISABLED },
-  mute:            { element:  null, state: STATE.DISABLED, iconElement: null },
+  details:         { element:  null, STATE: STATE.DISABLED, artistElement: null, titleElement: null },
+  thumbnail:       { element:  null, STATE: STATE.DISABLED, img: null },
+  timer:           { element:  null, STATE: STATE.DISABLED, positionElement: null, durationElement: null, positionSeconds: -1, durationSeconds: -1 },
+  prevTrack:       { element:  null, STATE: STATE.DISABLED },
+  playPause:       { element:  null, STATE: STATE.DISABLED, iconElement: null },
+  nextTrack:       { element:  null, STATE: STATE.DISABLED },
+  shuffle:         { element:  null, STATE: STATE.DISABLED },
+  mute:            { element:  null, STATE: STATE.DISABLED, iconElement: null },
 };
 
 
@@ -133,7 +133,7 @@ function ready(prevClickCallback, playPauseClickCallback, nextClickCallback, mut
   setState(mControls.prevTrack, STATE.DISABLED);
   mControls.prevTrack.element.addEventListener('click', prevClickCallback);
 
-  setState(mControls.playPause, STATE.PLAY);
+  setState(mControls.playPause, STATE.PAUSED);
   mControls.playPause.element.addEventListener('click', playPauseClickCallback);
 
   setState(mControls.nextTrack, ((players.getNumTracks() > 1) ? STATE.ENABLED : STATE.DISABLED));
@@ -149,15 +149,10 @@ function ready(prevClickCallback, playPauseClickCallback, nextClickCallback, mut
   addSettingsObserver('masterMute', updateMuteState);
 }
 
-function setState(control, state = STATE.DISABLED)
+function setState(control, STATE = STATE.DISABLED)
 {
-  replaceClass(control.element, control.state, state);
-  control.state = state;
-  
-  if (state === STATE.PLAY)
-    mControls.playPause.iconElement.textContent = 'play_circle_filled';
-  else if (state === STATE.PAUSE)
-    mControls.playPause.iconElement.textContent = 'pause_circle_filled';
+  replaceClass(control.element, control.STATE.CLASS, STATE.CLASS);
+  control.STATE = STATE;
 }
 
 
@@ -273,8 +268,8 @@ function clearTimer()
 
 function isPlaying()
 {
-  // ToDo: THIS NEEDS TO BE CONTROLLED IN playback.js instead of relying on UI state!?!?
-  return ((mControls.playPause.state === STATE.PAUSE) ? true : false);    
+  // ToDo: This might not be the best place to save / check playback state...?
+  return ((mControls.playPause.STATE.ID === STATE.PLAYING.ID) ? true : false);    
 }
 
 function updatePrevState()
@@ -295,14 +290,16 @@ function setPlayState()
 {
   const playersStatus = players.getStatus();
 
-  setState(mControls.playPause, STATE.PAUSE);
+  setState(mControls.playPause, STATE.PLAYING);
+  mControls.playPause.iconElement.textContent = 'pause_circle_filled';
   setState(mControls.prevTrack, STATE.ENABLED);
   setDetails(playersStatus);
 }
 
 function setPauseState()
 {
-  setState(mControls.playPause, STATE.PLAY);
+  setState(mControls.playPause, STATE.PAUSED);
+  mControls.playPause.iconElement.textContent = 'play_circle_filled';
 }
 
 function blinkPlayPause(toggleBlink)

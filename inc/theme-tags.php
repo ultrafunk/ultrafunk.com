@@ -78,7 +78,7 @@ function pre_wp_head()
   global $ultrafunk_is_prod_build, $ultrafunk_js_preload_chunk;
 
   if (!empty($ultrafunk_js_preload_chunk) && $ultrafunk_is_prod_build)
-    echo '<link rel="preload" href="' . esc_url(get_template_directory_uri()) . $ultrafunk_js_preload_chunk . '" as="script" crossorigin>' . PHP_EOL;
+    echo '<link rel="modulepreload" href="' . esc_url(get_template_directory_uri()) . $ultrafunk_js_preload_chunk . '" as="script" crossorigin>' . PHP_EOL;
 }
 
 function head()
@@ -259,18 +259,14 @@ function header_nav_bars()
   <?php
 }
 
-function get_pagednum()
-{
-  return (get_query_var('paged') ? get_query_var('paged') : 1);
-}
-
-function get_pagination($before = ' ( ', $separator = ' / ', $after = ' ) ')
+function get_wp_pagination($before = ' ( ', $separator = ' / ', $after = ' ) ')
 {
   global $wp_query;
   $pagination = '';
+  $pagednum   = (get_query_var('paged') ? get_query_var('paged') : 1);
   
   if (isset($wp_query) && ($wp_query->max_num_pages > 1))
-    $pagination = $before . get_pagednum() . $separator . $wp_query->max_num_pages . $after;
+    $pagination = $before . $pagednum . $separator . $wp_query->max_num_pages . $after;
   
   return $pagination;
 }
@@ -284,7 +280,7 @@ function get_search_hits()
     if ($wp_query->max_num_pages <= 1)
       return ' (' . $wp_query->found_posts . ' hits)';
     else
-      return ' (' . $wp_query->found_posts . ' hits - page ' . get_pagination('', ' of ', ')');
+      return ' (' . $wp_query->found_posts . ' hits - page ' . get_wp_pagination('', ' of ', ')');
   }
 
   return '';
@@ -294,7 +290,7 @@ function nav_bar_title()
 {
   $prefix     = is_shuffle() ? '<b>Shuffle: </b>' : '<b>Channel: </b>';
   $title      = esc_html(get_title());
-  $pagination = esc_html(get_pagination());
+  $pagination = esc_html(get_wp_pagination());
   $params     = get_request_params();
 
   if (is_single())
@@ -324,7 +320,7 @@ function nav_bar_title()
   }
   else if (is_player())
   {
-    $prefix     = ($params['is_player_artist'] === true) ? '<b>Artist: </b>' : '<b>Channel: </b>';
+    $prefix     = '<b>' . $params['title_parts']['prefix'] . ': </b>';
     $pagination = ($params['max_pages'] > 1) ? ' ( ' . $params['current_page'] . ' / ' . $params['max_pages'] . ' )' : '';
   }
   else if (is_404())
@@ -348,17 +344,17 @@ function nav_bar_title()
 
 function content_pagination()
 {
-  $prefix = is_shuffle() ? '<b>Shuffle: </b>' : '<b>Channel: </b>';
+  $prefix = is_shuffle() ? 'Shuffle: ' : 'Channel: ';
   $title  = esc_html(get_title());
   
   if (is_search())
   {
-    $prefix = '<b>Search results: </b>';
+    $prefix = 'Search results: ';
     $title  = get_search_query();
   }
   else if (is_tag())
   {
-    $prefix = '<b>Artist: </b>';
+    $prefix = 'Artist: ';
   }
 
   $title_pagination = get_the_posts_pagination(array(
@@ -464,7 +460,7 @@ function content_widgets()
         <?php
       }
       ?>
-    </aside><!-- .widget-area -->
+    </aside>
     <?php
   }
 }
@@ -478,7 +474,7 @@ function perf_results()
   {
     $results = ($ultrafunk_is_prod_build ? 'PROD - ' : 'DEV - ') . get_num_queries() . ' queries in ' . timer_stop(0) . ' seconds';
 
-    if (is_shuffle())
+    if ($perf_data['time_start'] !== 0)
       $results .= ' - cRndTrans: ' . $perf_data['create_rnd_transient'] . ' ms - gRndTrans: ' . $perf_data['get_rnd_transient'] . ' ms';
 
     echo '<!-- ' . esc_html($results) . ' -->';

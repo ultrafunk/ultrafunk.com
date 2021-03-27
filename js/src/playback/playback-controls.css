@@ -192,8 +192,8 @@ body.autoplay-off #progress-controls .bar-control {
   color: var(--playback-play-pause-hover-color);
 }
 
-body.autoplay-off #playback-controls .play-pause-control.state-play,
-body.autoplay-off #playback-controls .play-pause-control.state-pause {
+body.autoplay-off #playback-controls .play-pause-control.state-playing,
+body.autoplay-off #playback-controls .play-pause-control.state-paused {
   color: var(--playback-play-pause-color-autoplay-off);
 }
 
@@ -201,14 +201,14 @@ body.autoplay-off #playback-controls .play-pause-control:hover {
   color: var(--playback-play-pause-hover-color-autoplay-off);
 }
 
-#playback-controls .play-pause-control.state-play,
-#playback-controls .play-pause-control.state-pause {
+#playback-controls .play-pause-control.state-playing,
+#playback-controls .play-pause-control.state-paused {
   background-image: url(../../../inc/img/play_pause_bg_filler.png);
   background-repeat: no-repeat;
   background-position: center;
 }
 
-body.autoplay-off #playback-controls .play-pause-control.state-pause.time-remaining-warning {
+body.autoplay-off #playback-controls .play-pause-control.state-playing.time-remaining-warning {
   opacity: 0.25;
 }
 
@@ -291,8 +291,8 @@ body.autoplay-off #playback-controls .play-pause-control.state-pause.time-remain
     opacity: 1;
   }
 
-  body.autoplay-off #playback-controls .play-pause-control.state-play,
-  body.autoplay-off #playback-controls .play-pause-control.state-pause {
+  body.autoplay-off #playback-controls .play-pause-control.state-playing,
+  body.autoplay-off #playback-controls .play-pause-control.state-paused {
     color: var(--playback-play-pause-color-autoplay-off);
   }
 

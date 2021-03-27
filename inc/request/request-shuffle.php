@@ -38,7 +38,7 @@ class RequestShuffle
   //
   // Constructor -- Set all private class data / variables
   //
-  public function __construct(string $matched_route, array $url_parts)
+  public function __construct(object $wp_env, string $matched_route, array $url_parts)
   {
     switch ($matched_route)
     {
@@ -78,7 +78,7 @@ class RequestShuffle
     {
       $options = array(
         'expires'  => (time() + (60 * 60 * 24 * 30)),
-        'path'     => '/shuffle/',
+        'path'     => '/',
         'secure'   => true,
         'httponly' => false,
         'samesite' => 'Strict',
@@ -211,11 +211,11 @@ class RequestShuffle
 /**************************************************************************************************************************/
 
 
-function request_callback(bool $do_parse, object $wp_env, string $matched_route, array $url_parts) : bool
+function shuffle_callback(bool $do_parse, object $wp_env, string $matched_route, array $url_parts) : bool
 {
-  $shuffle = new RequestShuffle($matched_route, $url_parts);
+  $shuffle = new RequestShuffle($wp_env, $matched_route, $url_parts);
   $paged   = $shuffle->get_page_num(9999);
-  
+
   if ($paged !== 0)
   {
     $transient = false;
