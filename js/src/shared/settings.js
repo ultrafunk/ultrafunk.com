@@ -111,6 +111,8 @@ const siteSchema = {
   version: { description: '', type: INTEGER, values: [1, 999999], default: 8, valueStrings: [] },
   user: {
     theme:             { description: 'Theme',                                    type: STRING,  values: ['light', 'dark', 'auto'],             default: 'auto',     valueStrings: ['Light', 'Dark', 'Auto / System']         },
+  //preferredPlayer:   { description: 'Preferred Player',                         type: INTEGER, values: [0, 1],                                default: 0,          valueStrings: ['Gallery', 'Compact']                     },
+  //trackLayout:       { description: 'Gallery Player Track Layout',              type: STRING,  values: ['list', '2-column', '3-column'],      default: '3-column', valueStrings: ['List', '2 Column', '3 / 4 Column']       },
     trackLayout:       { description: 'Track Layout',                             type: STRING,  values: ['list', '2-column', '3-column'],      default: '3-column', valueStrings: ['List', '2 Column', '3 / 4 Column']       },
     tracksPerPage:     { description: 'Tracks Per Page for Search &amp; Shuffle', type: INTEGER, values: [...Array(22).keys()].map(i => i + 3), default: 12,         valueStrings: [...Array(22).keys()].map(i => `${i + 3}`) },
     keyboardShortcuts: { description: 'Keyboard Shortcuts',                       type: BOOLEAN, values: [true, false],                         default: true,       valueStrings: ['ON', 'OFF']                              },
@@ -128,6 +130,7 @@ const siteSettings = {
   version: siteSchema.version.default,
   user: {
     theme:             siteSchema.user.theme.default,
+  //preferredPlayer:   siteSchema.user.preferredPlayer.default,
     trackLayout:       siteSchema.user.trackLayout.default,
     tracksPerPage:     siteSchema.user.tracksPerPage.default,
     keyboardShortcuts: siteSchema.user.keyboardShortcuts.default,

@@ -16,6 +16,7 @@ export {
   matchesMedia,
   replaceClass,
   fullscreenElement,
+  keyboardShortcuts,
 };
 
 
@@ -144,5 +145,27 @@ const fullscreenElement = (() =>
   function toggle(fullscreenElement)
   {
     (fseTarget === null) ? enter(fullscreenElement) : exit();
+  }
+})();
+
+
+// ************************************************************************************************
+// Allow / Deny keyboard shortcuts event handling
+// ************************************************************************************************
+
+const keyboardShortcuts = (() =>
+{
+  let allow = false;
+
+  return {
+    allow() { return allow; },
+    init,
+  };
+
+  function init(settings)
+  {
+    allow = settings.keyboardShortcuts;
+    document.addEventListener('allowKeyboardShortcuts', () => { if (settings.keyboardShortcuts) allow = true;  });
+    document.addEventListener('denyKeyboardShortcuts',  () => { if (settings.keyboardShortcuts) allow = false; });
   }
 })();

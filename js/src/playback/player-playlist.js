@@ -12,6 +12,7 @@ import * as mediaPlayers from './mediaplayers.js';
 import * as utils        from '../shared/utils.js';
 import { KEY }           from '../shared/storage.js';
 import { shareModal }    from '../site/interaction.js';
+import { navigateTo }    from './playback-events.js';
 
 import {
   showSnackbar,
@@ -61,8 +62,20 @@ function init(playbackSettings, autoplayToggleCallback)
   list.observer  = new IntersectionObserver(observerCallback, { root: list.container });
 
   utils.fullscreenElement.init();
+  utils.keyboardShortcuts.init(settings.user);
   setCurrentIdAndElement();
   initYouTubeAPI();
+
+  document.addEventListener('keydown', documentEventKeyDown);
+  document.getElementById('footer-autoplay-toggle').addEventListener('click', (event) => autoplayToggle(event));
+
+//ToDo: Add common code in playback-controls.js for player-playlist & playback/interaction?
+  utils.addEventListeners('#playback-controls .details-control',   'click', scrollPlayerIntoView);
+  utils.addEventListeners('#playback-controls .thumbnail-control', 'click', scrollPlayerIntoView);
+  utils.addEventListeners('#playback-controls .timer-control',     'click', (event) => autoplayToggle(event));
+
+  utils.addEventListeners('i.nav-bar-arrow-back', 'click', prevNextNavTo, navigationUrls.prev); // eslint-disable-line no-undef
+  utils.addEventListeners('i.nav-bar-arrow-fwd',  'click', prevNextNavTo, navigationUrls.next); // eslint-disable-line no-undef
 
   list.container.addEventListener('click', (event) =>
   {
@@ -75,14 +88,6 @@ function init(playbackSettings, autoplayToggleCallback)
   //const menuButton = event.target.closest('div.menu-button');
   //if (menuButton !== null) return debug.log('div.menu-button');
   });
-
-  document.addEventListener('keydown', documentEventKeyDown);
-  document.getElementById('footer-autoplay-toggle').addEventListener('click', (event) => autoplayToggle(event));
-
-//ToDo: Add common code in playback-controls.js for player-playlist & playback/interaction?
-  document.getElementById('playback-controls').querySelector('.details-control').addEventListener('click', scrollPlayerIntoView);
-  document.getElementById('playback-controls').querySelector('.thumbnail-control').addEventListener('click', scrollPlayerIntoView);
-  document.getElementById('playback-controls').querySelector('.timer-control').addEventListener('click', (event) => autoplayToggle(event));
 }
 
 
@@ -90,18 +95,9 @@ function init(playbackSettings, autoplayToggleCallback)
 //
 // ************************************************************************************************
 
-function sharePlayOnButtonClick(sharePlayOnButton)
-{
-  const trackEntry       = sharePlayOnButton.closest('div.track-entry');
-  const artistTrackTitle = trackEntry.getAttribute('data-artist-track-title');
-  const trackUrl         = trackEntry.getAttribute('data-track-url');
-  
-  shareModal.show({ string: artistTrackTitle, filterString: true, url: trackUrl });
-}
-
 function documentEventKeyDown(event)
 {
-  if ((event.repeat === false) && (event.ctrlKey === false) && (event.altKey === false))
+  if (utils.keyboardShortcuts.allow() && (event.repeat === false) && (event.ctrlKey === false) && (event.altKey === false))
   {
     switch(event.code)
     {
@@ -119,19 +115,13 @@ function documentEventKeyDown(event)
         break;
 
       case 'ArrowLeft':
-        if (event.shiftKey === false)
-        {
-          event.preventDefault();
-          prevTrack();
-        }
+        event.preventDefault();
+        (event.shiftKey === false) ? prevTrack() : prevNextNavTo(event, navigationUrls.prev); // eslint-disable-line no-undef
         break;
 
       case 'ArrowRight':
-        if (event.shiftKey === false)
-        {
-          event.preventDefault();
-          nextTrack();
-        }
+        event.preventDefault();
+        (event.shiftKey === false) ? nextTrack() : prevNextNavTo(event, navigationUrls.next); // eslint-disable-line no-undef
         break;
 
       case 'A':
@@ -151,6 +141,20 @@ function documentEventKeyDown(event)
         break;
     }
   }
+}
+
+
+// ************************************************************************************************
+//
+// ************************************************************************************************
+
+function sharePlayOnButtonClick(sharePlayOnButton)
+{
+  const trackEntry       = sharePlayOnButton.closest('div.track-entry');
+  const artistTrackTitle = trackEntry.getAttribute('data-artist-track-title');
+  const trackUrl         = trackEntry.getAttribute('data-track-url');
+  
+  shareModal.show({ string: artistTrackTitle, filterString: true, url: trackUrl });
 }
 
 function scrollPlayerIntoView()
@@ -207,6 +211,12 @@ function observerCallback(entries)
     list.container.scrollTop = (current.element.offsetTop - list.container.offsetHeight) + current.element.offsetHeight;    
 }
 
+function prevNextNavTo(event, destUrl)
+{
+  event.preventDefault();
+  navigateTo(destUrl, controls.isPlaying());
+}
+
 
 // ************************************************************************************************
 //
@@ -214,11 +224,8 @@ function observerCallback(entries)
 
 function setCurrentTrack(nextTrackId, playNextTrack = true, isPointerClick = false)
 {
-//https://wordpress.ultrafunk.com/player/shuffle/all/page/30/
-//Breakestra - You Don't Need a Dance
-//Unable to play last track in list needs better error handling / state reset
-  debug.log(nextTrackId);
-
+//https://wordpress.ultrafunk.com/player/page/21/
+//Unable to play last track in list needs better error handling / state reset if autoplay is disabled
   if (nextTrackId === undefined)
   {
     setPlayStateClass(false);
@@ -271,7 +278,10 @@ function togglePlayPause()
 
 function advanceToNextTrack(autoplay = false)
 {
-  autoplay ? setCurrentTrack(current.element.nextElementSibling?.id) : setPlayStateClass(false);
+  if (current.element.nextElementSibling === null)
+    navigateTo(navigationUrls.next, autoplay); // eslint-disable-line no-undef
+  else
+    autoplay ? setCurrentTrack(current.element.nextElementSibling?.id) : setPlayStateClass(false);
 }
 
 function prevTrack()
@@ -377,7 +387,7 @@ function onYouTubePlayerStateChange(event)
   debug.log(`onYouTubePlayerStateChange(): ${event.data} - trackId: ${current.trackId}`);
   eventLog.add(eventLogger.SOURCE.YOUTUBE, event.data, current.trackId);
 
-  // Slave playback controls to YouTube state so we have a single source of truth = controls.isPlaying()
+  // Set playback controls state to YouTube state so we have a single source of truth = controls.isPlaying()
   if (event.data !== YT.PlayerState.PLAYING) // eslint-disable-line no-undef
     controls.setPauseState();
 

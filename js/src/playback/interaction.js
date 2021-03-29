@@ -24,18 +24,15 @@ import {
 /*************************************************************************************************/
 
 
-const debug              = debugLogger.newInstance('playback-interaction');
-const eventLog           = new eventLogger.Interaction(10);
-let mSettings            = {};
-let useKeyboardShortcuts = false;
-let isPlaybackReady      = false;
+const debug         = debugLogger.newInstance('playback-interaction');
+const eventLog      = new eventLogger.Interaction(10);
+let mSettings       = {};
+let isPlaybackReady = false;
 
 const mConfig = {
-  autoplayToggleId:            'footer-autoplay-toggle',
-  crossfadeToggleId:           'footer-crossfade-toggle',
-  allowKeyboardShortcutsEvent: 'allowKeyboardShortcuts',
-  denyKeyboardShortcutsEvent:  'denyKeyboardShortcuts',
-  doubleClickDelay:            500,
+  autoplayToggleId:  'footer-autoplay-toggle',
+  crossfadeToggleId: 'footer-crossfade-toggle',
+  doubleClickDelay:  500,
 };
 
 const mElements = {
@@ -89,8 +86,8 @@ function initInteraction()
   debug.log('initInteraction()');
 
   utils.fullscreenElement.init();
+  utils.keyboardShortcuts.init(mSettings.user);
 
-  useKeyboardShortcuts                 = mSettings.user.keyboardShortcuts;
   mElements.playbackControls.details   = document.getElementById('playback-controls').querySelector('.details-control');
   mElements.playbackControls.thumbnail = document.getElementById('playback-controls').querySelector('.thumbnail-control');
   mElements.playbackControls.timer     = document.getElementById('playback-controls').querySelector('.timer-control');
@@ -98,17 +95,13 @@ function initInteraction()
   mElements.crossfadeToggle            = document.getElementById(mConfig.crossfadeToggleId);
 
   /* eslint-disable */
-  utils.addEventListeners('i.nav-bar-arrow-back',                'click', paginationNavClick, navigationUrls.prev);
-  utils.addEventListeners('i.nav-bar-arrow-fwd',                 'click', paginationNavClick, navigationUrls.next);
-  utils.addEventListeners('nav.post-navigation .nav-previous a', 'click', paginationNavClick, navigationUrls.prev);
-  utils.addEventListeners('nav.post-navigation .nav-next a',     'click', paginationNavClick, navigationUrls.next);
+  utils.addEventListeners('i.nav-bar-arrow-back',                'click', prevNextNavTo, navigationUrls.prev);
+  utils.addEventListeners('i.nav-bar-arrow-fwd',                 'click', prevNextNavTo, navigationUrls.next);
+  utils.addEventListeners('nav.post-navigation .nav-previous a', 'click', prevNextNavTo, navigationUrls.prev);
+  utils.addEventListeners('nav.post-navigation .nav-next a',     'click', prevNextNavTo, navigationUrls.next);
   /* eslint-enable */
   
-  // Listen for triggered events to toggle keyboard capture = allow other input elements to use shortcut keys
-  document.addEventListener(mConfig.allowKeyboardShortcutsEvent, () => { if (mSettings.user.keyboardShortcuts) useKeyboardShortcuts = true;  });
-  document.addEventListener(mConfig.denyKeyboardShortcutsEvent,  () => { if (mSettings.user.keyboardShortcuts) useKeyboardShortcuts = false; });
   document.addEventListener('keydown', documentEventKeyDown);
-  
   window.addEventListener('blur', windowEventBlur);
 }
 
@@ -128,7 +121,7 @@ function initPlayback()
 
 function documentEventKeyDown(event)
 {
-  if (isPlaybackReady && useKeyboardShortcuts && (event.repeat === false) && (event.ctrlKey === false) && (event.altKey === false))
+  if (isPlaybackReady && utils.keyboardShortcuts.allow() && (event.repeat === false) && (event.ctrlKey === false) && (event.altKey === false))
   {
     switch(event.code)
     {
@@ -145,11 +138,17 @@ function documentEventKeyDown(event)
         break;
 
       case 'ArrowLeft':
-        arrowLeftKey(event);
+        if (event.shiftKey === true)
+        {
+          prevNextNavTo(event, navigationUrls.prev); // eslint-disable-line no-undef
+        }
         break;
 
       case 'ArrowRight':
-        arrowRightKey(event);
+        if (event.shiftKey === true)
+        {
+          prevNextNavTo(event, navigationUrls.next); // eslint-disable-line no-undef
+        }
         break;
 
       case 'A':
@@ -177,87 +176,6 @@ function documentEventKeyDown(event)
         }
         break;
     }
-  }
-}
-
-function arrowLeftKey(event)
-{
-  event.preventDefault();
-
-  if (event.shiftKey === true)
-  {
-    paginationNavClick(event, navigationUrls.prev); // eslint-disable-line no-undef
-  }
-  else
-  {
-    eventLog.add(eventLogger.SOURCE.KEYBOARD, eventLogger.EVENT.KEY_ARROW_LEFT, null);
-
-    if (!doubleTapNavPrev(navigationUrls.prev, playback.getStatus())) // eslint-disable-line no-undef
-      playback.prevClick(event);
-  }
-}
-
-function doubleTapNavPrev(prevUrl, playbackStatus)
-{
-  if (prevUrl !== null)
-  {
-    if ((playbackStatus.currentTrack === 1) && (playbackStatus.isPlaying === false))
-    {
-      showInteractionHint('showLeftArrowHint', '<b>Tip:</b> Double click the Left Arrow key to go to the previous page');
-
-      if (eventLog.doubleClicked(eventLogger.SOURCE.KEYBOARD, eventLogger.EVENT.KEY_ARROW_LEFT, mConfig.doubleClickDelay))
-      {
-        playbackEvents.navigateTo(prevUrl, false);
-        return true;
-      }
-    }
-  }
-  
-  return false;
-}
-
-function arrowRightKey(event)
-{
-  event.preventDefault();
-
-  if (event.shiftKey === true)
-  {
-    paginationNavClick(event, navigationUrls.next); // eslint-disable-line no-undef
-  }
-  else
-  {
-    eventLog.add(eventLogger.SOURCE.KEYBOARD, eventLogger.EVENT.KEY_ARROW_RIGHT, null);
-
-    if (!doubleTapNavNext(navigationUrls.next, playback.getStatus())) // eslint-disable-line no-undef
-      playback.nextClick(event);
-  }
-}
-
-function doubleTapNavNext(nextUrl, playbackStatus)
-{
-  if (nextUrl !== null)
-  {
-    if (playbackStatus.currentTrack === playbackStatus.numTracks) // && (playbackStatus.isPlaying === false))
-    {
-      showInteractionHint('showRightArrowHint', '<b>Tip:</b> Double click the Right Arrow key to go to the next page');
-
-      if (eventLog.doubleClicked(eventLogger.SOURCE.KEYBOARD, eventLogger.EVENT.KEY_ARROW_RIGHT, mConfig.doubleClickDelay))
-      {
-        playbackEvents.navigateTo(nextUrl, playbackStatus.isPlaying);
-        return true;
-      }
-    }
-  }
-  
-  return false;
-}
-
-function showInteractionHint(hintKey, hintText, snackbarTimeout = 0)
-{
-  if (mSettings.priv.tips[hintKey])
-  {
-    showSnackbar(hintText, snackbarTimeout);
-    mSettings.priv.tips[hintKey] = false;
   }
 }
 
@@ -368,7 +286,16 @@ function playbackDetailsClick(event)
     utils.fullscreenElement.enter(document.getElementById(playback.getStatus().iframeId));
 }
 
-function paginationNavClick(event, destUrl)
+function showInteractionHint(hintKey, hintText, snackbarTimeout = 0)
+{
+  if (mSettings.priv.tips[hintKey])
+  {
+    showSnackbar(hintText, snackbarTimeout);
+    mSettings.priv.tips[hintKey] = false;
+  }
+}
+
+function prevNextNavTo(event, destUrl)
 {
   if ((event !== null) && (destUrl !== null))
   {

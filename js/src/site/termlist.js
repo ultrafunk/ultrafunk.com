@@ -143,14 +143,14 @@ function shareFindButtonClick(shareFindButton)
 
 function playTrackButtonClick(event, playTrackButton)
 {
-  const termType = termlistContainer.getAttribute('data-term-type');
+  const termPath = (termlistContainer.getAttribute('data-term-type') === 'categories') ? 'channel' : 'artist';
   const termSlug = playTrackButton.getAttribute('data-term-slug');
   const termUid  = playTrackButton.getAttribute('data-term-uid');
 
-  if ((termType === 'categories') || (termUid === null))
-    return playShuffleButtonClick(event, playTrackButton.getAttribute('data-term-url'));
+  if (termUid !== null)
+    return playShuffleButtonClick(event, `/player/${termPath}/${termSlug}/`, termUid);
   else
-    return playShuffleButtonClick(event, `/player/artist/${termSlug}/`, termUid);
+    return playShuffleButtonClick(event, playTrackButton.getAttribute('data-term-url'));
 }
 
 function termlistHeaderClick(event)

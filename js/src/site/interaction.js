@@ -76,7 +76,7 @@ function initPlayerSelection()
     event.preventDefault();
 
     // Remove pagination since it does not match between the two players
-    const currentUrl = window.location.href.replace(/\/page\/(?!0)\d{1,6}\//, '');
+    const currentUrl = window.location.href.replace(/\/page\/(?!0)\d{1,6}/, '');
 
     if (isCompact)
       window.location.href = currentUrl.replace(/player\//, '');
@@ -135,7 +135,7 @@ const siteTheme = (() =>
     elements.toggle = document.querySelector(config.toggleId);
     const mediaQueryList = window.matchMedia(config.prefDarkScheme);
     mediaQueryList.addEventListener('change', matchMediaPrefColorScheme);
-    utils.addEventListeners(config.toggleId, 'click', toggle);
+    elements.toggle.addEventListener('click', toggle);
     setCurrent();
   }
   
@@ -218,7 +218,7 @@ const trackLayout = (() =>
     elements.toggle = document.querySelector(config.toggleId);
     const mediaQueryList = window.matchMedia(config.minWidth);
     mediaQueryList.addEventListener('change', matchMediaMinWidth);
-    utils.addEventListeners(config.toggleId, 'click', toggle);
+    elements.toggle.addEventListener('click', toggle);
     setCurrent();
   }
 

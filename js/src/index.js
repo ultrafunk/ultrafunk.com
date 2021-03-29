@@ -161,7 +161,7 @@ function documentEventKeyDown(event)
         break;
 
       case 'ArrowLeft':
-        if (event.shiftKey && noPlaybackInteraction())
+        if (event.shiftKey && noPlayback())
         {
           // eslint-disable-next-line no-undef
           arrowKeyNav(navigationUrls.prev);
@@ -169,7 +169,7 @@ function documentEventKeyDown(event)
         break;
 
       case 'ArrowRight':
-        if (event.shiftKey && noPlaybackInteraction())
+        if (event.shiftKey && noPlayback())
         {
           // eslint-disable-next-line no-undef
           arrowKeyNav(navigationUrls.next);
@@ -194,9 +194,9 @@ function notFullscreenElement()
   return ((mElements.fullscreenTarget === null) ? true : false);
 }
 
-function noPlaybackInteraction()
+function noPlayback()
 {
-  return (document.body.classList.contains('no-playback') || document.body.classList.contains('player-playlist'));
+  return (document.body.classList.contains('no-playback'));
 }
 
 function arrowKeyNav(destUrl)
@@ -486,7 +486,7 @@ const resize = (() =>
   
   function resizeEvent()
   {
-    noPlaybackInteraction() ? headerHeight = utils.getCssPropValue('--site-header-height-no-playback') : headerHeight = utils.getCssPropValue('--site-header-height');
+    noPlayback() ? headerHeight = utils.getCssPropValue('--site-header-height-no-playback') : headerHeight = utils.getCssPropValue('--site-header-height');
 
     if ((mElements.introBanner !== null) && (mElements.introBanner.style.display.length !== 0))
     {
