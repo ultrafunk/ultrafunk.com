@@ -118,7 +118,7 @@ function ultrafunk_scripts()
     wp_enqueue_style('player-playlist-style', get_theme_file_uri('/inc/css/player-playlist.css'), array(), $version);
   }
 
-  wp_localize_script('interaction-script', 'navigationUrls', \Ultrafunk\ThemeFunctions\get_prev_next_urls());
+  wp_localize_script('interaction-script', 'navigationVars', \Ultrafunk\ThemeFunctions\get_navigation_vars());
 }
 add_action('wp_enqueue_scripts', 'ultrafunk_scripts');
 

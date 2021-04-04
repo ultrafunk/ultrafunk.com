@@ -10,6 +10,7 @@ namespace Ultrafunk\SharedRequest;
 
 use function Ultrafunk\Globals\ {
   console_log,
+  get_dev_prod_const,
   get_request_params,
   set_request_params,
 };
@@ -22,11 +23,16 @@ abstract class Request
 {
   protected $is_valid = false;
   
-  public $items_per_page = WP_DEBUG ? 36 : 36;
+  public $items_per_page = 12;
   public $current_page   = 1;
   public $max_pages      = 1;
   public $query_args     = array();
   
+  public function __construct()
+  {
+    $this->items_per_page = get_dev_prod_const('player_items_per_page');
+  }
+
   protected function set_request_params(array $bool_params = array(), array $null_params = array())
   {
     foreach ($bool_params as $key)
@@ -99,7 +105,7 @@ function request_pagination($request)
   }
 }
 
-function request_get_prev_next_urls()
+function request_get_navigation_vars()
 {
   $params   = get_request_params();
   $path     = isset($params['route_path']) ? $params['route_path'] : '';

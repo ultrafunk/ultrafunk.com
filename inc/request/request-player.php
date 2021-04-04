@@ -20,6 +20,8 @@ class RequestPlayer extends Request
 {
   public function __construct(object $wp_env, string $matched_route, array $url_parts)
   {
+    parent::__construct();
+    
     switch ($matched_route)
     {
       case 'player_all':

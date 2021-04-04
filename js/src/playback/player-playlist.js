@@ -60,23 +60,33 @@ function init(playbackSettings, autoplayToggleCallback)
   autoplayToggle = autoplayToggleCallback;
   list.container = document.getElementById('tracklist-container');
   list.observer  = new IntersectionObserver(observerCallback, { root: list.container });
+  
+  if (setCurrentIdAndElement() !== null)
+  {
+    initYouTubeAPI();
+    utils.fullscreenElement.init();
+    utils.keyboardShortcuts.init(settings.user);
 
-  utils.fullscreenElement.init();
-  utils.keyboardShortcuts.init(settings.user);
-  setCurrentIdAndElement();
-  initYouTubeAPI();
+    document.addEventListener('keydown', documentEventKeyDown);
 
-  document.addEventListener('keydown', documentEventKeyDown);
+    //ToDo: Add common code in playback-controls.js for player-playlist & playback/interaction?
+    utils.addEventListeners('#playback-controls .details-control',   'click', scrollPlayerIntoView);
+    utils.addEventListeners('#playback-controls .thumbnail-control', 'click', scrollPlayerIntoView);
+    utils.addEventListeners('#playback-controls .timer-control',     'click', (event) => autoplayToggle(event));
+  }
+  else
+  {
+    showSnackbar('No playable YouTube tracks!', 0, 'help', () => { window.location.href = "/help/#compact-player"; });
+  }
+
   document.getElementById('footer-autoplay-toggle').addEventListener('click', (event) => autoplayToggle(event));
+  utils.addEventListeners('i.nav-bar-arrow-back', 'click', prevNextNavTo, navigationVars.prev); // eslint-disable-line no-undef
+  utils.addEventListeners('i.nav-bar-arrow-fwd',  'click', prevNextNavTo, navigationVars.next); // eslint-disable-line no-undef
+  setTrackButtonListeners();
+}
 
-//ToDo: Add common code in playback-controls.js for player-playlist & playback/interaction?
-  utils.addEventListeners('#playback-controls .details-control',   'click', scrollPlayerIntoView);
-  utils.addEventListeners('#playback-controls .thumbnail-control', 'click', scrollPlayerIntoView);
-  utils.addEventListeners('#playback-controls .timer-control',     'click', (event) => autoplayToggle(event));
-
-  utils.addEventListeners('i.nav-bar-arrow-back', 'click', prevNextNavTo, navigationUrls.prev); // eslint-disable-line no-undef
-  utils.addEventListeners('i.nav-bar-arrow-fwd',  'click', prevNextNavTo, navigationUrls.next); // eslint-disable-line no-undef
-
+function setTrackButtonListeners()
+{
   list.container.addEventListener('click', (event) =>
   {
     const playTrackButton = event.target.closest('div.thumbnail');
@@ -116,12 +126,12 @@ function documentEventKeyDown(event)
 
       case 'ArrowLeft':
         event.preventDefault();
-        (event.shiftKey === false) ? prevTrack() : prevNextNavTo(event, navigationUrls.prev); // eslint-disable-line no-undef
+        (event.shiftKey === false) ? prevTrack() : prevNextNavTo(event, navigationVars.prev); // eslint-disable-line no-undef
         break;
 
       case 'ArrowRight':
         event.preventDefault();
-        (event.shiftKey === false) ? nextTrack() : prevNextNavTo(event, navigationUrls.next); // eslint-disable-line no-undef
+        (event.shiftKey === false) ? nextTrack() : prevNextNavTo(event, navigationVars.next); // eslint-disable-line no-undef
         break;
 
       case 'A':
@@ -138,6 +148,7 @@ function documentEventKeyDown(event)
       case 'M':
         event.preventDefault();
         toggleMute();
+        showSnackbar(settings.user.masterMute ? 'Volume is muted (<b>m</b> to unmute)' : 'Volume is unmuted (<b>m</b> to mute)', 3);
         break;
     }
   }
@@ -185,22 +196,28 @@ function toggleMute()
 
 function setCurrentIdAndElement()
 {
-  current.trackId       = list.container.querySelector('.track-entry').id;
-  current.autoplayValue = sessionStorage.getItem(KEY.UF_AUTOPLAY);
-  sessionStorage.removeItem(KEY.UF_AUTOPLAY);
+  current.trackId = getNextPlayableId();
 
-  if (current.autoplayValue !== null)
+  if (current.trackId !== null)
   {
-    const matches = current.autoplayValue.match(/^[a-zA-Z0-9-_]{11}$/);
-    
-    if (matches !== null)
-      current.trackId = matches[0];
+    current.autoplayValue = sessionStorage.getItem(KEY.UF_AUTOPLAY);
+    sessionStorage.removeItem(KEY.UF_AUTOPLAY);
+  
+    if (current.autoplayValue !== null)
+    {
+      const matches = current.autoplayValue.match(/^[a-zA-Z0-9-_]{11}$/);
+      
+      if (matches !== null)
+        current.trackId = matches[0];
+    }
+  
+    debug.log(`setCurrentIdAndElement() - autoplayValue: ${(current.autoplayValue !== null) ? current.autoplayValue : 'N/A'} - current.trackId: ${current.trackId}`);
+  
+    current.element = document.getElementById(current.trackId);
+    list.observer.observe(current.element);
   }
 
-  debug.log(`setCurrentIdAndElement() - autoplayValue: ${(current.autoplayValue !== null) ? current.autoplayValue : 'N/A'} - current.trackId: ${current.trackId}`);
-
-  current.element = document.getElementById(current.trackId);
-  list.observer.observe(current.element);
+  return current.trackId;
 }
 
 function observerCallback(entries)
@@ -222,15 +239,36 @@ function prevNextNavTo(event, destUrl)
 //
 // ************************************************************************************************
 
+function getPrevPlayableId()
+{
+  let destElement = (current.element !== null) ? current.element.previousElementSibling : null;
+
+  while ((destElement !== null) && (destElement.id === ''))
+    destElement = destElement.previousElementSibling;
+
+  debug.log(`getPrevPlayableId(): ${(destElement !== null) ? destElement.id : 'null'}`);
+  
+  return (destElement !== null) ? destElement.id : null;
+}
+
+function getNextPlayableId()
+{
+  let destElement = (current.element !== null) ? current.element.nextElementSibling : list.container.querySelector('.track-entry');
+
+  while ((destElement !== null) && (destElement.id === ''))
+    destElement = destElement.nextElementSibling;
+
+  debug.log(`getNextPlayableId(): ${(destElement !== null) ? destElement.id : 'null'}`);
+  
+  return (destElement !== null) ? destElement.id : null;
+}
+
 function setCurrentTrack(nextTrackId, playNextTrack = true, isPointerClick = false)
 {
 //https://wordpress.ultrafunk.com/player/page/21/
 //Unable to play last track in list needs better error handling / state reset if autoplay is disabled
-  if (nextTrackId === undefined)
-  {
-    setPlayStateClass(false);
-    return;
-  }
+
+  debug.log(`setCurrentTrack(): ${nextTrackId} - playNextTrack: ${playNextTrack} - isPointerClick: ${isPointerClick}`);
 
   if (nextTrackId === current.trackId)
   {
@@ -271,6 +309,11 @@ function loadOrCueCurrentTrack(playTrack)
   }
 }
 
+
+// ************************************************************************************************
+//
+// ************************************************************************************************
+
 function togglePlayPause()
 {
   controls.isPlaying() ? player.embedded.pauseVideo() : player.embedded.playVideo();
@@ -278,20 +321,22 @@ function togglePlayPause()
 
 function advanceToNextTrack(autoplay = false)
 {
-  if (current.element.nextElementSibling === null)
-    navigateTo(navigationUrls.next, autoplay); // eslint-disable-line no-undef
+  const nextTrackId = getNextPlayableId();
+  
+  if (nextTrackId === null)
+    navigateTo(navigationVars.next, autoplay); // eslint-disable-line no-undef
   else
-    autoplay ? setCurrentTrack(current.element.nextElementSibling?.id) : setPlayStateClass(false);
+    autoplay ? setCurrentTrack(nextTrackId) : setPlayStateClass(false);
 }
 
 function prevTrack()
 {
-  const prevId   = current.element.previousElementSibling?.id;
-  const position = player.embeddedPlayer.getCurrentTime();
+  const prevTrackId = getPrevPlayableId();
+  const position    = player.embeddedPlayer.getCurrentTime();
 
-  if ((prevId !== undefined) && (position <= 5))
+  if ((prevTrackId !== null) && (position <= 5))
   {
-    setCurrentTrack(prevId, controls.isPlaying());
+    setCurrentTrack(prevTrackId, controls.isPlaying());
     controls.updatePrevState();
   }
   else if (position !== 0)
@@ -303,11 +348,11 @@ function prevTrack()
 
 function nextTrack()
 {
-  const nextId = current.element.nextElementSibling?.id;
+  const nextTrackId = getNextPlayableId();
 
-  if (nextId !== undefined)
+  if (nextTrackId !== null)
   {
-    setCurrentTrack(nextId, controls.isPlaying());
+    setCurrentTrack(nextTrackId, controls.isPlaying());
     controls.updateNextState();
   }
 }
@@ -322,7 +367,7 @@ function skipToNextTrack()
   if ((controls.isPlaying() === false) && (current.autoplayValue !== null))
   {
     eventLog.add(eventLogger.SOURCE.ULTRAFUNK, eventLogger.EVENT.RESUME_AUTOPLAY, null);
-    eventLog.add(eventLogger.SOURCE.YOUTUBE, -1, current.element.nextElementSibling?.id);
+    eventLog.add(eventLogger.SOURCE.YOUTUBE, -1, getNextPlayableId());
   }
 
   if (controls.isPlaying() === false)
@@ -438,7 +483,7 @@ function onYouTubeStatePlaying(event)
       if (settings.user.autoplay && controls.isPlaying() && (window.pageYOffset < 1))
         scrollPlayerIntoView();
     },
-    5000);
+    6000);
   }
 }
 
@@ -497,7 +542,10 @@ const playbackTimer = (() =>
   
   function update(positionMilliseconds, durationSeconds)
   {
-    controls.updateProgressPosition(positionMilliseconds, durationSeconds);
-    controls.setTimer(Math.round(positionMilliseconds / 1000), durationSeconds);
+    if (Number.isNaN(positionMilliseconds) === false)
+    {
+      controls.updateProgressPosition(positionMilliseconds, durationSeconds);
+      controls.setTimer(Math.round(positionMilliseconds / 1000), durationSeconds);
+    }
   }
 })();

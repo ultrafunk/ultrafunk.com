@@ -180,7 +180,7 @@ function mediaShow(playbackEvent)
 function continueAutoplay(playbackEvent)
 {
   debugEvent(playbackEvent);
-  navigateTo(navigationUrls.next, true); // eslint-disable-line no-undef
+  navigateTo(navigationVars.next, true); // eslint-disable-line no-undef
 }
 
 function resumeAutoplay(playbackEvent)
@@ -259,8 +259,8 @@ function playbackEventErrorTryNext(playbackEvent)
   }
   else
   {
-    if (navigationUrls.next !== null)        // eslint-disable-line no-undef
-      navigateTo(navigationUrls.next, true); // eslint-disable-line no-undef
+    if (navigationVars.next !== null)        // eslint-disable-line no-undef
+      navigateTo(navigationVars.next, true); // eslint-disable-line no-undef
   }
 }
 

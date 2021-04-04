@@ -9,7 +9,7 @@ namespace Ultrafunk\ThemeFunctions;
 
 
 use SimpleXMLElement;
-use function Ultrafunk\SharedRequest\request_get_prev_next_urls;
+use function Ultrafunk\SharedRequest\request_get_navigation_vars;
 
 use function Ultrafunk\Globals\ {
   console_log,
@@ -29,14 +29,14 @@ use function Ultrafunk\Globals\ {
 //
 // Get previous and next post/posts URLs
 //
-function get_prev_next_urls()
+function get_navigation_vars()
 {
   // Return empty Array because get_next_posts_link() returns results even when a 404 happens
   if (is_404())
     return array();
 
   if (is_termlist() || is_player())
-    return request_get_prev_next_urls();
+    return request_get_navigation_vars();
 
   if (is_single())
   {

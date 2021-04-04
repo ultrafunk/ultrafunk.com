@@ -95,10 +95,10 @@ function initInteraction()
   mElements.crossfadeToggle            = document.getElementById(mConfig.crossfadeToggleId);
 
   /* eslint-disable */
-  utils.addEventListeners('i.nav-bar-arrow-back',                'click', prevNextNavTo, navigationUrls.prev);
-  utils.addEventListeners('i.nav-bar-arrow-fwd',                 'click', prevNextNavTo, navigationUrls.next);
-  utils.addEventListeners('nav.post-navigation .nav-previous a', 'click', prevNextNavTo, navigationUrls.prev);
-  utils.addEventListeners('nav.post-navigation .nav-next a',     'click', prevNextNavTo, navigationUrls.next);
+  utils.addEventListeners('i.nav-bar-arrow-back',                'click', prevNextNavTo, navigationVars.prev);
+  utils.addEventListeners('i.nav-bar-arrow-fwd',                 'click', prevNextNavTo, navigationVars.next);
+  utils.addEventListeners('nav.post-navigation .nav-previous a', 'click', prevNextNavTo, navigationVars.prev);
+  utils.addEventListeners('nav.post-navigation .nav-next a',     'click', prevNextNavTo, navigationVars.next);
   /* eslint-enable */
   
   document.addEventListener('keydown', documentEventKeyDown);
@@ -140,14 +140,14 @@ function documentEventKeyDown(event)
       case 'ArrowLeft':
         if (event.shiftKey === true)
         {
-          prevNextNavTo(event, navigationUrls.prev); // eslint-disable-line no-undef
+          prevNextNavTo(event, navigationVars.prev); // eslint-disable-line no-undef
         }
         break;
 
       case 'ArrowRight':
         if (event.shiftKey === true)
         {
-          prevNextNavTo(event, navigationUrls.next); // eslint-disable-line no-undef
+          prevNextNavTo(event, navigationVars.next); // eslint-disable-line no-undef
         }
         break;
 

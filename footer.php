@@ -24,7 +24,7 @@
       <div class="footer-settings-block">
         <a href="/settings/"><b><u>SETTINGS</u></b></a>
         <div class="footer-toggles">
-          <a href="#" id="footer-player-toggle" title="Gallery or Compact Player">Player = <span class="player-gallery-compact">Gallery</span></a>
+          <a href="<?php echo \Ultrafunk\Globals\is_player() ? '/' : '/player/'; ?>" id="footer-player-toggle" title="Gallery or Compact Player">Player = <span class="player-gallery-compact">Gallery</span></a>
           <a href="#" id="footer-autoplay-toggle" title="Toggle Autoplay On / Off (shift + a)">Autoplay = <span class="autoplay-on-off">On</span></a>
           <a href="#" id="footer-crossfade-toggle" title="Toggle Auto Crossfade On / Off (x)">Auto Crossfade = <span class="crossfade-on-off">Off</span></a>
           <a href="#" id="footer-site-theme-toggle" title="Light, Dark or Automatic (default) theme (shift + t)">Theme = <span class="site-theme-light-dark-auto">Auto</span></a>

@@ -92,7 +92,7 @@ function prevClick(event)
   {
     players.current.getPosition((positionMilliseconds) =>
     {
-      if (positionMilliseconds > 3000)
+      if (positionMilliseconds > 5000)
       {
         players.current.seekTo(0);
         playbackTimer.updateCallback(0);

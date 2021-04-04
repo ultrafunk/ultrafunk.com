@@ -19,7 +19,7 @@ use function Ultrafunk\Globals\ {
 };
 
 use function Ultrafunk\ThemeFunctions\ {
-  get_prev_next_urls,
+  get_navigation_vars,
   get_title,
   get_shuffle_menu_item_url,
   get_shuffle_menu_item_title,
@@ -206,7 +206,7 @@ function get_nav_bar_icons()
 
 function get_nav_bar_arrows()
 {
-  $prev_next_urls = get_prev_next_urls();
+  $prev_next_urls = get_navigation_vars();
   
   if (array_filter($prev_next_urls))
   {

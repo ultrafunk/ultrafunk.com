@@ -144,6 +144,16 @@ function documentEventKeyDown(event)
         }
         break;
 
+      /*
+      case 'P':
+        if (searchNotFocused() && notSettingsPage())
+        {
+          event.preventDefault();
+          interaction.togglePlayer();
+        }
+        break;
+      */
+
       case 's':
       case 'S':
         if (searchNotFocused() && notFullscreenElement())
@@ -164,7 +174,7 @@ function documentEventKeyDown(event)
         if (event.shiftKey && noPlayback())
         {
           // eslint-disable-next-line no-undef
-          arrowKeyNav(navigationUrls.prev);
+          arrowKeyNav(navigationVars.prev);
         }
         break;
 
@@ -172,7 +182,7 @@ function documentEventKeyDown(event)
         if (event.shiftKey && noPlayback())
         {
           // eslint-disable-next-line no-undef
-          arrowKeyNav(navigationUrls.next);
+          arrowKeyNav(navigationVars.next);
         }
         break;
     }

@@ -68,8 +68,8 @@ function trackShareControlClick(event)
 
 function initPlayerSelection()
 {
-  const isCompact = document.body.classList.contains('player-playlist');
-  document.querySelector('#footer-player-toggle span').textContent = isCompact ? 'Compact' : 'Gallery';
+  const isCompactPlayer = document.body.classList.contains('player-playlist');
+  document.querySelector('#footer-player-toggle span').textContent = isCompactPlayer ? 'Compact' : 'Gallery';
 
   utils.addEventListeners('#footer-player-toggle', 'click', (event) =>
   {
@@ -78,12 +78,56 @@ function initPlayerSelection()
     // Remove pagination since it does not match between the two players
     const currentUrl = window.location.href.replace(/\/page\/(?!0)\d{1,6}/, '');
 
-    if (isCompact)
+    if (isCompactPlayer)
       window.location.href = currentUrl.replace(/player\//, '');
     else
       window.location.href = currentUrl.replace(/ultrafunk\.com\//, 'ultrafunk.com/player/');
   });
 }
+
+/*
+function xxx()
+{
+  const urlParts  = window.location.href.split('/');
+  const pageIndex = urlParts.findIndex(part => (part.toLowerCase() === 'page'));
+
+  if (pageIndex !== -1)
+    debug.log(getGotoPageAndTrackId(isCompactPlayer, parseInt(urlParts[pageIndex + 1])));
+}
+
+function getGotoPageAndTrackId(isCompactPlayer, currentPage)
+{
+  const currentTrack      = isCompactPlayer ? getCompactCurrentTrack() : getGalleryCurrentTrack();
+  const tracksPerPageFrom = isCompactPlayer ? 36 : document.body.getAttribute('data-tracks-per-page');
+  const tracksPerPageTo   = isCompactPlayer ? document.body.getAttribute('data-tracks-per-page') : 36;
+  const trackOffset       = currentTrack.number + ((currentPage - 1) * tracksPerPageFrom);
+
+  return { gotoPage: Math.ceil(trackOffset / tracksPerPageTo), trackId: currentTrack.id };
+}
+
+function getCompactCurrentTrack()
+{
+  const currentTrack = { number: 0, id: null };
+  const elements     = document.querySelectorAll('#tracklist-container .track-entry');
+  const currentId    = document.querySelector('#tracklist-container .track-entry.current').id;
+  
+  elements.forEach((element, index) =>
+  {
+    if (element.id === currentId)
+    {
+      currentTrack.number = index + 1;
+      currentTrack.id     = `track-${element.getAttribute('data-post-id')}`;
+    }
+  });
+
+  return currentTrack;
+}
+
+function getGalleryCurrentTrack()
+{
+  return 1;
+}
+*/
 
 
 // ************************************************************************************************

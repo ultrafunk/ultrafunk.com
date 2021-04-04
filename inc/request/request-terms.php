@@ -19,6 +19,8 @@ class RequestTerms extends Request
 {
   public function __construct(object $wp_env, string $matched_route, array $url_parts)
   {
+    parent::__construct();
+
     if (($matched_route === 'artists') || ($matched_route === 'artists_letter'))
     {
       add_filter('terms_clauses', function($clauses, $taxonomies, $args)
