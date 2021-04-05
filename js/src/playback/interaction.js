@@ -138,16 +138,26 @@ function documentEventKeyDown(event)
         break;
 
       case 'ArrowLeft':
+        event.preventDefault();
         if (event.shiftKey === true)
         {
           prevNextNavTo(event, navigationVars.prev); // eslint-disable-line no-undef
         }
+        else
+        {
+          playback.prevClick(event);
+        }
         break;
 
       case 'ArrowRight':
+        event.preventDefault();
         if (event.shiftKey === true)
         {
           prevNextNavTo(event, navigationVars.next); // eslint-disable-line no-undef
+        }
+        else
+        {
+          playback.nextClick(event);
         }
         break;
 
