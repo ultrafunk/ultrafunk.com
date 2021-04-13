@@ -24,12 +24,12 @@ const mConfig = {
 
 const mTemplate = `
   <div id="${mConfig.id}-dialog" tabindex="-1">
-    <div class="${mConfig.id}-container">
-      <div class="${mConfig.id}-header">
-        <div class="${mConfig.id}-title"></div>
-        <div class="${mConfig.id}-close-button"><span class="material-icons" title="Dismiss">close</span></div>
+    <div class="${mConfig.id}-dialog-container">
+      <div class="${mConfig.id}-dialog-header">
+        <div class="${mConfig.id}-dialog-title"></div>
+        <div class="${mConfig.id}-dialog-close-button"><span class="material-icons" title="Dismiss">close</span></div>
       </div>
-      <div class="${mConfig.id}-body"></div>
+      <div class="${mConfig.id}-dialog-body"></div>
     </div>
   </div>
 `;
@@ -56,7 +56,7 @@ function showModal(title, singleChoiceList, selectedClickCallback)
   selectedClick = selectedClickCallback;
   setSingleChoiceList(singleChoiceList);
 
-  mElements.container.querySelector(`.${mConfig.id}-title`).innerHTML = title;
+  mElements.container.querySelector(`.${mConfig.id}-dialog-title`).innerHTML = title;
   mElements.overlay.classList.add('show');
   mElements.overlay.addEventListener('keydown', keyDown);
   mElements.overlay.focus();
@@ -70,8 +70,8 @@ function init()
     document.body.insertAdjacentHTML('beforeend', mTemplate);
     
     mElements.overlay   = document.getElementById(`${mConfig.id}-dialog`);
-    mElements.container = mElements.overlay.querySelector(`.${mConfig.id}-container`);
-    mElements.body      = mElements.overlay.querySelector(`.${mConfig.id}-body`);
+    mElements.container = mElements.overlay.querySelector(`.${mConfig.id}-dialog-container`);
+    mElements.body      = mElements.overlay.querySelector(`.${mConfig.id}-dialog-body`);
 
     mElements.overlay.addEventListener('click', (event) =>
     {
@@ -88,7 +88,7 @@ function init()
       }
     });
 
-    mElements.overlay.querySelector(`.${mConfig.id}-close-button`).addEventListener('click', close);
+    mElements.overlay.querySelector(`.${mConfig.id}-dialog-close-button`).addEventListener('click', close);
   }
 }
 
@@ -96,7 +96,7 @@ function setSingleChoiceList(singleChoiceList)
 {
   let listHtml = '';
 
-  singleChoiceList.forEach(entry => listHtml += `<div id="${entry.id}" class="${mConfig.id}-single-choice">${entry.description}</div>`);
+  singleChoiceList.forEach(entry => listHtml += `<div id="${entry.id}" class="${mConfig.id}-dialog-single-choice">${entry.description}</div>`);
   mElements.body.innerHTML = listHtml;
 
   singleChoiceList.forEach(entry => mElements.body.querySelector(`#${entry.id}`).addEventListener('click', singleChoiceListClick));

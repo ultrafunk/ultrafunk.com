@@ -26,9 +26,9 @@ let settings = {};
 let players  = {};
 
 const mConfig = {
-  crossfadePresetSelector: '.crossfade-controls .preset-control',
+  crossfadePresetSelector: '.crossfade-preset-control',
   crossfadePresetData:     'data-crossfade-preset',
-  crossfadeToSelector:     '.crossfade-controls .fadeto-control',
+  crossfadeToSelector:     '.crossfade-fadeto-control',
 };
 
 const mControls = {
@@ -107,7 +107,7 @@ function crossfadeToClick(event)
       const iframe      = element.querySelector('iframe');
       const presetIndex = element.querySelector(mConfig.crossfadePresetSelector).getAttribute(mConfig.crossfadePresetData);
 
-      replaceClass(event.target.closest('div.fadeto-control'), STATE.ENABLED.CLASS, STATE.DISABLED.CLASS);
+      replaceClass(event.target.closest(`div${mConfig.crossfadeToSelector}`), STATE.ENABLED.CLASS, STATE.DISABLED.CLASS);
       mControls.crossfadeTo.click(players.uIdFromIframeId(iframe.id), presetList.crossfade[presetIndex]);
     }
   }

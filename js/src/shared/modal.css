@@ -33,7 +33,7 @@
   outline: 0;
 }
 
-#modal-dialog .modal-container {
+.modal-dialog-container {
   padding: 15px 30px;
   min-width: 400px;
   max-width: 800px;
@@ -44,21 +44,21 @@
   cursor: auto;
 }
 
-#modal-dialog .modal-header {
+.modal-dialog-header {
   display: flex;
   margin-bottom: 5px;
   align-items: center;
   justify-content: space-between;
 }
 
-#modal-dialog .modal-title {
+.modal-dialog-title {
   display: inline-flex;
   font-size: 25px;
   font-weight: 700;
   text-transform: uppercase;
 }
 
-#modal-dialog .modal-close-button {
+.modal-dialog-close-button {
   display: inline-flex;
   color: var(--primary-icon-color);
   padding: 0px 0px 0px 15px;
@@ -68,78 +68,78 @@
   margin-right: -10px;
 }
 
-#modal-dialog .modal-close-button .material-icons {
+.modal-dialog-close-button .material-icons {
   font-size: 40px;
   cursor: pointer;
 }
 
-#modal-dialog .modal-close-button:hover {
+.modal-dialog-close-button:hover {
   opacity: var(--control-hover-opacity);
 }
 
-#modal-dialog .modal-body {
+.modal-dialog-body {
   font-size: 20px;
   line-height: 44px;
   font-weight: 400;
 }
 
-#modal-dialog .modal-single-choice {
+.modal-dialog-single-choice {
   display: block;
   cursor: pointer;
 }
 
-#modal-dialog .modal-single-choice:hover {
+.modal-dialog-single-choice:hover {
   color: var(--link-hover-color);
 }
 
 #modal-dialog.show {
   display: flex;
-  animation: modal-show 250ms;
+  animation: modal-dialog-show 250ms;
 }
 
-@keyframes modal-show {
+@keyframes modal-dialog-show {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
 
 #modal-dialog.hide {
   display: flex;
-  animation: modal-hide 150ms;
+  animation: modal-dialog-hide 150ms;
 }
 
-@keyframes modal-hide {
+@keyframes modal-dialog-hide {
   from { opacity: 1; }
   to   { opacity: 0; }
 }
 
 @media screen and (max-width: 500px) {
   
-  #modal-dialog .modal-container {
+  .modal-dialog-container {
     width: 100%;
     min-width: unset;
     padding: 10px 20px;
     margin: 0 20px 0 20px;
   }
 
-  #modal-dialog .modal-header {
+  .modal-dialog-header {
     margin-bottom: 0;
   }
 
-  #modal-dialog .modal-title {
+  .modal-dialog-title {
     font-size: 18px;
   }
 
-  #modal-dialog .modal-close-button {
+  .modal-dialog-close-button {
     width: 32px;
     height: 32px;
     margin-right: -5px;
   }
 
-  #modal-dialog .modal-close-button .material-icons {
+  .modal-dialog-close-button .material-icons {
     font-size: 32px;
   }
 
-  #modal-dialog .modal-body {
+  .modal-dialog-body {
     font-size: 15px;
     line-height: 40px;
   }

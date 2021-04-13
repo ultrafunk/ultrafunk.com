@@ -30,15 +30,14 @@ let mSettings       = {};
 let isPlaybackReady = false;
 
 const mConfig = {
-  autoplayToggleId:  'footer-autoplay-toggle',
-  crossfadeToggleId: 'footer-crossfade-toggle',
-  doubleClickDelay:  500,
+  doubleClickDelay: 500,
 };
 
 const mElements = {
-  playbackControls: { details: null, thumbnail: null, timer: null, statePlaying: false },
-  autoplayToggle:   null,
-  crossfadeToggle:  null,
+  controls:        { details: null, thumbnail: null, timer: null, statePlaying: false },
+  playerToggle:    null,
+  autoplayToggle:  null,
+  crossfadeToggle: null,
 };
 
 
@@ -56,15 +55,11 @@ document.addEventListener('DOMContentLoaded', () =>
   {
     initInteraction();
     initPlayback();
-    updateAutoplayDOM(mSettings.user.autoplay);
-    updateCrossfadeDOM(mSettings.user.autoCrossfade);
+    initShared();
   }
   else if (document.getElementById('player-playlist'))
   {
-    mElements.autoplayToggle  = document.getElementById(mConfig.autoplayToggleId);
-    mElements.crossfadeToggle = document.getElementById(mConfig.crossfadeToggleId);
-    updateAutoplayDOM(mSettings.user.autoplay);
-
+    initShared();
     playerPlaylist.init(mSettings, autoplayToggle);
   }
 });
@@ -85,20 +80,15 @@ function initInteraction()
 {
   debug.log('initInteraction()');
 
-  utils.fullscreenElement.init();
-  utils.keyboardShortcuts.init(mSettings.user);
-
-  mElements.playbackControls.details   = document.getElementById('playback-controls').querySelector('.details-control');
-  mElements.playbackControls.thumbnail = document.getElementById('playback-controls').querySelector('.thumbnail-control');
-  mElements.playbackControls.timer     = document.getElementById('playback-controls').querySelector('.timer-control');
-  mElements.autoplayToggle             = document.getElementById(mConfig.autoplayToggleId);
-  mElements.crossfadeToggle            = document.getElementById(mConfig.crossfadeToggleId);
+  mElements.controls.details   = document.querySelector('.playback-details-control');
+  mElements.controls.thumbnail = document.querySelector('.playback-thumbnail-control');
+  mElements.controls.timer     = document.querySelector('.playback-timer-control');
 
   /* eslint-disable */
-  utils.addEventListeners('i.nav-bar-arrow-back',                'click', prevNextNavTo, navigationVars.prev);
-  utils.addEventListeners('i.nav-bar-arrow-fwd',                 'click', prevNextNavTo, navigationVars.next);
-  utils.addEventListeners('nav.post-navigation .nav-previous a', 'click', prevNextNavTo, navigationVars.prev);
-  utils.addEventListeners('nav.post-navigation .nav-next a',     'click', prevNextNavTo, navigationVars.next);
+  utils.addListenerAll('i.nav-bar-arrow-back',             'click', prevNextNavTo, navigationVars.prev);
+  utils.addListenerAll('i.nav-bar-arrow-fwd',              'click', prevNextNavTo, navigationVars.next);
+  utils.addListener('nav.post-navigation .nav-previous a', 'click', prevNextNavTo, navigationVars.prev);
+  utils.addListener('nav.post-navigation .nav-next a',     'click', prevNextNavTo, navigationVars.next);
   /* eslint-enable */
   
   document.addEventListener('keydown', documentEventKeyDown);
@@ -112,6 +102,25 @@ function initPlayback()
   playbackEvents.addListener(playbackEvents.EVENT.MEDIA_SHOW,           playbackEventMediaEnded);
   playbackEvents.addListener(playbackEvents.EVENT.MEDIA_ENDED,          playbackEventMediaEnded);
   playbackEvents.addListener(playbackEvents.EVENT.MEDIA_TIME_REMAINING, playbackEventMediaTimeRemaining);
+}
+
+function initShared()
+{
+  utils.fullscreenElement.init();
+  utils.keyboardShortcuts.init(mSettings.user);
+
+  mElements.playerToggle    = document.getElementById('footer-player-toggle');
+  mElements.autoplayToggle  = document.getElementById('footer-autoplay-toggle');
+  mElements.crossfadeToggle = document.getElementById('footer-crossfade-toggle');
+
+  utils.addListener('.playback-shuffle-control', 'click', utils.shuffleClick);
+  utils.addListener('#footer-player-toggle',     'click', playerToggle);
+  utils.addListener('#footer-autoplay-toggle',   'click', autoplayToggle);
+  utils.addListener('#footer-crossfade-toggle',  'click', crossfadeToggle);
+
+  mElements.playerToggle.querySelector('span').textContent = document.body.classList.contains('player-playlist') ? 'Compact' : 'Gallery';
+  updateAutoplayToggle(mSettings.user.autoplay);
+  updateCrossfadeToggle(mSettings.user.autoCrossfade);
 }
 
 
@@ -139,26 +148,12 @@ function documentEventKeyDown(event)
 
       case 'ArrowLeft':
         event.preventDefault();
-        if (event.shiftKey === true)
-        {
-          prevNextNavTo(event, navigationVars.prev); // eslint-disable-line no-undef
-        }
-        else
-        {
-          playback.prevClick(event);
-        }
+        (event.shiftKey === true) ? prevNextNavTo(event, navigationVars.prev) : playback.prevClick(event); // eslint-disable-line no-undef
         break;
 
       case 'ArrowRight':
         event.preventDefault();
-        if (event.shiftKey === true)
-        {
-          prevNextNavTo(event, navigationVars.next); // eslint-disable-line no-undef
-        }
-        else
-        {
-          playback.nextClick(event);
-        }
+        (event.shiftKey === true) ? prevNextNavTo(event, navigationVars.next) : playback.nextClick(event); // eslint-disable-line no-undef
         break;
 
       case 'A':
@@ -178,6 +173,12 @@ function documentEventKeyDown(event)
         showSnackbar(mSettings.user.masterMute ? 'Volume is muted (<b>m</b> to unmute)' : 'Volume is unmuted (<b>m</b> to mute)', 3);
         break;
 
+      /*
+      case 'P':
+        playerToggle(event);
+        break;
+      */
+
       case 'x':
       case 'X':
         if (mElements.crossfadeToggle.classList.contains('disabled') === false)
@@ -196,11 +197,9 @@ function documentEventKeyDown(event)
 
 function playbackEventReady()
 {
-  mElements.playbackControls.details.addEventListener('click', playbackDetailsClick);
-  mElements.playbackControls.thumbnail.addEventListener('click', playbackDetailsClick);
-  mElements.playbackControls.timer.addEventListener('click', autoplayToggle);
-  mElements.autoplayToggle.addEventListener('click', autoplayToggle);
-  mElements.crossfadeToggle.addEventListener('click', crossfadeToggle);
+  mElements.controls.details.addEventListener('click', playbackDetailsClick);
+  mElements.controls.thumbnail.addEventListener('click', playbackDetailsClick);
+  mElements.controls.timer.addEventListener('click', autoplayToggle);
   document.addEventListener('visibilitychange', documentEventVisibilityChange);
 
   if (mSettings.user.keepMobileScreenOn)
@@ -252,14 +251,14 @@ function documentEventVisibilityChange()
 
   if (document.visibilityState === 'visible')
   {
-    if (mSettings.user.autoResumePlayback && mElements.playbackControls.statePlaying)
+    if (mSettings.user.autoResumePlayback && mElements.controls.statePlaying)
     {
       if (playback.getStatus().isPlaying === false)
         playback.togglePlayPause();
     }
 
     /*
-    if (settings.user.keepMobileScreenOn && mElements.playbackControls.statePlaying)
+    if (settings.user.keepMobileScreenOn && mElements.controls.statePlaying)
       screenWakeLock.stateVisible();
     */
     
@@ -269,11 +268,11 @@ function documentEventVisibilityChange()
   else if (document.visibilityState === 'hidden')
   {
     if (mSettings.user.autoResumePlayback && playback.getStatus().isPlaying)
-      mElements.playbackControls.statePlaying = true;
+      mElements.controls.statePlaying = true;
     else
-      mElements.playbackControls.statePlaying = false;
+      mElements.controls.statePlaying = false;
 
-  //debug.log('documentEventVisibilityChange() - statePlaying: ' + mElements.playbackControls.statePlaying);
+  //debug.log('documentEventVisibilityChange() - statePlaying: ' + mElements.controls.statePlaying);
   }
 }
 
@@ -322,6 +321,51 @@ function showCurrentTrack(event)
 
 
 // ************************************************************************************************
+// Player = Gallery / Compact selection toggle
+// ************************************************************************************************
+
+function playerToggle(event)
+{
+  event.preventDefault();
+
+  const isCompactPlayer = document.body.classList.contains('player-playlist');
+  const destData        = getDestData(isCompactPlayer);
+  let   destUrl         = window.location.href.replace(/\/page\/(?!0)\d{1,6}/, ''); // Strip off any pagination
+
+  // Add new destination pagination if needed
+  if (destData.pageNum > 1)
+    destUrl = `${destUrl}page/${destData.pageNum}/`;
+
+  sessionStorage.setItem(KEY.UF_AUTOPLAY, JSON.stringify(destData.trackData));
+
+  if (isCompactPlayer)
+    window.location.href = destUrl.replace(/player\//, '');
+  else
+    window.location.href = destUrl.replace(/ultrafunk\.com\//, 'ultrafunk.com/player/');
+}
+
+function getDestData(isCompactPlayer)
+{
+  const urlParts          = window.location.href.split('/');
+  const pageIndex         = urlParts.findIndex(part => (part.toLowerCase() === 'page'));
+  const currentPage       = (pageIndex !== -1) ? parseInt(urlParts[pageIndex + 1]) : 1;
+  const trackData         = isCompactPlayer ? playerPlaylist.getStatus()         : playback.getStatus();
+  const tracksPerPageFrom = isCompactPlayer ? navigationVars.compactItemsPerPage : navigationVars.galleryItemsPerPage; // eslint-disable-line no-undef
+  const tracksPerPageTo   = isCompactPlayer ? navigationVars.galleryItemsPerPage : navigationVars.compactItemsPerPage; // eslint-disable-line no-undef
+  const trackOffset       = trackData.currentTrack + ((currentPage - 1) * tracksPerPageFrom);
+
+  return {
+    pageNum: Math.ceil(trackOffset / tracksPerPageTo),
+    trackData: {
+      autoplay: trackData?.isPlaying,
+      trackId:  trackData?.trackId,
+      position: trackData?.position,
+    }
+  };
+}
+
+
+// ************************************************************************************************
 // Autoplay UI toggle and DOM update
 // ************************************************************************************************
 
@@ -330,12 +374,12 @@ function autoplayToggle(event)
   event.preventDefault();
   mSettings.user.autoplay = (mSettings.user.autoplay === true) ? false : true;
   showSnackbar(mSettings.user.autoplay ? 'Autoplay enabled (<b>Shift</b> + <b>A</b> to disable)' : 'Autoplay disabled (<b>Shift</b> + <b>A</b> to enable)', 5);
-  updateAutoplayDOM(mSettings.user.autoplay);
+  updateAutoplayToggle(mSettings.user.autoplay);
 }
 
-function updateAutoplayDOM(autoplay)
+function updateAutoplayToggle(autoplay)
 {
-  debug.log(`updateAutoplayDOM() - autoplay: ${autoplay}`);
+  debug.log(`updateAutoplayToggle() - autoplay: ${autoplay}`);
   mElements.autoplayToggle.querySelector('.autoplay-on-off').textContent = autoplay ? 'ON' : 'OFF';
   autoplay ? utils.replaceClass(document.body, 'autoplay-off', 'autoplay-on') : utils.replaceClass(document.body, 'autoplay-on', 'autoplay-off');
   autoplay ? mElements.crossfadeToggle.classList.remove('disabled')           : mElements.crossfadeToggle.classList.add('disabled');
@@ -351,11 +395,11 @@ function crossfadeToggle(event)
   event.preventDefault();
   mSettings.user.autoCrossfade = (mSettings.user.autoCrossfade === true) ? false : true;
   showSnackbar(mSettings.user.autoCrossfade ? 'Auto Crossfade enabled (<b>x</b> to disable)' : 'Auto Crossfade disabled (<b>x</b> to enable)', 5);
-  updateCrossfadeDOM(mSettings.user.autoCrossfade);
+  updateCrossfadeToggle(mSettings.user.autoCrossfade);
 }
 
-function updateCrossfadeDOM(autoCrossfade)
+function updateCrossfadeToggle(autoCrossfade)
 {
-  debug.log(`updateCrossfadeDOM() - autoCrossfade: ${autoCrossfade}`);
+  debug.log(`updateCrossfadeToggle() - autoCrossfade: ${autoCrossfade}`);
   mElements.crossfadeToggle.querySelector('.crossfade-on-off').textContent = autoCrossfade ? 'ON' : 'OFF';
 }

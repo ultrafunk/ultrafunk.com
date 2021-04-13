@@ -34,7 +34,7 @@
   justify-content: center;
 }
 
-#snackbar .snackbar-container {
+.snackbar-container {
   display: flex;
   margin: 0 25px;
   padding: 15px 22px 15px 30px;
@@ -51,12 +51,12 @@
   border-radius: var(--button-border-radius);
 }
 
-#snackbar .snackbar-message {
+.snackbar-message {
   float: left;
   width: 100%;
 }
 
-#snackbar .snackbar-action-button {
+.snackbar-action-button {
   font-weight: 700;
   font-size: 25px;
   cursor: pointer;
@@ -68,12 +68,12 @@
   white-space: nowrap;
 }
 
-#snackbar .snackbar-action-button:hover {
+.snackbar-action-button:hover {
   color: var(--snackbar-action-button-hover-color);
   text-decoration: none;
 }
 
-#snackbar .snackbar-close-button {
+.snackbar-close-button {
   color: var(--snackbar-close-button-color);
   float: right;
   padding: 0px 0px 0px 12px;
@@ -82,12 +82,12 @@
   user-select: none;
 }
 
-#snackbar .snackbar-close-button .material-icons {
+.snackbar-close-button .material-icons {
   font-size: 40px;
   cursor: pointer;
 }
 
-#snackbar .snackbar-close-button:hover {
+.snackbar-close-button:hover {
   color: var(--snackbar-close-button-hover-color);
 }
 
@@ -126,7 +126,7 @@
     bottom: 10px;
   }
   
-  #snackbar .snackbar-container {
+  .snackbar-container {
     margin: 0px 10px;
     padding: 6px 10px 6px 15px;
     font-size: 15px;
@@ -136,22 +136,22 @@
     width: 100%;
   }
 
-  #snackbar .snackbar-message {
+  .snackbar-message {
     padding: 4px 0px;
   }
 
-  #snackbar .snackbar-action-button {
+  .snackbar-action-button {
     font-size: 18px;
     margin-left: 8px;
   }
   
-  #snackbar .snackbar-close-button {
+  .snackbar-close-button {
     padding: 0px 0px 0px 2px;
     width: 32px;
     height: 32px;
   }
   
-  #snackbar .snackbar-close-button .material-icons {
+  .snackbar-close-button .material-icons {
     font-size: 32px;
   }
   
@@ -159,7 +159,7 @@
 
 @media screen and (max-width: 400px) {
 
-  #snackbar .snackbar-container {
+  .snackbar-container {
     font-size: 14px;
     line-height: 21px;
   }

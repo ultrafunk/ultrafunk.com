@@ -1,5 +1,5 @@
 /*
-* Standalone player UI
+* Compact player UI
 *
 * https://ultrafunk.com
 * 
@@ -138,10 +138,6 @@ body.player-playlist {
   display: inline-block;
   overflow: hidden;
   position: relative;
-}
-
-.track-entry.type-soundcloud .thumbnail {
-  pointer-events: none;
 }
 
 .track-entry.type-youtube .thumbnail:hover {

@@ -219,9 +219,11 @@ function shuffle_callback(bool $do_parse, object $wp_env, string $matched_route,
   if ($paged !== 0)
   {
     $transient = false;
-  
-    if ($paged === 1)
+
+    if (($paged === 1) && isset($_COOKIE['UF_RESHUFFLE']))
     {
+      setcookie('UF_RESHUFFLE', '', time() - 3600, '/');
+
       perf_start();
       $transient = $shuffle->create_transient();
       perf_stop('create_rnd_transient');

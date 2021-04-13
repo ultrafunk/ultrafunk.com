@@ -6,15 +6,18 @@
 
 
 import * as debugLogger from './debuglogger.js';
+import { setCookie }    from './storage.js';
 
 
 export {
   MATCH,
-  addEventListeners,
+  addListener,
+  addListenerAll,
   getCssPropString,
   getCssPropValue,
   matchesMedia,
   replaceClass,
+  shuffleClick,
   fullscreenElement,
   keyboardShortcuts,
 };
@@ -40,9 +43,14 @@ const siteMaxWidthMobile = window.matchMedia(`(max-width: ${getCssPropString('--
 // Misc. utility functions
 // ************************************************************************************************
 
+function addListener(selectors, type, listener, data = null)
+{
+  document.querySelector(selectors)?.addEventListener(type, (event) => listener(event, data));
+}
+
 // Plain JS function equivalent to jQuery(selectors).eventX();
 // Adds event listeners of 'type' to all matching selectors 
-function addEventListeners(selectors, type, listener, data = null)
+function addListenerAll(selectors, type, listener, data = null)
 {
   const elementList = document.querySelectorAll(selectors);
   elementList.forEach(element => { element.addEventListener(type, (event) => listener(event, data)); });
@@ -96,6 +104,13 @@ function replaceClass(element, removeClass, addClass)
 {
   element.classList.remove(removeClass);
   element.classList.add(addClass);
+}
+
+function shuffleClick(event)
+{
+  event.preventDefault();
+  setCookie('UF_RESHUFFLE', 'true');
+  window.location.href = event.target.closest('a').href;
 }
 
 

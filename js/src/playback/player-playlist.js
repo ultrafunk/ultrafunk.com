@@ -22,6 +22,7 @@ import {
 
 export {
   init,
+  getStatus,
 };
 
 
@@ -41,10 +42,10 @@ const list = {
 };
 
 const current = {
-  trackId:       null,
-  element:       null,
-  snackbarId:    0,
-  autoplayValue: null,
+  trackId:      null,
+  element:      null,
+  snackbarId:   0,
+  autoplayData: null,
 };
 
 
@@ -61,32 +62,24 @@ function init(playbackSettings, autoplayToggleCallback)
   list.container = document.getElementById('tracklist-container');
   list.observer  = new IntersectionObserver(observerCallback, { root: list.container });
   
-  if (setCurrentIdAndElement() !== null)
+  if (cueTrack() !== null)
   {
     initYouTubeAPI();
-    utils.fullscreenElement.init();
-    utils.keyboardShortcuts.init(settings.user);
-
     document.addEventListener('keydown', documentEventKeyDown);
-
+    
     //ToDo: Add common code in playback-controls.js for player-playlist & playback/interaction?
-    utils.addEventListeners('#playback-controls .details-control',   'click', scrollPlayerIntoView);
-    utils.addEventListeners('#playback-controls .thumbnail-control', 'click', scrollPlayerIntoView);
-    utils.addEventListeners('#playback-controls .timer-control',     'click', (event) => autoplayToggle(event));
+    utils.addListener('.playback-details-control',   'click', scrollPlayerIntoView);
+    utils.addListener('.playback-thumbnail-control', 'click', scrollPlayerIntoView);
+    utils.addListener('.playback-timer-control',     'click', (event) => autoplayToggle(event));
   }
   else
   {
     showSnackbar('No playable YouTube tracks!', 0, 'help', () => { window.location.href = "/help/#compact-player"; });
   }
 
-  document.getElementById('footer-autoplay-toggle').addEventListener('click', (event) => autoplayToggle(event));
-  utils.addEventListeners('i.nav-bar-arrow-back', 'click', prevNextNavTo, navigationVars.prev); // eslint-disable-line no-undef
-  utils.addEventListeners('i.nav-bar-arrow-fwd',  'click', prevNextNavTo, navigationVars.next); // eslint-disable-line no-undef
-  setTrackButtonListeners();
-}
+  utils.addListenerAll('i.nav-bar-arrow-back', 'click', prevNextNavTo, navigationVars.prev); // eslint-disable-line no-undef
+  utils.addListenerAll('i.nav-bar-arrow-fwd',  'click', prevNextNavTo, navigationVars.next); // eslint-disable-line no-undef
 
-function setTrackButtonListeners()
-{
   list.container.addEventListener('click', (event) =>
   {
     const playTrackButton = event.target.closest('div.thumbnail');
@@ -194,28 +187,46 @@ function toggleMute()
 //
 // ************************************************************************************************
 
-function setCurrentIdAndElement()
+function cueTrack()
 {
   current.trackId = getNextPlayableId();
 
   if (current.trackId !== null)
   {
-    current.autoplayValue = sessionStorage.getItem(KEY.UF_AUTOPLAY);
+    current.autoplayData = JSON.parse(sessionStorage.getItem(KEY.UF_AUTOPLAY));
     sessionStorage.removeItem(KEY.UF_AUTOPLAY);
   
-    if (current.autoplayValue !== null)
+    if ((current.autoplayData !== null) && (current.autoplayData.trackId !== null))
     {
-      const matches = current.autoplayValue.match(/^[a-zA-Z0-9-_]{11}$/);
+      const matchesVideoId = current.autoplayData.trackId.match(/^[a-zA-Z0-9-_]{11}$/);
       
-      if (matches !== null)
-        current.trackId = matches[0];
+      if (matchesVideoId !== null)
+      {
+        current.trackId = matchesVideoId[0];
+      }
+      else if (current.autoplayData.trackId.match(/^track-(?!0)\d{1,6}$/i) !== null)
+      {
+        const trackElement = list.container.querySelectorAll(`[data-post-id="${current.autoplayData.trackId.slice(6)}"]`);
+
+        if (trackElement.length === 1)
+        {
+          if (trackElement[0].id.length !== 0)
+            current.trackId = trackElement[0].id;
+          else
+            showSnackbar('Cannot play SoundCloud track', 5, 'help', () => { window.location.href = "/help/#compact-player"; });
+        }
+        else
+        {
+          showSnackbar('Unable to cue track (not found)', 5);
+        }
+      }
     }
-  
-    debug.log(`setCurrentIdAndElement() - autoplayValue: ${(current.autoplayValue !== null) ? current.autoplayValue : 'N/A'} - current.trackId: ${current.trackId}`);
   
     current.element = document.getElementById(current.trackId);
     list.observer.observe(current.element);
   }
+
+  debug.log(`cueTrack() - current.trackId: ${current.trackId} - autoplayData: ${(current.autoplayData !== null) ? JSON.stringify(current.autoplayData) : 'N/A'}`);
 
   return current.trackId;
 }
@@ -243,11 +254,9 @@ function getPrevPlayableId()
 {
   let destElement = (current.element !== null) ? current.element.previousElementSibling : null;
 
-  while ((destElement !== null) && (destElement.id === ''))
+  while ((destElement !== null) && (destElement.id.length === 0))
     destElement = destElement.previousElementSibling;
 
-  debug.log(`getPrevPlayableId(): ${(destElement !== null) ? destElement.id : 'null'}`);
-  
   return (destElement !== null) ? destElement.id : null;
 }
 
@@ -255,10 +264,8 @@ function getNextPlayableId()
 {
   let destElement = (current.element !== null) ? current.element.nextElementSibling : list.container.querySelector('.track-entry');
 
-  while ((destElement !== null) && (destElement.id === ''))
+  while ((destElement !== null) && (destElement.id.length === 0))
     destElement = destElement.nextElementSibling;
-
-  debug.log(`getNextPlayableId(): ${(destElement !== null) ? destElement.id : 'null'}`);
   
   return (destElement !== null) ? destElement.id : null;
 }
@@ -268,8 +275,14 @@ function setCurrentTrack(nextTrackId, playNextTrack = true, isPointerClick = fal
 //https://wordpress.ultrafunk.com/player/page/21/
 //Unable to play last track in list needs better error handling / state reset if autoplay is disabled
 
-  debug.log(`setCurrentTrack(): ${nextTrackId} - playNextTrack: ${playNextTrack} - isPointerClick: ${isPointerClick}`);
+  debug.log(`setCurrentTrack() - nextTrackId: ${(nextTrackId.length !== 0) ? nextTrackId : 'N/A' } - playNextTrack: ${playNextTrack} - isPointerClick: ${isPointerClick}`);
 
+  if ((nextTrackId.length === 0) && isPointerClick)
+  {
+    showSnackbar('Cannot play SoundCloud track', 5, 'help', () => { window.location.href = "/help/#compact-player"; });
+    return;
+  }
+  
   if (nextTrackId === current.trackId)
   {
     togglePlayPause();
@@ -307,6 +320,27 @@ function loadOrCueCurrentTrack(playTrack)
     player.embedded.cueVideoById(current.trackId);
     setPlayStateClass(false);
   }
+}
+
+function getStatus()
+{
+  let status      = {};
+  const currentId = list.container.querySelector('.track-entry.current').id;
+  
+  list.container.querySelectorAll('.track-entry').forEach((element, index) =>
+  {
+    if (element.id === currentId)
+    {
+      status = {
+        isPlaying:    controls.isPlaying(),
+        currentTrack: (index + 1),
+        position:     Math.ceil(player.embedded.getCurrentTime()),
+        trackId:      `track-${element.getAttribute('data-post-id')}`,
+      };
+    }
+  });
+
+  return status;
 }
 
 
@@ -364,7 +398,7 @@ function setPlayStateClass(isPlayingState)
 
 function skipToNextTrack()
 {
-  if ((controls.isPlaying() === false) && (current.autoplayValue !== null))
+  if ((controls.isPlaying() === false) && (current.autoplayData !== null))
   {
     eventLog.add(eventLogger.SOURCE.ULTRAFUNK, eventLogger.EVENT.RESUME_AUTOPLAY, null);
     eventLog.add(eventLogger.SOURCE.YOUTUBE, -1, getNextPlayableId());
@@ -418,13 +452,15 @@ function initYouTubeAPI()
 
 function onYouTubePlayerReady()
 {
+  debug.log('onYouTubePlayerReady()');
+
   current.element.classList.add('current');
   
-  if (current.autoplayValue !== null)
+  if (current.autoplayData?.autoplay === true)
     eventLog.add(eventLogger.SOURCE.ULTRAFUNK, eventLogger.EVENT.RESUME_AUTOPLAY, null);
 
   controls.ready(prevTrack, togglePlayPause, nextTrack, toggleMute);
-  loadOrCueCurrentTrack(current.autoplayValue !== null);
+  loadOrCueCurrentTrack(current.autoplayData?.autoplay === true);
 }
 
 function onYouTubePlayerStateChange(event)
@@ -475,8 +511,8 @@ function onYouTubeStatePlaying(event)
 
   if (firstStatePlaying)
   {
-    firstStatePlaying     = false;
-    current.autoplayValue = null;
+    firstStatePlaying    = false;
+    current.autoplayData = null;
     
     setTimeout(() =>
     {

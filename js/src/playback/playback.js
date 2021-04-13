@@ -150,6 +150,15 @@ function toggleMute()
   players.mute();
 }
   
+function cueTrack(iframeId, scrollToMedia = true)
+{
+  debug.log(`cueTrack(): ${iframeId}`);
+
+  players.setPlayerIndex(players.indexMap.get(iframeId));
+  events.dispatch(events.EVENT.MEDIA_SHOW, { scrollToMedia: scrollToMedia, trackId: players.current.getTrackId() });
+  controls.updateNextState();
+}
+
 function playTrack(playMedia, scrollToMedia = true)
 {
   events.dispatch(events.EVENT.MEDIA_SHOW, { scrollToMedia: scrollToMedia, trackId: players.current.getTrackId() });
@@ -158,9 +167,9 @@ function playTrack(playMedia, scrollToMedia = true)
     players.current.play(embedded.onPlayerError);
 }
 
-function skipToTrack(track, playMedia = true)
+function skipToTrack(trackNum, playMedia = true)
 {
-  debug.log(`skipToTrack(): ${track} - ${playMedia}`);
+  debug.log(`skipToTrack(): ${trackNum} - ${playMedia}`);
 
   if ((playMedia === true) && (controls.isPlaying() === false))
   {
@@ -168,16 +177,24 @@ function skipToTrack(track, playMedia = true)
     eventLog.clear();
     eventLog.add(eventLogger.SOURCE.ULTRAFUNK, eventLogger.EVENT.RESUME_AUTOPLAY, null);
     
-    if (players.jumpToTrack(track, playMedia))
+    if (players.jumpToTrack(trackNum, playMedia))
       controls.updateNextState();
   }
 }
 
-function resumeAutoplay()
+function resumeAutoplay(autoplayData, iframeId = null)
 {
-  debug.log('resumeAutoplay()');
-  eventLog.add(eventLogger.SOURCE.ULTRAFUNK, eventLogger.EVENT.RESUME_AUTOPLAY, null);
-  togglePlayPause();
+  debug.log(`resumeAutoplay(): ${autoplayData.autoplay}${(iframeId !== null) ? ' - ' + iframeId : '' }`);
+
+  if (iframeId !== null)
+  {
+    autoplayData.autoplay ? skipToTrack(players.trackFromUid(iframeId), true) : cueTrack(iframeId);
+  }
+  else if (autoplayData.autoplay)
+  {
+    eventLog.add(eventLogger.SOURCE.ULTRAFUNK, eventLogger.EVENT.RESUME_AUTOPLAY, null);
+    togglePlayPause();
+  }
 }
 
 function getStatus()
@@ -185,6 +202,7 @@ function getStatus()
   return {
     isPlaying:    controls.isPlaying(),
     currentTrack: players.getCurrentTrack(),
+    position:     0,
     numTracks:    players.getNumTracks(),
     trackId:      players.current.getTrackId(),
     iframeId:     players.current.getIframeId(),

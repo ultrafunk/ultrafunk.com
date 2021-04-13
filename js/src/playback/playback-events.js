@@ -185,14 +185,17 @@ function continueAutoplay(playbackEvent)
 
 function resumeAutoplay(playbackEvent)
 {
-  const autoplayValue = sessionStorage.getItem(KEY.UF_AUTOPLAY);
+  const autoplayData = JSON.parse(sessionStorage.getItem(KEY.UF_AUTOPLAY));
   sessionStorage.removeItem(KEY.UF_AUTOPLAY);
 
   debugEvent(playbackEvent);
-  debug.log(`RESUME_AUTOPLAY: ${(autoplayValue !== null) ? 'true' : 'false'}`);
+  debug.log(`RESUME_AUTOPLAY: ${(autoplayData !== null) ? JSON.stringify(autoplayData) : 'NO'}`);
 
-  if (autoplayValue !== null)
-    playbackEvent.callback.resumeAutoplay();
+  if (autoplayData !== null)
+  {
+    const iframeId = document.getElementById(autoplayData.trackId)?.querySelector('iframe').id;
+    playbackEvent.callback.resumeAutoplay(autoplayData, iframeId);
+  }
 }
 
 function autoplayBlocked(playbackEvent)
@@ -280,9 +283,7 @@ function navigateTo(destUrl, continueAutoplay = false)
   
   if ((destUrl !== undefined) && (destUrl !== null) && (destUrl.length > 0))
   {
-    if (continueAutoplay)
-      sessionStorage.setItem(KEY.UF_AUTOPLAY, 'true');
-    
+    sessionStorage.setItem(KEY.UF_AUTOPLAY, JSON.stringify({ autoplay: continueAutoplay, trackId: null, position: 0 }));
     window.location.href = destUrl;
   }
 }

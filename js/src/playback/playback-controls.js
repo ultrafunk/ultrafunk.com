@@ -77,9 +77,9 @@ function init(playbackSettings, mediaPlayers, seekClickCallback)
 
   if (playbackProgress !== null)
   {
-    mControls.progressSeek.element = playbackProgress.querySelector('.seek-control');
+    mControls.progressSeek.element = playbackProgress.querySelector('.progress-seek-control');
     mControls.progressSeek.click   = seekClickCallback;
-    mControls.progressBar.element  = playbackProgress.querySelector('.bar-control');
+    mControls.progressBar.element  = playbackProgress.querySelector('.progress-bar-control');
   }
   else
   {
@@ -90,20 +90,20 @@ function init(playbackSettings, mediaPlayers, seekClickCallback)
 
   if (playbackControls !== null)
   {
-    mControls.details.element       = playbackControls.querySelector('.details-control');
-    mControls.details.artistElement = mControls.details.element.querySelector('.details-artist');
-    mControls.details.titleElement  = mControls.details.element.querySelector('.details-title');
-    mControls.thumbnail.element     = playbackControls.querySelector('.thumbnail-control');
+    mControls.details.element       = playbackControls.querySelector('.playback-details-control');
+    mControls.details.artistElement = mControls.details.element.querySelector('.playback-details-artist');
+    mControls.details.titleElement  = mControls.details.element.querySelector('.playback-details-title');
+    mControls.thumbnail.element     = playbackControls.querySelector('.playback-thumbnail-control');
     mControls.thumbnail.img         = mControls.thumbnail.element.querySelector('img');
-    mControls.timer.element         = playbackControls.querySelector('.timer-control');
-    mControls.timer.positionElement = mControls.timer.element.querySelector('.timer-position');
-    mControls.timer.durationElement = mControls.timer.element.querySelector('.timer-duration');
-    mControls.prevTrack.element     = playbackControls.querySelector('.prev-control');
-    mControls.playPause.element     = playbackControls.querySelector('.play-pause-control');
+    mControls.timer.element         = playbackControls.querySelector('.playback-timer-control');
+    mControls.timer.positionElement = mControls.timer.element.querySelector('.playback-timer-position');
+    mControls.timer.durationElement = mControls.timer.element.querySelector('.playback-timer-duration');
+    mControls.prevTrack.element     = playbackControls.querySelector('.playback-prev-control');
+    mControls.playPause.element     = playbackControls.querySelector('.playback-play-pause-control');
     mControls.playPause.iconElement = mControls.playPause.element.querySelector('i');
-    mControls.nextTrack.element     = playbackControls.querySelector('.next-control');
-    mControls.shuffle.element       = playbackControls.querySelector('.shuffle-control');
-    mControls.mute.element          = playbackControls.querySelector('.mute-control');
+    mControls.nextTrack.element     = playbackControls.querySelector('.playback-next-control');
+    mControls.shuffle.element       = playbackControls.querySelector('.playback-shuffle-control');
+    mControls.mute.element          = playbackControls.querySelector('.playback-mute-control');
     mControls.mute.iconElement      = mControls.mute.element.querySelector('i');
   }
   else
@@ -130,13 +130,13 @@ function ready(prevClickCallback, playPauseClickCallback, nextClickCallback, mut
   if (settings.trackTimesOnMobile)
     mControls.timer.element.classList.add('show-on-mobile');
 
-  setState(mControls.prevTrack, STATE.DISABLED);
+  setState(mControls.prevTrack, (players.getCurrentTrack() > 1) ? STATE.ENABLED : STATE.DISABLED);
   mControls.prevTrack.element.addEventListener('click', prevClickCallback);
 
   setState(mControls.playPause, STATE.PAUSED);
   mControls.playPause.element.addEventListener('click', playPauseClickCallback);
 
-  setState(mControls.nextTrack, ((players.getNumTracks() > 1) ? STATE.ENABLED : STATE.DISABLED));
+  setState(mControls.nextTrack, (players.getNumTracks() > 1) ? STATE.ENABLED : STATE.DISABLED);
   mControls.nextTrack.element.addEventListener('click', nextClickCallback);
 
   setState(mControls.shuffle, STATE.ENABLED);
@@ -200,11 +200,11 @@ function progressSeekClick(event)
 // Details (Artist + Title) and track timer
 // ************************************************************************************************
 
-function setDetails(playbackStatus)
+function setDetails(playersStatus)
 {
-  mControls.details.artistElement.textContent = playbackStatus.artist || ''; // Artist will contain the post title if all else fails
-  mControls.details.titleElement.textContent  = playbackStatus.title  || '';
-  setThumbnail(playbackStatus.thumbnail);
+  mControls.details.artistElement.textContent = playersStatus.artist || ''; // Artist will contain the post title if all else fails
+  mControls.details.titleElement.textContent  = playersStatus.title  || '';
+  setThumbnail(playersStatus.thumbnail);
   setTimer(-1, -1);
 }
 

@@ -12,7 +12,6 @@ use function Ultrafunk\Globals\ {
   console_log,
   get_dev_prod_const,
   get_request_params,
-  set_request_params,
 };
 
 
@@ -41,12 +40,13 @@ abstract class Request
     foreach ($null_params as $key)
       $params[$key] = isset($this->$key) ? $this->$key : null;
 
-    $params['route_path']   = (isset($this->route_path)  ? $this->route_path  : null);
-    $params['title_parts']  = (isset($this->title_parts) ? $this->title_parts : null);
-    $params['current_page'] = $this->current_page;
-    $params['max_pages']    = $this->max_pages;
+    $params['route_path']     = (isset($this->route_path)  ? $this->route_path  : null);
+    $params['title_parts']    = (isset($this->title_parts) ? $this->title_parts : null);
+    $params['items_per_page'] = $this->items_per_page;
+    $params['current_page']   = $this->current_page;
+    $params['max_pages']      = $this->max_pages;
 
-    set_request_params($params);
+    \Ultrafunk\Globals\set_request_params($params);
   }
 
   abstract public function is_valid() : bool;
@@ -105,11 +105,10 @@ function request_pagination($request)
   }
 }
 
-function request_get_navigation_vars()
+function request_get_navigation_vars($prevNext)
 {
-  $params   = get_request_params();
-  $path     = isset($params['route_path']) ? $params['route_path'] : '';
-  $prevNext = array('prev' => null, 'next' => null);
+  $params = get_request_params();
+  $path   = isset($params['route_path']) ? $params['route_path'] : '';
 
   if (isset($params['max_pages']) && ($params['max_pages'] > 1))
   {

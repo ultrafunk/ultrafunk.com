@@ -144,16 +144,6 @@ function documentEventKeyDown(event)
         }
         break;
 
-      /*
-      case 'P':
-        if (searchNotFocused() && notSettingsPage())
-        {
-          event.preventDefault();
-          interaction.togglePlayer();
-        }
-        break;
-      */
-
       case 's':
       case 'S':
         if (searchNotFocused() && notFullscreenElement())
@@ -232,7 +222,7 @@ function showIntroBanner()
         mElements.introBanner.style.display = 'block';
         resize.trigger();
 
-        utils.addEventListeners('#intro-banner .intro-banner-close-button', 'click', () =>
+        utils.addListener('#intro-banner .intro-banner-close-button', 'click', () =>
         {
           mElements.introBanner.style.display    = '';
           mElements.siteContent.style.marginTop  = '';
@@ -300,7 +290,7 @@ const navMenu = (() =>
     elements.navMenu      = document.querySelector('#site-navigation .nav-menu-outer');
     elements.modalOverlay = document.getElementById('nav-menu-modal-overlay');
 
-    utils.addEventListeners('.nav-menu-toggle', 'click', toggle);
+    utils.addListenerAll('.nav-menu-toggle', 'click', toggle);
     elements.modalOverlay.addEventListener('click', toggle);
     elements.modalOverlay.addEventListener('transitionend', transitionEnd);
     observer.observe(elements.navMenu.querySelector('.menu-primary-menu-container'));
@@ -370,9 +360,9 @@ const navSearch = (() =>
     elements.searchField       = elements.searchContainer.querySelector('.search-field');
     elements.brandingContainer = mElements.siteHeader.querySelector('div.site-branding-container');
 
-    utils.addEventListeners('.nav-search-toggle', 'click', toggle);
+    utils.addListenerAll('.nav-search-toggle', 'click', toggle);
     // To prevent extra 'blur' event before 'click' event
-    utils.addEventListeners('.nav-search-toggle', 'mousedown', (event) => event.preventDefault());
+    utils.addListenerAll('.nav-search-toggle', 'mousedown', (event) => event.preventDefault());
     // Hide nav search bar on focus loss
     elements.searchField.addEventListener('blur', hide);
     

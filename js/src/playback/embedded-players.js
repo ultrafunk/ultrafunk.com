@@ -30,11 +30,8 @@ let loadEventsCount = 1;
 let settings, players, playbackState, playbackTimer;
 
 const mConfig = {
-  trackCountData:          'data-track-count',
   youTubeIframeIdRegEx:    /youtube-uid/i,
   soundCloudIframeIdRegEx: /soundcloud-uid/i,
-  entriesSelector:         'single-track',
-  artistTrackTitleData:    'data-artist-track-title',
   maxPlaybackStartDelay:   3, // VERY rough estimate of "max" network buffering delay in seconds (see also: maxBufferingDelay)
 };
 
@@ -58,7 +55,7 @@ function init(args)
 
 function getTrackCount(embeddedEventHandler)
 {
-  const trackCount = parseInt(document.body.getAttribute(mConfig.trackCountData));
+  const trackCount = parseInt(document.body.getAttribute('data-track-count'));
 
   debug.log(`getTrackCount(): ${trackCount}`);
 
@@ -88,7 +85,7 @@ function updatePlayersReady()
 
 function getAllPlayers()
 {
-  const entries = document.querySelectorAll(mConfig.entriesSelector);
+  const entries = document.querySelectorAll('single-track');
 
   entries.forEach(entry => 
   {
@@ -129,7 +126,7 @@ function getAllPlayers()
       /* eslint-enable */
     }
 
-    mediaPlayers.setArtistTitle(entry.getAttribute(mConfig.artistTrackTitleData), player);
+    mediaPlayers.setArtistTitle(entry.getAttribute('data-artist-track-title'), player);
     players.add(player);
   });
 }

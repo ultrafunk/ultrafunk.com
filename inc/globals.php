@@ -20,7 +20,7 @@ $ultrafunk_is_prod_build = false;
 
 class Globals
 {
-  public static $version = '1.19.4';
+  public static $version = '1.19.5';
 
   public static $dev_prod_consts = array(
     'menu_item_all_id'         => WP_DEBUG ? 2556 :  115,
@@ -33,8 +33,9 @@ class Globals
     'iframe_origin'            => WP_DEBUG ? 'https://wordpress.ultrafunk.com' : 'https://ultrafunk.com',
   );
 
-  public static $request_params = array();
-  public static $cached_title   = null;
+  public static $request_params  = array();
+  public static $navigation_vars = array();
+  public static $cached_title    = null;
 
   public static $perf_data = array(
     'display_perf_results' => true,
@@ -56,6 +57,9 @@ function get_dev_prod_const($key)    { return Globals::$dev_prod_consts[$key]; }
 
 function get_request_params()        { return Globals::$request_params;    }
 function set_request_params($params) { Globals::$request_params = $params; }
+
+function get_navigation_vars()       { return Globals::$navigation_vars;  }
+function set_navigation_vars($vars)  { Globals::$navigation_vars = $vars; }
 
 function is_termlist()               { return isset(Globals::$request_params['is_termlist']); }
 function is_player()                 { return isset(Globals::$request_params['is_player']);   }

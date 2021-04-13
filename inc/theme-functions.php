@@ -27,16 +27,28 @@ use function Ultrafunk\Globals\ {
 
 
 //
-// Get previous and next post/posts URLs
+// Get prev + next post/posts URLs + other navigation variables
 //
 function get_navigation_vars()
 {
-  // Return empty Array because get_next_posts_link() returns results even when a 404 happens
+  $params   = get_request_params();
+  $nav_vars = array(
+    'prev' => null,
+    'next' => null,
+    'compactItemsPerPage' => isset($params['items_per_page'])
+                             ? $params['items_per_page']
+                             : get_dev_prod_const('player_items_per_page'),
+    'galleryItemsPerPage' => (is_shuffle() || (is_player() && $params['is_player_shuffle']))
+                             ? get_cookie_tracks_per_page()
+                             : intval(get_option('posts_per_page', 12)),
+  );
+
+  // Return defaults because get_next_posts_link() returns results even when a 404 happens
   if (is_404())
-    return array();
+    return $nav_vars;
 
   if (is_termlist() || is_player())
-    return request_get_navigation_vars();
+    return request_get_navigation_vars($nav_vars);
 
   if (is_single())
   {
@@ -49,10 +61,8 @@ function get_navigation_vars()
     if (!empty($nextPost))
       $nextUrl = get_the_permalink($nextPost->ID);
     
-    return array(
-      'prev' => (isset($prevUrl) ? esc_url($prevUrl) : null),
-      'next' => (isset($nextUrl) ? esc_url($nextUrl) : null),
-    );
+    $nav_vars['prev'] = isset($prevUrl) ? esc_url($prevUrl) : null;
+    $nav_vars['next'] = isset($nextUrl) ? esc_url($nextUrl) : null;
   }
   else
   {
@@ -65,11 +75,11 @@ function get_navigation_vars()
     if ($nextLink !== null)
       $nextUrl = new SimpleXMLElement($nextLink);
     
-    return array(
-      'prev' => (isset($prevUrl) ? ((string) esc_url($prevUrl['href'])) : null),
-      'next' => (isset($nextUrl) ? ((string) esc_url($nextUrl['href'])) : null),
-    );
+    $nav_vars['prev'] = isset($prevUrl) ? ((string) esc_url($prevUrl['href'])) : null;
+    $nav_vars['next'] = isset($nextUrl) ? ((string) esc_url($nextUrl['href'])) : null;
   }
+
+  return $nav_vars;
 }
 
 //
@@ -98,6 +108,22 @@ function modify_search_query($query)
 add_action('parse_query', '\Ultrafunk\ThemeFunctions\modify_search_query');
 
 //
+//
+//
+function get_cookie_tracks_per_page()
+{
+  if (isset($_COOKIE['UF_TRACKS_PER_PAGE']))
+  {
+    $tracks_per_page = intval($_COOKIE['UF_TRACKS_PER_PAGE']);
+
+    if (($tracks_per_page > 2) && ($tracks_per_page < 25))
+      return $tracks_per_page;
+  }
+
+  return intval(get_option('posts_per_page', 12));
+}
+
+//
 // Set number of posts (tracks) per page for Search + Shuffle based on user setting
 //
 function set_posts_per_page($query)
@@ -105,15 +131,7 @@ function set_posts_per_page($query)
   if (!is_admin() && $query->is_main_query())
   {
     if ($query->is_search || is_shuffle())
-    {
-      if (isset($_COOKIE['UF_TRACKS_PER_PAGE']))
-      {
-        $num_tracks = intval($_COOKIE['UF_TRACKS_PER_PAGE']);
-  
-        if (($num_tracks > 2) && ($num_tracks < 25))
-          $query->set('posts_per_page', $num_tracks);
-      }
-    }
+      $query->set('posts_per_page', get_cookie_tracks_per_page());
   }
 }
 add_action('pre_get_posts', '\Ultrafunk\ThemeFunctions\set_posts_per_page', 1);
@@ -198,13 +216,14 @@ function embed_iframe_setparams($cached_html)
 {
   if (stripos($cached_html, 'youtube.com/') !== false)
   {
-    $cached_html = str_ireplace('<iframe', sprintf('<iframe id="youtube-uid-%s" loading="eager"', uniqid()), $cached_html);
-  //$cached_html = str_ireplace('www.youtube.com', 'www.youtube-nocookie.com', $cached_html);
+  //$cached_html = str_ireplace('<iframe', sprintf('<iframe id="youtube-uid-%s" loading="eager"', uniqid()), $cached_html);
+    $cached_html = str_ireplace('<iframe', sprintf('<iframe id="youtube-uid-%s"', uniqid()), $cached_html);
     $cached_html = str_ireplace('?feature=oembed', sprintf('?feature=oembed&enablejsapi=1&origin=%s', get_dev_prod_const('iframe_origin')), $cached_html);
   }
   else if (stripos($cached_html, 'soundcloud.com/') !== false)
   {
-    $cached_html = str_ireplace('<iframe', sprintf('<iframe id="soundcloud-uid-%s" allow="autoplay" loading="eager"', uniqid()), $cached_html);
+  //$cached_html = str_ireplace('<iframe', sprintf('<iframe id="soundcloud-uid-%s" allow="autoplay" loading="eager"', uniqid()), $cached_html);
+    $cached_html = str_ireplace('<iframe', sprintf('<iframe id="soundcloud-uid-%s" allow="autoplay"', uniqid()), $cached_html);
     $cached_html = str_ireplace('?visual=true', '?visual=true&single_active=false', $cached_html);
   }
   
@@ -338,6 +357,7 @@ function setup_nav_menu_item($menu_item)
   {
     $menu_item->url        = esc_url(get_shuffle_menu_item_url());
     $menu_item->attr_title = esc_attr(get_shuffle_menu_item_title());
+    $menu_item->classes[]  = 'reshuffle-menu-item';
   }
 
   return $menu_item;

@@ -16,10 +16,10 @@ use function Ultrafunk\Globals\ {
   get_dev_prod_const,
   get_perf_data,
   get_request_params,
+  get_navigation_vars,
 };
 
 use function Ultrafunk\ThemeFunctions\ {
-  get_navigation_vars,
   get_title,
   get_shuffle_menu_item_url,
   get_shuffle_menu_item_title,
@@ -161,8 +161,8 @@ function header_progress_controls()
 {
   ?>
   <div id="progress-controls">
-    <div class="seek-control state-disabled" title="Track progress / seek"></div>
-    <div class="bar-control state-disabled"></div>
+    <div class="progress-seek-control state-disabled" title="Track progress / seek"></div>
+    <div class="progress-bar-control state-disabled"></div>
   </div>
   <?php
 }
@@ -184,14 +184,14 @@ function header_playback_controls()
 {
   ?>
   <div id="playback-controls">
-    <div class="details-control state-disabled" title="Single: Show current track&#010;Double: Toggle Fullscreen (f)"><span class="details-artist"></span><br><span class="details-title"></span></div>
-    <div class="thumbnail-control state-disabled" title="Single: Show current track&#010;Double: Toggle Fullscreen (f)"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/inc/img/thumbnail_placeholder.png" alt=""></div>
-    <div class="timer-control state-disabled" title="Single: Toggle Autoplay (shift + a)"><span class="timer-position"></span><br><span class="timer-duration"></span></div>
-    <div class="prev-control state-disabled" title="Previous track / seek (arrow left)"><i class="material-icons">skip_previous</i></div>
-    <div class="play-pause-control state-disabled" title="Play / Pause (space)"><i class="material-icons">play_circle_filled</i></div>
-    <div class="next-control state-disabled" title="Next track (arrow right)"><i class="material-icons">skip_next</i></div>
-    <div class="shuffle-control state-disabled" title="<?php echo esc_attr(get_shuffle_menu_item_title()); ?>"><a href="<?php echo esc_url(get_shuffle_menu_item_url()); ?>"><i class="material-icons">shuffle</i></a></div>
-    <div class="mute-control state-disabled" title="Mute / Unmute (m)"><i class="material-icons">volume_up</i></div>
+    <div class="playback-details-control state-disabled" title="Single: Show current track&#010;Double: Toggle Fullscreen (f)"><span class="playback-details-artist"></span><br><span class="playback-details-title"></span></div>
+    <div class="playback-thumbnail-control state-disabled" title="Single: Show current track&#010;Double: Toggle Fullscreen (f)"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/inc/img/thumbnail_placeholder.png" alt=""></div>
+    <div class="playback-timer-control state-disabled" title="Single: Toggle Autoplay (shift + a)"><span class="playback-timer-position"></span><br><span class="playback-timer-duration"></span></div>
+    <div class="playback-prev-control state-disabled" title="Previous track / seek (arrow left)"><i class="material-icons">skip_previous</i></div>
+    <div class="playback-play-pause-control state-disabled" title="Play / Pause (space)"><i class="material-icons">play_circle_filled</i></div>
+    <div class="playback-next-control state-disabled" title="Next track (arrow right)"><i class="material-icons">skip_next</i></div>
+    <div class="playback-shuffle-control state-disabled" title="<?php echo esc_attr(get_shuffle_menu_item_title()); ?>"><a href="<?php echo esc_url(get_shuffle_menu_item_url()); ?>"><i class="material-icons">shuffle</i></a></div>
+    <div class="playback-mute-control state-disabled" title="Mute / Unmute (m)"><i class="material-icons">volume_up</i></div>
   </div>
   <?php
 }
@@ -206,17 +206,17 @@ function get_nav_bar_icons()
 
 function get_nav_bar_arrows()
 {
-  $prev_next_urls = get_navigation_vars();
+  $nav_vars = get_navigation_vars();
   
-  if (array_filter($prev_next_urls))
+  if (($nav_vars['prev'] !== null) || ($nav_vars['next'] !== null))
   {
-    if (!empty($prev_next_urls['prev']))
-      $nav_arrows['back'] = '<a href="' . $prev_next_urls['prev'] . '" class="nav-bar-prev-link"><i class="material-icons nav-bar-arrow-back" title="Previous track / page (shift + arrow left)">arrow_backward</i></a>';
+    if ($nav_vars['prev'] !== null)
+      $nav_arrows['back'] = '<a href="' . $nav_vars['prev'] . '" class="nav-bar-prev-link"><i class="material-icons nav-bar-arrow-back" title="Previous track / page (shift + arrow left)">arrow_backward</i></a>';
     else
       $nav_arrows['back'] = '<i class="material-icons nav-bar-arrow-back disbled">arrow_backward</i>';
 
-    if (!empty($prev_next_urls['next']))
-      $nav_arrows['fwd'] = '<a href="' . $prev_next_urls['next'] . '" class="nav-bar-next-link"><i class="material-icons nav-bar-arrow-fwd" title="Next track / page (shift + arrow right)">arrow_forward</i></a>';
+    if ($nav_vars['next'] !== null)
+      $nav_arrows['fwd'] = '<a href="' . $nav_vars['next'] . '" class="nav-bar-next-link"><i class="material-icons nav-bar-arrow-fwd" title="Next track / page (shift + arrow right)">arrow_forward</i></a>';
     else
       $nav_arrows['fwd'] = '<i class="material-icons nav-bar-arrow-fwd disbled">arrow_forward</i>';
   }
@@ -384,8 +384,8 @@ function meta_controls()
   <div class="entry-meta-controls">
     <div class="track-share-control"><span class="material-icons" title="Share track / Play On" data-artist-track-title="<?php echo esc_html(get_the_title()); ?>" data-track-url="<?php echo esc_url(get_permalink()); ?>">share</span></div>
     <div class="crossfade-controls">
-      <div class="preset-control state-disabled"></div>
-      <div class="fadeto-control state-disabled"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/inc/img/crossfade_icon.png" alt="" title="Crossfade to this track"></div>
+      <div class="crossfade-preset-control state-disabled"></div>
+      <div class="crossfade-fadeto-control state-disabled"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/inc/img/crossfade_icon.png" alt="" title="Crossfade to this track"></div>
     </div>
   </div>
   <?php

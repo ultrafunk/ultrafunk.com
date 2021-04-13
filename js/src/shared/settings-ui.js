@@ -5,16 +5,17 @@
 //
 
 
-import * as debugLogger from './debuglogger.js?ver=1.19.4';
-import * as settings    from './settings.js?ver=1.19.4';
-import { showSnackbar } from './snackbar.js?ver=1.19.4';
+import * as debugLogger from './debuglogger.js?ver=1.19.5';
+import * as settings    from './settings.js?ver=1.19.5';
+import { addListener }  from './utils.js?ver=1.19.5';
+import { showSnackbar } from './snackbar.js?ver=1.19.5';
 
 import {
   KEY,
   deleteCookie,
   readJson,
   writeJson,
-} from '../shared/storage.js?ver=1.19.4';
+} from '../shared/storage.js?ver=1.19.5';
 
 
 /*************************************************************************************************/
@@ -75,8 +76,8 @@ document.addEventListener('DOMContentLoaded', () =>
       insertSettingsHtml();
       mElements.settingsContainer.style.opacity = 1;
   
-      document.querySelector(`#${mConfig.settingsSaveResetId} .settings-save`).addEventListener('click', settingsSaveClick);
-      document.querySelector(`#${mConfig.settingsSaveResetId} .settings-reset`).addEventListener('click', settingsResetClick);
+      addListener(`#${mConfig.settingsSaveResetId} .settings-save`,  'click', settingsSaveClick);
+      addListener(`#${mConfig.settingsSaveResetId} .settings-reset`, 'click', settingsResetClick);
     }
     else
     {
@@ -97,7 +98,7 @@ function readSettingsError()
   mElements.settingsContainer.style.minHeight = '100%';
   mElements.settingsContainer.style.opacity = 1;
 
-  document.querySelector(`#${mConfig.settingsContainerId} .settings-clear`).addEventListener('click', () =>
+  addListener(`#${mConfig.settingsContainerId} .settings-clear`, 'click', () =>
   {
     localStorage.removeItem(KEY.UF_PLAYBACK_SETTINGS);
     localStorage.removeItem(KEY.UF_SITE_SETTINGS);
@@ -173,16 +174,16 @@ function getValueStringsIndex(schemaEntry, findValue)
 
 function insertSettingsHtml()
 {
-  let html = `\n<h3>Playback</h3>\n<table id="playback-settings">\n<tbody>`;
+  let html = `\n<h3>Playback</h3>\n<table id="playback-settings" class="settings">\n<tbody>`;
   Object.entries(settings.playbackSchema.user).forEach(entry => html += addTableRow(mConfig.playbackIdPrefix, entry));
 
-  html += `\n</tbody>\n</table>\n<h3>Site</h3>\n<table id="site-settings">\n<tbody>`;
+  html += `\n</tbody>\n</table>\n<h3>Site</h3>\n<table id="site-settings" class="settings">\n<tbody>`;
   Object.entries(settings.siteSchema.user).forEach(entry => html += addTableRow(mConfig.siteIdPrefix, entry));
 
   mElements.settingsContainer.insertAdjacentHTML('afterbegin', html + '\n</tbody>\n</table>\n');
 
-  document.getElementById('playback-settings').addEventListener('click', playbackSettingsClick);
-  document.getElementById('site-settings').addEventListener('click', siteSettingsClick);
+  addListener('#playback-settings', 'click', playbackSettingsClick);
+  addListener('#site-settings',     'click', siteSettingsClick);
 }
 
 function addTableRow(idPrefix, entry)

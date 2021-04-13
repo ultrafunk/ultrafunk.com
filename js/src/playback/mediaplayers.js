@@ -403,7 +403,7 @@ const getInstance = (() =>
 
   function uIdFromIframeId(iframeId)
   {
-    return mediaPlayers.find(player => player.iframeId === iframeId).getUid();
+    return mediaPlayers.find(player => (player.iframeId === iframeId)).getUid();
   }
 
   function stop()

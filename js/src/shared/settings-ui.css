@@ -12,20 +12,20 @@
   transition: opacity 250ms;
 }
 
-#settings-container table {
+table.settings {
   border-collapse: collapse;
   table-layout: fixed;
   width: 100%;
   user-select: none;
 }
 
-#settings-container table tr:nth-child(odd) {
+table.settings tr:nth-child(odd) {
   background: var(--list-row-odd-color);
 }
 
 @media all and (pointer: fine) {
  
-  #settings-container table tr:hover {
+  table.settings tr:hover {
     background: var(--list-row-hover-color);
     cursor: pointer;
   }
@@ -34,33 +34,33 @@
 
 @media not all and (pointer: fine) {
 
-  #settings-container table tr:nth-child(odd) {
+  table.settings tr:nth-child(odd) {
     background: var(--list-row-odd-color);
     transition: background 150ms 0s ease-in;
   }
 
-  #settings-container table tr:nth-child(even) {
+  table.settings tr:nth-child(even) {
     transition: background 150ms 0s ease-in;
   }
 
-  #settings-container table tr:active {
+  table.settings tr:active {
     background: var(--list-row-hover-color);
     transition: background 0s;
   }
 
 }
 
-#settings-container table td {
+table.settings td {
   padding: 10px 15px;
 }
 
-#settings-container table td.description {
+table.settings td.description {
   white-space: nowrap;
   border-top-left-radius: var(--button-border-radius);
   border-bottom-left-radius: var(--button-border-radius);
 }
 
-#settings-container table td.value-string {
+table.settings td.value-string {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -70,11 +70,11 @@
   border-bottom-right-radius: var(--button-border-radius);
 }
 
-#settings-container table td.current-value-false {
+table.settings td.current-value-false {
   opacity: 0.20;
 }
 
-#settings-container .settings-clear {
+.settings-clear {
   clear: both;
   margin: 100px auto 100px auto;
   padding: 12px 30px;
@@ -91,8 +91,8 @@
   overflow: hidden;
 }
 
-#settings-save-reset .settings-save,
-#settings-save-reset .settings-reset {
+.settings-save,
+.settings-reset {
   float: left;
   color: var(--button-text-color);
   background-color: var(--button-background-color);
@@ -100,15 +100,15 @@
   border-radius: var(--button-border-radius);
 }
 
-#settings-save-reset .settings-reset {
+.settings-reset {
   float: right;
 }
 
 @media all and (pointer: fine) {
  
-  #settings-container .settings-clear:hover,
-  #settings-save-reset .settings-save:hover,
-  #settings-save-reset .settings-reset:hover {
+  .settings-clear:hover,
+  .settings-save:hover,
+  .settings-reset:hover {
     background: var(--button-background-hover-rgba);
     cursor: pointer;
   }
@@ -117,16 +117,16 @@
 
 @media not all and (pointer: fine) {
 
-  #settings-container .settings-clear,
-  #settings-save-reset .settings-save,
-  #settings-save-reset .settings-reset {
+  .settings-clear,
+  .settings-save,
+  .settings-reset {
     background-color: var(--button-background-color);
     transition: background 150ms 0s ease-in;
   }
 
-  #settings-container .settings-clear:active,
-  #settings-save-reset .settings-save:active,
-  #settings-save-reset .settings-reset:active {
+  .settings-clear:active,
+  .settings-save:active,
+  .settings-reset:active {
     background: var(--button-background-hover-rgba);
     transition: background 0s;
   }
@@ -140,7 +140,7 @@
 
 @media screen and (max-width: 1350px) {
   
-  #settings-container table {
+  table.settings {
     width: calc(100% - (75px + 75px));
     margin-left: auto;
     margin-right: auto;
@@ -154,7 +154,7 @@
 
 @media screen and (max-width: 900px) {
   
-  #settings-container table {
+  table.settings {
     width: calc(100% - (50px + 50px));
   }
 
@@ -167,7 +167,7 @@
 
 @media screen and (max-width: 768px) {
   
-  #settings-container table {
+  table.settings {
     width: calc(100% - (25px + 25px));
   }
 
@@ -180,11 +180,11 @@
 
 @media screen and (max-width: 500px) {
   
-  #settings-container table {
+  table.settings {
     width: calc(100% - (20px + 20px));
   }
 
-  #settings-container .settings-clear {
+  .settings-clear {
     max-width: 125px;
     margin: 50px auto 50px auto;
   }
@@ -193,11 +193,11 @@
     margin: var(--site-content-margin-bottom) 20px;
   } 
 
-  #settings-container table td {
+  table.settings td {
     padding: 12px 15px;
   }
 
-  #settings-container table td.description {
+  table.settings td.description {
     padding-right: 0px;
   }
 
@@ -205,7 +205,7 @@
 
 @media screen and (max-width: 400px) {
   
-  #settings-container table td.description {
+  table.settings td.description {
     white-space: initial;
   }
 
