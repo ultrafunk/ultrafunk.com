@@ -1,6 +1,6 @@
 <?php
 /*
- * Template part for displaying a message that content cannot be found
+ * Content cannot be found template
  *
 */
 

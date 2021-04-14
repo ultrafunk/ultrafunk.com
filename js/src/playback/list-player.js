@@ -1,5 +1,5 @@
 //
-// Standalone player + playlist module
+// List-player module
 //
 // https://ultrafunk.com
 //
@@ -29,7 +29,7 @@ export {
 /*************************************************************************************************/
 
 
-const debug           = debugLogger.newInstance('player-playlist');
+const debug           = debugLogger.newInstance('list-player');
 const eventLog        = new eventLogger.Playback(10);
 let settings          = {};
 let player            = null;
@@ -67,14 +67,14 @@ function init(playbackSettings, autoplayToggleCallback)
     initYouTubeAPI();
     document.addEventListener('keydown', documentEventKeyDown);
     
-    //ToDo: Add common code in playback-controls.js for player-playlist & playback/interaction?
+    //ToDo: Add common code in playback-controls.js for list-player & playback-interaction?
     utils.addListener('.playback-details-control',   'click', scrollPlayerIntoView);
     utils.addListener('.playback-thumbnail-control', 'click', scrollPlayerIntoView);
     utils.addListener('.playback-timer-control',     'click', (event) => autoplayToggle(event));
   }
   else
   {
-    showSnackbar('No playable YouTube tracks!', 0, 'help', () => { window.location.href = "/help/#compact-player"; });
+    showSnackbar('No playable YouTube tracks!', 0, 'help', () => { window.location.href = "/help/#list-player"; });
   }
 
   utils.addListenerAll('i.nav-bar-arrow-back', 'click', prevNextNavTo, navigationVars.prev); // eslint-disable-line no-undef
@@ -213,7 +213,7 @@ function cueTrack()
           if (trackElement[0].id.length !== 0)
             current.trackId = trackElement[0].id;
           else
-            showSnackbar('Cannot play SoundCloud track', 5, 'help', () => { window.location.href = "/help/#compact-player"; });
+            showSnackbar('Cannot play SoundCloud track', 5, 'help', () => { window.location.href = "/help/#list-player"; });
         }
         else
         {
@@ -272,14 +272,14 @@ function getNextPlayableId()
 
 function setCurrentTrack(nextTrackId, playNextTrack = true, isPointerClick = false)
 {
-//https://wordpress.ultrafunk.com/player/page/21/
+//https://wordpress.ultrafunk.com/list/page/21/
 //Unable to play last track in list needs better error handling / state reset if autoplay is disabled
 
   debug.log(`setCurrentTrack() - nextTrackId: ${(nextTrackId.length !== 0) ? nextTrackId : 'N/A' } - playNextTrack: ${playNextTrack} - isPointerClick: ${isPointerClick}`);
 
   if ((nextTrackId.length === 0) && isPointerClick)
   {
-    showSnackbar('Cannot play SoundCloud track', 5, 'help', () => { window.location.href = "/help/#compact-player"; });
+    showSnackbar('Cannot play SoundCloud track', 5, 'help', () => { window.location.href = "/help/#list-player"; });
     return;
   }
   

@@ -16,7 +16,7 @@ export {
   init,
   settingsUpdated,
   siteTheme,
-  trackLayout,
+  galleryLayout,
   shareModal,
 };
 
@@ -40,7 +40,7 @@ function init(siteSettings)
   settings = siteSettings;
 
   siteTheme.init();
-  trackLayout.init();
+  galleryLayout.init();
 
   utils.addListener('#menu-primary-menu .reshuffle-menu-item',      'click', utils.shuffleClick);
   utils.addListenerAll('.entry-meta-controls .track-share-control', 'click', trackShareControlClick);
@@ -50,7 +50,7 @@ function settingsUpdated(updatedSettings)
 {
   settings = updatedSettings;
   siteTheme.setCurrent();
-  trackLayout.setCurrent();
+  galleryLayout.setCurrent();
 }
 
 function trackShareControlClick(event)
@@ -163,23 +163,23 @@ const siteTheme = (() =>
 
 
 // ************************************************************************************************
-// Track layout handling
+// Gallery layout handling
 // ************************************************************************************************
 
-const trackLayout = (() =>
+const galleryLayout = (() =>
 {
   let currentLayout = {};
   const elements    = { toggle: null };
 
   const config = {
-    toggleId: '#footer-track-layout-toggle',
-    minWidth: `(max-width: ${utils.getCssPropString('--site-track-layout-min-width')})`,
+    toggleId: '#footer-gallery-layout-toggle',
+    minWidth: `(max-width: ${utils.getCssPropString('--site-gallery-layout-min-width')})`,
   };
 
   const layouts = {
-    list:        { id: 'list',     text: 'list',         class: 'track-layout-list'     },
-    twoColumn:   { id: '2-column', text: '2 column',     class: 'track-layout-2-column' },
-    threeColumn: { id: '3-column', text: '3 / 4 column', class: 'track-layout-3-column' },
+    oneColumn:   { id: '1-column', text: '1 column',     class: 'gallery-layout-1-column' },
+    twoColumn:   { id: '2-column', text: '2 column',     class: 'gallery-layout-2-column' },
+    threeColumn: { id: '3-column', text: '3 / 4 column', class: 'gallery-layout-3-column' },
   };
 
   return {
@@ -198,7 +198,7 @@ const trackLayout = (() =>
 
   function setCurrent()
   {
-    currentLayout = getCurrentSetting(layouts, settings.user.trackLayout, layouts.threeColumn);
+    currentLayout = getCurrentSetting(layouts, settings.user.galleryLayout, layouts.threeColumn);
     elements.toggle.querySelector('span').textContent = currentLayout.text;
     updateData();
   }
@@ -213,7 +213,7 @@ const trackLayout = (() =>
   {
     event.preventDefault();
     currentLayout = getNextSetting(layouts, currentLayout);
-    settings.user.trackLayout = currentLayout.id;
+    settings.user.galleryLayout = currentLayout.id;
     updateData();
 
     if (event.type === 'click')
@@ -222,7 +222,7 @@ const trackLayout = (() =>
   
   function updateData()
   {
-    setValue(KEY.UF_TRACK_LAYOUT, currentLayout.id);
+    setValue(KEY.UF_GALLERY_LAYOUT, currentLayout.id);
     updateDOM();
   }
   
@@ -231,9 +231,9 @@ const trackLayout = (() =>
     // Only update DOM if needed and when something has actually changed
     if ((htmlClassList.contains('user-layout')) && (htmlClassList.contains(currentLayout.class) === false))
     {
-      debug.log(`updateDOM() - newTrackLayout: ${currentLayout.id}`);
+      debug.log(`updateDOM() - newGalleryLayout: ${currentLayout.id}`);
 
-      htmlClassList.remove(layouts.list.class, layouts.twoColumn.class, layouts.threeColumn.class);
+      htmlClassList.remove(layouts.oneColumn.class, layouts.twoColumn.class, layouts.threeColumn.class);
 
       if (window.matchMedia(config.minWidth).matches === false)
         htmlClassList.add(currentLayout.class);

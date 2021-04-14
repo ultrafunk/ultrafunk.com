@@ -145,7 +145,7 @@ function playTrackButtonClick(event, playTrackButton)
   const termUid  = playTrackButton.getAttribute('data-term-uid');
 
   if (termUid !== null)
-    return playShuffleButtonClick(event, `/player/${termPath}/${termSlug}/`, termUid);
+    return playShuffleButtonClick(event, `/list/${termPath}/${termSlug}/`, termUid);
   else
     return playShuffleButtonClick(event, playTrackButton.getAttribute('data-term-url'));
 }

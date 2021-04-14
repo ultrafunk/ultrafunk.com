@@ -1,5 +1,5 @@
 <?php
 
 $ultrafunk_is_prod_build    = true;
-$ultrafunk_js_preload_chunk = '/js/dist/chunk-DNWJCBVI.js';
+$ultrafunk_js_preload_chunk = '/js/dist/chunk-TIFGV4JJ.js';
 

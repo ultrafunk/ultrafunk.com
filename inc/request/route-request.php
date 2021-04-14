@@ -41,19 +41,19 @@ class RouteRequest
         'channels'      => '/^channels$/',
       //'channels_page' => '/^channels\/page\/(?!0)\d{1,6}$/',
     )),
-    'player' => array(
+    'list' => array(
       'callback' => 'Ultrafunk\RequestPlayer\player_callback',
       'routes'   => array(
-        'player_all'          => '/^player$/',
-        'player_all_page'     => '/^player\/page\/(?!0)\d{1,6}$/',
-        'player_artist'       => '/^player\/artist\/[a-z0-9-]*$/',
-        'player_artist_page'  => '/^player\/artist\/[a-z0-9-]*\/page\/(?!0)\d{1,6}$/',
-        'player_channel'      => '/^player\/channel\/[a-z0-9-]*$/',
-        'player_channel_page' => '/^player\/channel\/[a-z0-9-]*\/page\/(?!0)\d{1,6}$/',
-        'shuffle_all'         => '/^player\/shuffle\/all$/',
-        'shuffle_all_page'    => '/^player\/shuffle\/all\/page\/(?!0)\d{1,6}$/',
-        'shuffle_slug'        => '/^player\/shuffle\/(\bchannel\b|\bartist\b)*\/[a-z0-9-]*$/',
-        'shuffle_slug_page'   => '/^player\/shuffle\/(\bchannel\b|\bartist\b)*\/[a-z0-9-]*\/page\/(?!0)\d{1,6}$/',
+        'player_all'          => '/^list$/',
+        'player_all_page'     => '/^list\/page\/(?!0)\d{1,6}$/',
+        'player_artist'       => '/^list\/artist\/[a-z0-9-]*$/',
+        'player_artist_page'  => '/^list\/artist\/[a-z0-9-]*\/page\/(?!0)\d{1,6}$/',
+        'player_channel'      => '/^list\/channel\/[a-z0-9-]*$/',
+        'player_channel_page' => '/^list\/channel\/[a-z0-9-]*\/page\/(?!0)\d{1,6}$/',
+        'shuffle_all'         => '/^list\/shuffle\/all$/',
+        'shuffle_all_page'    => '/^list\/shuffle\/all\/page\/(?!0)\d{1,6}$/',
+        'shuffle_slug'        => '/^list\/shuffle\/(\bchannel\b|\bartist\b)*\/[a-z0-9-]*$/',
+        'shuffle_slug_page'   => '/^list\/shuffle\/(\bchannel\b|\bartist\b)*\/[a-z0-9-]*\/page\/(?!0)\d{1,6}$/',
       )
     )
   );

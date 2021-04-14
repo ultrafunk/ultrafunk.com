@@ -9,6 +9,6 @@
 @import '..\\js\\src\\shared\\snackbar.css';
 @import '..\\js\\src\\playback\\playback-controls.css';
 @import '..\\js\\src\\playback\\crossfade-controls.css';
-@import '..\\inc\\css\\player-playlist.css';
+@import '..\\inc\\css\\list-player.css';
 @import '..\\inc\\css\\termlist.css';
-@import '..\\inc\\css\\track-layout.css';
+@import '..\\inc\\css\\gallery-layout.css';

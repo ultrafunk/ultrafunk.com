@@ -1,6 +1,6 @@
 <?php
 /*
- * The 404 template file.
+ * 404 template
  *
  */
 

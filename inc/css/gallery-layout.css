@@ -1,0 +1,208 @@
+/*
+* Gallery layout grid CSS
+*
+* https://ultrafunk.com
+*
+*/
+
+.gallery-layout-2-column,
+.gallery-layout-3-column {
+  --site-max-width: calc(100% - 130px);
+  --site-content-margin-top: 30px;
+  --footer-max-width: 1200px;
+}
+
+.gallery-layout-2-column .site-header-container,
+.gallery-layout-3-column .site-header-container {
+  padding-left: 65px;
+  padding-right: 65px;
+}
+
+.gallery-layout-2-column h1.content-header,
+.gallery-layout-3-column h1.content-header {
+  padding-top: 35px;
+  padding-bottom: 45px;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.gallery-layout-2-column gallery-layout,
+.gallery-layout-3-column gallery-layout {
+  display: inline-grid;
+  width: 100%;
+  box-sizing: border-box;  
+}
+
+.gallery-layout-2-column gallery-layout {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-row-gap: 40px;
+  grid-column-gap: 80px;
+}
+
+.gallery-layout-3-column gallery-layout {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-row-gap: 30px;
+  grid-column-gap: 60px;
+}
+
+.gallery-layout-2-column single-track,
+.gallery-layout-3-column single-track {
+  margin-top: 0;
+}
+
+.gallery-layout-2-column .entry-header,
+.gallery-layout-3-column .entry-header {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.gallery-layout-2-column h2.entry-title.now-playing-icon::before {
+  font-size: 27px;
+  top: 4px;
+  margin-right: 5px;
+  margin-left: -4px;
+}
+
+.gallery-layout-3-column h2.entry-title.now-playing-icon::before {
+  font-size: 23px;
+  top: 4px;
+  margin-right: 5px;
+  margin-left: -3px;
+}
+
+.gallery-layout-2-column h2.entry-title,
+.gallery-layout-2-column h2.entry-title a {
+  font-size: 25px;
+  line-height: 35px;
+  margin-top: 25px;
+  margin-bottom: 12px;
+}
+
+.gallery-layout-3-column h2.entry-title,
+.gallery-layout-3-column h2.entry-title a {
+  font-size: 20px;
+  line-height: 30px;
+  margin-top: 20px;
+  margin-bottom: 5px;
+}
+
+.gallery-layout-2-column .entry-meta {
+  font-size: 20px;
+  line-height: 30px;
+}
+
+.gallery-layout-3-column .entry-meta {
+  font-size: 15px;
+  line-height: 25px;
+}
+
+.gallery-layout-2-column .entry-meta-controls .track-share-control {
+  width: 42px;
+  height: 42px;
+  margin-right: -8px;
+}
+
+.gallery-layout-2-column .entry-meta-controls .track-share-control .material-icons {
+  font-size: 32px;
+}
+
+.gallery-layout-2-column .crossfade-preset-control {
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  line-height: 28px;
+}
+
+.gallery-layout-2-column .crossfade-fadeto-control {
+  width: 44px;
+  height: 44px;
+  margin-right: -6px;
+}
+
+.gallery-layout-2-column .crossfade-fadeto-control img {
+  width: 44px;
+  height: 44px;
+}
+
+.gallery-layout-3-column .entry-meta-controls .track-share-control {
+  width: 38px;
+  height: 38px;
+  margin-right: -8px;
+}
+
+.gallery-layout-3-column .entry-meta-controls .track-share-control .material-icons {
+  font-size: 28px;
+}
+
+.gallery-layout-3-column .crossfade-preset-control {
+  width: 26px;
+  height: 26px;
+  font-size: 18px;
+  line-height: 27px;
+}
+
+.gallery-layout-3-column .crossfade-fadeto-control {
+  width: 40px;
+  height: 40px;
+  margin-right: -5px;
+}
+
+.gallery-layout-3-column .crossfade-fadeto-control img {
+  width: 40px;
+  height: 40px;
+}
+
+.gallery-layout-2-column figure.wp-block-embed {
+  margin: 20px 0 0 0;
+}
+
+.gallery-layout-3-column figure.wp-block-embed {
+  margin: 10px 0 0 0;
+}
+
+.gallery-layout-2-column .site-footer-container,
+.gallery-layout-3-column .site-footer-container {
+  max-width: var(--footer-max-width);
+}
+
+
+/**************************************************************************************************
+*  Responsive
+***************************************************************************************************/
+
+@media screen and (max-width: 2525px) {
+
+  .gallery-layout-2-column #site-content,
+  .gallery-layout-3-column #site-content {
+    max-width: 100%;
+  }
+
+  .gallery-layout-2-column gallery-layout,
+  .gallery-layout-3-column gallery-layout,
+  .gallery-layout-2-column h1.content-header,
+  .gallery-layout-3-column h1.content-header,  
+  .gallery-layout-2-column nav.navigation,
+  .gallery-layout-3-column nav.navigation,
+  .gallery-layout-2-column #site-footer,
+  .gallery-layout-3-column #site-footer {
+    padding-left: 65px;
+    padding-right: 65px;
+  }
+
+}
+
+@media screen and (min-width: 2100px) {
+
+  .gallery-layout-3-column gallery-layout {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+}
+
+@media screen and (max-width: 1600px) {
+
+  .gallery-layout-3-column gallery-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+}

@@ -1,6 +1,6 @@
 <?php
 /*
- * The main / index template file.
+ * Main / index template
  *
  */
 
@@ -10,7 +10,7 @@ get_header();
 
 if (have_posts())
 {
-  ?><track-layout><?php
+  ?><gallery-layout><?php
 
   while (have_posts())
   {
@@ -18,7 +18,7 @@ if (have_posts())
     get_template_part('template-parts/content', 'track');
   }
 
-  ?></track-layout><?php
+  ?></gallery-layout><?php
   
   \Ultrafunk\ThemeTags\content_pagination();
 }

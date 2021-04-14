@@ -1,5 +1,5 @@
 //
-// Common utility functions
+// Shared utility functions
 //
 // https://ultrafunk.com
 //

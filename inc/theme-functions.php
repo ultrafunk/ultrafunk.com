@@ -35,7 +35,7 @@ function get_navigation_vars()
   $nav_vars = array(
     'prev' => null,
     'next' => null,
-    'compactItemsPerPage' => isset($params['items_per_page'])
+    'listItemsPerPage'    => isset($params['items_per_page'])
                              ? $params['items_per_page']
                              : get_dev_prod_const('player_items_per_page'),
     'galleryItemsPerPage' => (is_shuffle() || (is_player() && $params['is_player_shuffle']))
@@ -264,12 +264,12 @@ function get_shuffle_menu_item_url() : string
 
   if (is_player())
   {
-    $request_path = '/player/shuffle/all/';
+    $request_path = '/list/shuffle/all/';
 
     if ($params['is_player_shuffle'])
       $request_path = '/' . $params['route_path'] . '/';
     else if ($params['is_player_channel'] || $params['is_player_artist'])
-      $request_path = '/' . str_ireplace('player/', 'player/shuffle/', $params['route_path']) . '/';
+      $request_path = '/' . str_ireplace('list/', 'list/shuffle/', $params['route_path']) . '/';
     
     return $request_path;
   }
@@ -331,9 +331,9 @@ function setup_nav_menu_item($menu_item)
     $params = get_request_params();
 
     if ($menu_item->ID === $menu_item_all_id)
-      $menu_item->url = '/player/';
+      $menu_item->url = '/list/';
     else
-      $menu_item->url = str_replace('ultrafunk.com', 'ultrafunk.com/player', $menu_item->url);
+      $menu_item->url = str_replace('ultrafunk.com', 'ultrafunk.com/list', $menu_item->url);
 
     if (($menu_item->ID === $menu_item_all_id) && ($params['is_player_all']))
       $menu_item->classes[] = 'current-menu-item';

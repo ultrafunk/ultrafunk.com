@@ -1,11 +1,11 @@
 /*
-* Compact player UI
+* List-player UI
 *
 * https://ultrafunk.com
 * 
 */
 
-body.player-playlist {
+body.list-player {
   --site-max-width: calc(100% - 130px);
   --site-content-margin-top: 60px;
   --site-content-margin-bottom: 60px;
@@ -23,7 +23,7 @@ body.player-playlist {
 }
 
 .player-container {
-  display:flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
@@ -225,12 +225,12 @@ body.player-playlist {
 
 }
 
-body.player-playlist #site-footer {
+body.list-player #site-footer {
   padding-left: unset;
   padding-right: unset;
 }
 
-body.player-playlist .site-footer-container {
+body.list-player .site-footer-container {
   max-width: var(--footer-max-width);
 }
 
@@ -250,21 +250,21 @@ body.player-playlist .site-footer-container {
 
 @media screen and (max-width: 1350px) {
 
-  body.player-playlist .site-header-container {
+  body.list-player .site-header-container {
     padding-left: unset;
     padding-right: unset;
   }
   
-  body.player-playlist #site-content {
+  body.list-player #site-content {
     max-width: var(--site-max-width);
   }
 
-  body.player-playlist nav.navigation {
+  body.list-player nav.navigation {
     padding-left: unset;
     padding-right: unset;
   }
 
-  body.player-playlist .site-footer-container {
+  body.list-player .site-footer-container {
     max-width: var(--site-max-width);
   }
   
@@ -295,7 +295,7 @@ body.player-playlist .site-footer-container {
 
 @media screen and (max-width: 900px) {
   
-  body.player-playlist {
+  body.list-player {
     --site-max-width: calc(100% - 100px);
     --site-content-margin-top: 50px;
     --site-content-margin-bottom: 50px;
@@ -305,7 +305,7 @@ body.player-playlist .site-footer-container {
 
 @media screen and (max-width: 768px) {
   
-  body.player-playlist {
+  body.list-player {
     --site-max-width: calc(100% - 50px);
     --site-content-margin-top: 25px;
     --site-content-margin-bottom: 25px;
@@ -315,7 +315,7 @@ body.player-playlist .site-footer-container {
 
 @media screen and (max-width: 500px) {
   
-  body.player-playlist {
+  body.list-player {
     --site-max-width: calc(100% - 40px);
     --site-content-margin-top: 20px;
     --site-content-margin-bottom: 20px;

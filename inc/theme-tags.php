@@ -57,18 +57,18 @@ function pre_wp_head()
 
     if ((window.innerWidth > 1100) && (document.documentElement.classList.contains('user-layout')))
     {
-      const trackLayout      = localStorage.getItem('UF_TRACK_LAYOUT');
-      let   trackLayoutClass = 'track-layout-3-column';
+      const galleryLayout      = localStorage.getItem('UF_GALLERY_LAYOUT');
+      let   galleryLayoutClass = 'gallery-layout-3-column';
 
-      if (trackLayout !== null)
+      if (galleryLayout !== null)
       {
-        if (trackLayout === 'list')
-          trackLayoutClass = 'track-layout-list';
-        else if (trackLayout === '2-column')
-          trackLayoutClass = 'track-layout-2-column';
+        if (galleryLayout === '1-column')
+          galleryLayoutClass = 'gallery-layout-1-column';
+        else if (galleryLayout === '2-column')
+          galleryLayoutClass = 'gallery-layout-2-column';
       }
 
-      document.documentElement.classList.add(trackLayoutClass);
+      document.documentElement.classList.add(galleryLayoutClass);
     }
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
@@ -144,7 +144,7 @@ function body_attributes()
     $classes[] = 'termlist';
 
   if (is_player())
-    $classes[] = 'player-playlist';
+    $classes[] = 'list-player';
 
   if (($track_count === 0) && !is_player())
     $classes[] = 'no-playback';

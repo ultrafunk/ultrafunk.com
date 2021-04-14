@@ -4,7 +4,7 @@ Theme URI:    https://github.com/ultrafunk/ultrafunk.com
 Author:       Ultrafunk
 Author URI:   https://ultrafunk.com
 Description:  ultrafunk.com WordPress theme
-Version:      1.19.5
+Version:      1.19.6
 Tested up to: 5.5
 Requires PHP: 7.4
 License:      Apache License 2.0
@@ -34,7 +34,7 @@ Tags:         entertainment, portfolio, grid-layout, one-column, two-columns, th
   --site-content-margin-top: 75px;
   --site-content-margin-bottom: 100px;
 
-  --site-track-layout-min-width: 1100px;
+  --site-gallery-layout-min-width: 1100px;
 
   --link-hover-color: #dd0000;
 
@@ -534,7 +534,7 @@ body.no-playback #site-content {
   margin-top: calc(var(--site-content-margin-top) + var(--site-header-height-no-playback));
 }
 
-track-layout,
+gallery-layout,
 term-list {
   display: block;
 }
@@ -691,7 +691,7 @@ body.page-settings #site-footer .footer-settings-block {
 #footer-autoplay-toggle,
 #footer-crossfade-toggle,
 #footer-site-theme-toggle,
-#footer-track-layout-toggle {
+#footer-gallery-layout-toggle {
   display: table;
   color: var(--site-theme-icon-color);
 }
@@ -701,31 +701,34 @@ body.page-settings #site-footer .footer-settings-block {
   margin-top: 15px;
 }
 
-#footer-player-toggle .player-gallery-compact,
+#footer-player-toggle .player-gallery-list,
 #footer-autoplay-toggle .autoplay-on-off,
 #footer-crossfade-toggle .crossfade-on-off,
 #footer-site-theme-toggle .site-theme-light-dark-auto,
-#footer-track-layout-toggle .track-layout-list-2x-3x {
+#footer-gallery-layout-toggle .gallery-layout-1x-2x-3x {
   font-weight: 700;
   text-transform: uppercase;
 }
 
-a:hover#footer-player-toggle,
+a:hover#footer-player-toggle {
+  color: var(--link-hover-color);
+  text-decoration: none;
+}
+
 a:hover#footer-autoplay-toggle,
 a:hover#footer-crossfade-toggle,
 a:hover#footer-site-theme-toggle,
-a:hover#footer-track-layout-toggle {
+a:hover#footer-gallery-layout-toggle {
   opacity: var(--control-hover-opacity);
   text-decoration: none;
 }
 
 @media not all and (pointer: fine) {
 
-  a:hover#footer-player-toggle,
   a:hover#footer-autoplay-toggle,
   a:hover#footer-crossfade-toggle,
   a:hover#footer-site-theme-toggle,
-  a:hover#footer-track-layout-toggle {
+  a:hover#footer-gallery-layout-toggle {
     opacity: 1;
   }
   
@@ -740,9 +743,9 @@ body.no-playback #footer-crossfade-toggle {
 
 body.single #footer-player-toggle,
 body.search #footer-player-toggle,
-body.player-playlist #footer-crossfade-toggle,
-body.player-playlist #footer-track-layout-toggle,
-body.single #footer-track-layout-toggle,
+body.list-player #footer-crossfade-toggle,
+body.list-player #footer-gallery-layout-toggle,
+body.single #footer-gallery-layout-toggle,
 #footer-crossfade-toggle.disabled {
   opacity: 0.20;
   pointer-events: none;
@@ -1494,7 +1497,7 @@ body.no-playback .sticky-nav-up .site-header-container {
   #footer-autoplay-toggle,
   #footer-crossfade-toggle,
   #footer-site-theme-toggle,
-  #footer-track-layout-toggle {
+  #footer-gallery-layout-toggle {
     display: block;
   }
 

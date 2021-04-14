@@ -1,6 +1,6 @@
 <?php
 /*
- * Template part for displaying a post
+ * Post / track template
  *
  */
 

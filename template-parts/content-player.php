@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 /*
- * Player playlist template
+ * List-player template
  *
  */
 
@@ -22,7 +22,7 @@ function content_player($request)
   if (!empty($tracks))
   {
     ?>
-    <div id="player-playlist" class="player-container">
+    <div id="list-player-container" class="player-container">
       <div class="embedded-container">
         <div class="wp-block-embed__wrapper">
           <div id="youtube-player"></div>

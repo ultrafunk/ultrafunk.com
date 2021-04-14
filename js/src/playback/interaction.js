@@ -11,7 +11,7 @@ import * as playback        from './playback.js';
 import * as playbackEvents  from './playback-events.js';
 import * as screenWakeLock  from './screen-wakelock.js';
 import * as utils           from '../shared/utils.js';
-import * as playerPlaylist  from './player-playlist.js';
+import * as listPlayer      from './list-player.js';
 import { showSnackbar }     from '../shared/snackbar.js';
 import { playbackSettings } from '../shared/settings.js';
 
@@ -57,10 +57,10 @@ document.addEventListener('DOMContentLoaded', () =>
     initPlayback();
     initShared();
   }
-  else if (document.getElementById('player-playlist'))
+  else if (document.getElementById('list-player-container') !== null)
   {
     initShared();
-    playerPlaylist.init(mSettings, autoplayToggle);
+    listPlayer.init(mSettings, autoplayToggle);
   }
 });
 
@@ -118,7 +118,7 @@ function initShared()
   utils.addListener('#footer-autoplay-toggle',   'click', autoplayToggle);
   utils.addListener('#footer-crossfade-toggle',  'click', crossfadeToggle);
 
-  mElements.playerToggle.querySelector('span').textContent = document.body.classList.contains('player-playlist') ? 'Compact' : 'Gallery';
+  mElements.playerToggle.querySelector('span').textContent = document.body.classList.contains('list-player') ? 'List' : 'Gallery';
   updateAutoplayToggle(mSettings.user.autoplay);
   updateCrossfadeToggle(mSettings.user.autoCrossfade);
 }
@@ -321,16 +321,16 @@ function showCurrentTrack(event)
 
 
 // ************************************************************************************************
-// Player = Gallery / Compact selection toggle
+// Player = Gallery / List selection toggle
 // ************************************************************************************************
 
 function playerToggle(event)
 {
   event.preventDefault();
 
-  const isCompactPlayer = document.body.classList.contains('player-playlist');
-  const destData        = getDestData(isCompactPlayer);
-  let   destUrl         = window.location.href.replace(/\/page\/(?!0)\d{1,6}/, ''); // Strip off any pagination
+  const isListPlayer = document.body.classList.contains('list-player');
+  const destData     = getDestData(isListPlayer);
+  let   destUrl      = window.location.href.replace(/\/page\/(?!0)\d{1,6}/, ''); // Strip off any pagination
 
   // Add new destination pagination if needed
   if (destData.pageNum > 1)
@@ -338,20 +338,20 @@ function playerToggle(event)
 
   sessionStorage.setItem(KEY.UF_AUTOPLAY, JSON.stringify(destData.trackData));
 
-  if (isCompactPlayer)
-    window.location.href = destUrl.replace(/player\//, '');
+  if (isListPlayer)
+    window.location.href = destUrl.replace(/list\//, '');
   else
-    window.location.href = destUrl.replace(/ultrafunk\.com\//, 'ultrafunk.com/player/');
+    window.location.href = destUrl.replace(/ultrafunk\.com\//, 'ultrafunk.com/list/');
 }
 
-function getDestData(isCompactPlayer)
+function getDestData(isListPlayer)
 {
   const urlParts          = window.location.href.split('/');
   const pageIndex         = urlParts.findIndex(part => (part.toLowerCase() === 'page'));
   const currentPage       = (pageIndex !== -1) ? parseInt(urlParts[pageIndex + 1]) : 1;
-  const trackData         = isCompactPlayer ? playerPlaylist.getStatus()         : playback.getStatus();
-  const tracksPerPageFrom = isCompactPlayer ? navigationVars.compactItemsPerPage : navigationVars.galleryItemsPerPage; // eslint-disable-line no-undef
-  const tracksPerPageTo   = isCompactPlayer ? navigationVars.galleryItemsPerPage : navigationVars.compactItemsPerPage; // eslint-disable-line no-undef
+  const trackData         = isListPlayer ? listPlayer.getStatus()             : playback.getStatus();
+  const tracksPerPageFrom = isListPlayer ? navigationVars.listItemsPerPage    : navigationVars.galleryItemsPerPage; // eslint-disable-line no-undef
+  const tracksPerPageTo   = isListPlayer ? navigationVars.galleryItemsPerPage : navigationVars.listItemsPerPage; // eslint-disable-line no-undef
   const trackOffset       = trackData.currentTrack + ((currentPage - 1) * tracksPerPageFrom);
 
   return {

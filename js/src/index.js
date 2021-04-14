@@ -1,5 +1,5 @@
 //
-// Ultrafunk theme JavaScript
+// Ultrafunk site interaction
 //
 // https://ultrafunk.com
 //
@@ -139,7 +139,7 @@ function documentEventKeyDown(event)
       case 'L':
         if (searchNotFocused() && notSettingsPage())
         {
-          interaction.trackLayout.toggle(event);
+          interaction.galleryLayout.toggle(event);
           resize.trigger();
         }
         break;

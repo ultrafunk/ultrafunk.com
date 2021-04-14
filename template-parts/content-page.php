@@ -1,6 +1,6 @@
 <?php
 /*
- * Template part for displaying a page
+ * Page template
  *
  */
 

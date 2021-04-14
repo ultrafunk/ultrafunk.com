@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 /*
- * Player-playlist requests
+ * List-player requests
  *
  */
 
@@ -27,7 +27,7 @@ class RequestPlayer extends Request
       case 'player_all':
       case 'player_all_page':
         $this->is_player_all = true;
-        $this->route_path    = 'player';
+        $this->route_path    = 'list';
         $this->title_parts   = array('prefix' => 'Channel', 'title' => 'All Tracks');
         $this->current_page  = isset($url_parts[2]) ? intval($url_parts[2]) : 1;
         $this->max_pages     = get_max_pages(wp_count_posts()->publish, $this->items_per_page);
@@ -67,7 +67,7 @@ class RequestPlayer extends Request
 
     if (($this->WP_Term !== false) && ($this->WP_Term->count > 0))
     {
-      $this->route_path   = 'player/' . strtolower($title_prefix) . '/' . $slug;
+      $this->route_path   = 'list/' . strtolower($title_prefix) . '/' . $slug;
       $this->title_parts  = array('prefix' => $title_prefix, 'title' => $this->WP_Term->name);
       $this->current_page = isset($url_parts[4]) ? intval($url_parts[4]) : 1;
       $this->max_pages    = get_max_pages($this->WP_Term->count, $this->items_per_page);
@@ -85,7 +85,7 @@ class RequestPlayer extends Request
     {
       $this->is_player_shuffle = true;
       $shuffle_params     = get_request_params();
-      $this->route_path   = 'player/shuffle/' . $shuffle_params['path'];
+      $this->route_path   = 'list/shuffle/' . $shuffle_params['path'];
       $this->title_parts  = array('prefix' => 'Shuffle', 'title' => (($title !== null) ? $title : $shuffle_params['slug_name']));
       $this->current_page = $wp_env->query_vars['paged'];
       $this->max_pages    = get_max_pages(count($wp_env->query_vars['post__in']), $this->items_per_page);
