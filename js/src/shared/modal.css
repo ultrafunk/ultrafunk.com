@@ -51,11 +51,16 @@
   justify-content: space-between;
 }
 
-.modal-dialog-title {
+.modal-dialog-title,
+.modal-dialog-body-title {
   display: inline-flex;
   font-size: 25px;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.modal-dialog-body-title {
+  margin-top: 12px;
 }
 
 .modal-dialog-close-button {
@@ -125,8 +130,9 @@
     margin-bottom: 0;
   }
 
-  .modal-dialog-title {
-    font-size: 18px;
+  .modal-dialog-title,
+  .modal-dialog-body-title {
+    font-size: 20px;
   }
 
   .modal-dialog-close-button {

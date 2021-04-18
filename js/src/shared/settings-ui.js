@@ -5,17 +5,17 @@
 //
 
 
-import * as debugLogger from './debuglogger.js?ver=1.19.6';
-import * as settings    from './settings.js?ver=1.19.6';
-import { addListener }  from './utils.js?ver=1.19.6';
-import { showSnackbar } from './snackbar.js?ver=1.19.6';
+import * as debugLogger from './debuglogger.js?ver=1.19.7';
+import * as settings    from './settings.js?ver=1.19.7';
+import { addListener }  from './utils.js?ver=1.19.7';
+import { showSnackbar } from './snackbar.js?ver=1.19.7';
 
 import {
   KEY,
   deleteCookie,
   readJson,
   writeJson,
-} from '../shared/storage.js?ver=1.19.6';
+} from '../shared/storage.js?ver=1.19.7';
 
 
 /*************************************************************************************************/

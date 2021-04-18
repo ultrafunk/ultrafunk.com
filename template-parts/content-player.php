@@ -55,6 +55,12 @@ function find_video_id_pos($content)
   return null;
 }
 
+function term_links($tags, $path)
+{
+  foreach ($tags as $tag)
+    echo "<a href='/list/$path/$tag->slug'>$tag->name</a>";
+}
+
 function tracklist_entries($request, $tracks)
 {
   global $ultrafunk_is_prod_build;
@@ -65,7 +71,6 @@ function tracklist_entries($request, $tracks)
   {
     $artist_title = preg_split($artist_title_regex, $track->post_title);
     $track_url    = esc_url("$home_url/$track->post_name/"); // Faster than calling get_permalink() lots of times...
-    $track_tags   = get_the_terms($track, 'post_tag');
     $track_data   = ['thumnail_src' => '/wp-content/themes/ultrafunk/inc/img/soundcloud_icon.png', 'css_class' => 'type-soundcloud'];
     $video_id_pos = find_video_id_pos($track->post_content);
 
@@ -78,10 +83,11 @@ function tracklist_entries($request, $tracks)
     ?>
     <div class="track-entry <?php echo $track_data['css_class']; ?>" id="<?php echo isset($video_id_pos) ? $youtube_video_id : ''; ?>"
       data-post-id="<?php echo $track->ID; ?>"
-      data-tag-ids="<?php echo isset($track_tags) ? implode(",", array_column($track_tags, 'term_id')) : ''; ?>"
       data-artist-track-title="<?php echo esc_html($track->post_title); ?>"
       data-track-url="<?php echo $track_url; ?>"
       >
+      <div class="track-artists-links"><?php term_links(get_object_term_cache($track->ID, 'post_tag'), 'artist'); ?></div>
+      <div class="track-channels-links"><?php term_links(get_object_term_cache($track->ID, 'category'), 'channel'); ?></div>
       <div class="track-details">
         <div class="thumbnail" <?php echo isset($video_id_pos) ? 'title="Play Track"' : 'title="SoundCloud Track"'; ?>>
           <?php if ($ultrafunk_is_prod_build) { ?>

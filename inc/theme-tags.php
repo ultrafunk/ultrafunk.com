@@ -42,7 +42,7 @@ function get_user_layout_class()
 
 function pre_wp_head()
 {
-  if (is_shuffle())
+  if (is_shuffle() || (is_player() && get_request_params()['is_player_shuffle']))
     echo '<meta name="robots" content="noindex">' . PHP_EOL;
 
   ?>

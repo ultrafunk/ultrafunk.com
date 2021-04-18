@@ -11,6 +11,7 @@ import * as controls     from './playback-controls.js';
 import * as mediaPlayers from './mediaplayers.js';
 import * as utils        from '../shared/utils.js';
 import { KEY }           from '../shared/storage.js';
+import { showModal }     from '../shared/modal.js';
 import { shareModal }    from '../site/interaction.js';
 import { navigateTo }    from './playback-events.js';
 
@@ -88,8 +89,8 @@ function init(playbackSettings, autoplayToggleCallback)
     const sharePlayOnButton = event.target.closest('div.share-playon-button');
     if (sharePlayOnButton !== null ) return sharePlayOnButtonClick(sharePlayOnButton);
 
-  //const menuButton = event.target.closest('div.menu-button');
-  //if (menuButton !== null) return debug.log('div.menu-button');
+    const moreButton = event.target.closest('div.menu-button');
+    if (moreButton !== null) return moreButtonOnClick(moreButton);
   });
 }
 
@@ -152,13 +153,25 @@ function documentEventKeyDown(event)
 //
 // ************************************************************************************************
 
-function sharePlayOnButtonClick(sharePlayOnButton)
+function sharePlayOnButtonClick(element)
 {
-  const trackEntry       = sharePlayOnButton.closest('div.track-entry');
-  const artistTrackTitle = trackEntry.getAttribute('data-artist-track-title');
-  const trackUrl         = trackEntry.getAttribute('data-track-url');
-  
+  const artistTrackTitle = element.closest('div.track-entry').getAttribute('data-artist-track-title');
+  const trackUrl         = element.closest('div.track-entry').getAttribute('data-track-url');
+
   shareModal.show({ string: artistTrackTitle, filterString: true, url: trackUrl });
+}
+
+function moreButtonOnClick(element)
+{
+  const list     = [];
+  const artists  = element.closest('div.track-entry').querySelector('.track-artists-links').querySelectorAll('a');
+  const channels = element.closest('div.track-entry').querySelector('.track-channels-links').querySelectorAll('a');
+
+  artists.forEach(item => list.push({ id: `modal-item-id-${list.length + 1}`, description: item.innerText, link: item.href }));
+  list.push({ id: null, description: 'Channels' });
+  channels.forEach(item => list.push({ id: `modal-item-id-${list.length + 1}`, description: item.innerText, link: item.href }));
+
+  showModal('Artists', list, (clickId) => { window.location.href = list[list.findIndex(item => (item.id === clickId))].link; });
 }
 
 function scrollPlayerIntoView()

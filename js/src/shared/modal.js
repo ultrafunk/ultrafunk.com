@@ -96,10 +96,21 @@ function setSingleChoiceList(singleChoiceList)
 {
   let listHtml = '';
 
-  singleChoiceList.forEach(entry => listHtml += `<div id="${entry.id}" class="${mConfig.id}-dialog-single-choice">${entry.description}</div>`);
+  singleChoiceList.forEach(entry =>
+  {
+    if (entry.id === null)
+      listHtml += `<div class="${mConfig.id}-dialog-body-title">${entry.description}</div>`;
+    else
+      listHtml += `<div id="${entry.id}" class="${mConfig.id}-dialog-single-choice">${entry.description}</div>`;
+  });
+  
   mElements.body.innerHTML = listHtml;
 
-  singleChoiceList.forEach(entry => mElements.body.querySelector(`#${entry.id}`).addEventListener('click', singleChoiceListClick));
+  singleChoiceList.forEach(entry =>
+  {
+    if (entry.id !== null)
+      mElements.body.querySelector(`#${entry.id}`).addEventListener('click', singleChoiceListClick);
+  });
 }
 
 function singleChoiceListClick()

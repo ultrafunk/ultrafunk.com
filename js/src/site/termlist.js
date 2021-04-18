@@ -129,25 +129,25 @@ function playShuffleButtonClick(event, destUrl, trackId = null)
   window.location.href = destUrl;
 }
 
-function shareFindButtonClick(shareFindButton)
+function shareFindButtonClick(element)
 {
-  const termPath = shareFindButton.getAttribute('data-term-path');
-  const termName = shareFindButton.getAttribute('data-term-name');
-  const termUrl  = shareFindButton.getAttribute('data-term-url');
+  const termPath = element.getAttribute('data-term-path');
+  const termName = element.getAttribute('data-term-name');
+  const termUrl  = element.getAttribute('data-term-url');
 
   shareModal.show({ title: `Share / Find ${termPath}`, string: termName, url: termUrl, verb: 'Find' });
 }
 
-function playTrackButtonClick(event, playTrackButton)
+function playTrackButtonClick(event, element)
 {
   const termPath = (termlistContainer.getAttribute('data-term-type') === 'categories') ? 'channel' : 'artist';
-  const termSlug = playTrackButton.getAttribute('data-term-slug');
-  const termUid  = playTrackButton.getAttribute('data-term-uid');
+  const termSlug = element.getAttribute('data-term-slug');
+  const termUid  = element.getAttribute('data-term-uid');
 
   if (termUid !== null)
     return playShuffleButtonClick(event, `/list/${termPath}/${termSlug}/`, termUid);
   else
-    return playShuffleButtonClick(event, playTrackButton.getAttribute('data-term-url'));
+    return playShuffleButtonClick(event, element.getAttribute('data-term-url'));
 }
 
 function termlistHeaderClick(event)

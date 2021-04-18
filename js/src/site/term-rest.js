@@ -96,6 +96,11 @@ function fetchMeta(termData, termId, maxItems, callback)
 
 function fetchMetadata(termType, termId, termIds, maxItems, callback)
 {
+  /*
+  if ((termId in termCache) === false)
+    termCache[termId] = {};
+  */
+
   if (termIds.length > 0)
   {
     debug.log(`fetchMetadata() - termType: ${termType} - termIds: ${(termIds.length > 0) ? termIds : 'Empty'} - maxItems: ${maxItems}`);

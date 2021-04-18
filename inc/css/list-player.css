@@ -77,6 +77,11 @@ body.list-player {
   background: var(--track-current-color);
 }
 
+.track-artists-links,
+.track-channels-links {
+  display: none;
+}
+
 .track-details {
   display: contents;
 }
@@ -191,9 +196,11 @@ body.list-player {
   border-radius: var(--button-border-radius);
 }
 
+/*
 .track-more .menu-button {
   display: none;
 }
+*/
 
 .track-more .share-playon-button .material-icons,
 .track-more .menu-button .material-icons {
@@ -270,7 +277,7 @@ body.list-player .site-footer-container {
   
 }
 
-@media screen and (max-width: 1200px) {
+@media screen and (max-width: 1250px) {
 
   .player-container {
     display: block;
@@ -354,6 +361,10 @@ body.list-player .site-footer-container {
     padding: 5px;
   }
   
+  .track-more .menu-button {
+    display: none;
+  }
+
   .track-more .share-playon-button .material-icons,
   .track-more .menu-button .material-icons {
     font-size: 26px;
