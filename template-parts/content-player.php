@@ -58,7 +58,7 @@ function find_video_id_pos($content)
 function term_links($tags, $path)
 {
   foreach ($tags as $tag)
-    echo "<a href='/list/$path/$tag->slug'>$tag->name</a>";
+    echo "<a href='/list/$path/$tag->slug/'>$tag->name</a>";
 }
 
 function tracklist_entries($request, $tracks)

@@ -4,7 +4,7 @@ Theme URI:    https://github.com/ultrafunk/ultrafunk.com
 Author:       Ultrafunk
 Author URI:   https://ultrafunk.com
 Description:  ultrafunk.com WordPress theme
-Version:      1.19.7
+Version:      1.19.8
 Tested up to: 5.5
 Requires PHP: 7.4
 License:      Apache License 2.0
@@ -84,7 +84,7 @@ Tags:         entertainment, portfolio, grid-layout, one-column, two-columns, th
   --page-numbers-background: rgba(127, 127, 127, 0.15);
   --page-numbers-background-hover: rgba(127, 127, 127, 0.3);
 
-  --list-row-odd-color: #eee;
+  --list-row-odd-color: #e8e8e8;
   --list-row-hover-color: #bbb;
 
   /*

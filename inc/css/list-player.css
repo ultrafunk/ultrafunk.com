@@ -361,13 +361,17 @@ body.list-player .site-footer-container {
     padding: 5px;
   }
   
-  .track-more .menu-button {
-    display: none;
-  }
-
   .track-more .share-playon-button .material-icons,
   .track-more .menu-button .material-icons {
     font-size: 26px;
+  }
+
+}
+
+@media screen and (max-width: 400px) {
+  
+  .track-more .menu-button {
+    display: none;
   }
 
 }

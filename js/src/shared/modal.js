@@ -99,7 +99,7 @@ function setSingleChoiceList(singleChoiceList)
   singleChoiceList.forEach(entry =>
   {
     if (entry.id === null)
-      listHtml += `<div class="${mConfig.id}-dialog-body-title">${entry.description}</div>`;
+      listHtml += `<div class="${mConfig.id}-${entry.class}">${entry.description}</div>`;
     else
       listHtml += `<div id="${entry.id}" class="${mConfig.id}-dialog-single-choice">${entry.description}</div>`;
   });

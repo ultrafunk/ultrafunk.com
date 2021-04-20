@@ -163,15 +163,20 @@ function sharePlayOnButtonClick(element)
 
 function moreButtonOnClick(element)
 {
-  const list     = [];
-  const artists  = element.closest('div.track-entry').querySelector('.track-artists-links').querySelectorAll('a');
-  const channels = element.closest('div.track-entry').querySelector('.track-channels-links').querySelectorAll('a');
+  const entryList   = [];
+  const artistTitle = {};
+  const artists     = element.closest('div.track-entry').querySelector('.track-artists-links').querySelectorAll('a');
+  const channels    = element.closest('div.track-entry').querySelector('.track-channels-links').querySelectorAll('a');
 
-  artists.forEach(item => list.push({ id: `modal-item-id-${list.length + 1}`, description: item.innerText, link: item.href }));
-  list.push({ id: null, description: 'Channels' });
-  channels.forEach(item => list.push({ id: `modal-item-id-${list.length + 1}`, description: item.innerText, link: item.href }));
+  mediaPlayers.setArtistTitle(element.closest('div.track-entry').getAttribute('data-artist-track-title'), artistTitle);
 
-  showModal('Artists', list, (clickId) => { window.location.href = list[list.findIndex(item => (item.id === clickId))].link; });
+  entryList.push({ id: null, class: 'dialog-body-text', description: `<b>${artistTitle.artist}</b><br><span class="light-text">${artistTitle.title}</span>` });
+  entryList.push({ id: null, class: 'dialog-body-title', description: 'Artists' });
+  artists.forEach(item => entryList.push({ id: `modal-item-id-${entryList.length + 1}`, description: item.innerText, link: item.href }));
+  entryList.push({ id: null, class: 'dialog-body-title', description: 'Channels' });
+  channels.forEach(item => entryList.push({ id: `modal-item-id-${entryList.length + 1}`, description: item.innerText, link: item.href }));
+
+  showModal('Track Details', entryList, (clickId) => { window.location.href = entryList[entryList.findIndex(item => (item.id === clickId))].link; });
 }
 
 function scrollPlayerIntoView()
