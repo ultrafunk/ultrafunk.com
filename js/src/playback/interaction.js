@@ -34,7 +34,7 @@ const mConfig = {
 };
 
 const mElements = {
-  controls:        { details: null, thumbnail: null, timer: null, statePlaying: false },
+  statePlaying:    false,
   playerToggle:    null,
   autoplayToggle:  null,
   crossfadeToggle: null,
@@ -79,10 +79,6 @@ function readSettings()
 function initInteraction()
 {
   debug.log('initInteraction()');
-
-  mElements.controls.details   = document.querySelector('.playback-details-control');
-  mElements.controls.thumbnail = document.querySelector('.playback-thumbnail-control');
-  mElements.controls.timer     = document.querySelector('.playback-timer-control');
 
   /* eslint-disable */
   utils.addListenerAll('i.nav-bar-arrow-back',             'click', prevNextNavTo, navigationVars.prev);
@@ -135,7 +131,8 @@ function documentEventKeyDown(event)
     switch(event.code)
     {
       case 'Backquote':
-        showCurrentTrack(event);
+        event.preventDefault();
+        playbackEvents.scrollToId(playback.getStatus().trackId);
         break;
     }
 
@@ -197,9 +194,9 @@ function documentEventKeyDown(event)
 
 function playbackEventReady()
 {
-  mElements.controls.details.addEventListener('click', playbackDetailsClick);
-  mElements.controls.thumbnail.addEventListener('click', playbackDetailsClick);
-  mElements.controls.timer.addEventListener('click', autoplayToggle);
+  utils.addListener('.playback-details-control',   'click', playbackDetailsClick);
+  utils.addListener('.playback-thumbnail-control', 'click', playbackDetailsClick);
+  utils.addListener('.playback-timer-control',     'click', autoplayToggle);
   document.addEventListener('visibilitychange', documentEventVisibilityChange);
 
   if (mSettings.user.keepMobileScreenOn)
@@ -251,14 +248,14 @@ function documentEventVisibilityChange()
 
   if (document.visibilityState === 'visible')
   {
-    if (mSettings.user.autoResumePlayback && mElements.controls.statePlaying)
+    if (mSettings.user.autoResumePlayback && mElements.statePlaying)
     {
       if (playback.getStatus().isPlaying === false)
         playback.togglePlayPause();
     }
 
     /*
-    if (settings.user.keepMobileScreenOn && mElements.controls.statePlaying)
+    if (settings.user.keepMobileScreenOn && mElements.statePlaying)
       screenWakeLock.stateVisible();
     */
     
@@ -268,11 +265,11 @@ function documentEventVisibilityChange()
   else if (document.visibilityState === 'hidden')
   {
     if (mSettings.user.autoResumePlayback && playback.getStatus().isPlaying)
-      mElements.controls.statePlaying = true;
+      mElements.statePlaying = true;
     else
-      mElements.controls.statePlaying = false;
+      mElements.statePlaying = false;
 
-  //debug.log('documentEventVisibilityChange() - statePlaying: ' + mElements.controls.statePlaying);
+  //debug.log('documentEventVisibilityChange() - statePlaying: ' + mElements.statePlaying);
   }
 }
 
@@ -283,7 +280,7 @@ function documentEventVisibilityChange()
 
 function playbackDetailsClick(event)
 {
-  showCurrentTrack(event);
+  playbackEvents.scrollToId(playback.getStatus().trackId);
   eventLog.add(eventLogger.SOURCE.MOUSE, eventLogger.EVENT.MOUSE_CLICK, null);
 
   if (event.target.tagName.toLowerCase() === 'img')
@@ -311,12 +308,6 @@ function prevNextNavTo(event, destUrl)
     event.preventDefault();
     playbackEvents.navigateTo(destUrl, playback.getStatus().isPlaying);
   }
-}
-
-function showCurrentTrack(event)
-{
-  event.preventDefault();
-  playbackEvents.scrollToId(playback.getStatus().trackId);
 }
 
 

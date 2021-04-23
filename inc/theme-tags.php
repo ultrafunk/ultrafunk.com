@@ -174,7 +174,7 @@ function header_site_branding()
   ?>
   <div class="site-branding">
     <?php echo $nav_icons['menu']; ?>
-    <a href="<?php echo esc_url(home_url('/')); ?>" aria-label="Home"><img src="<?php echo wp_get_attachment_image_src(get_theme_mod('custom_logo'), 'full')[0]; ?>" alt=""></a>
+    <a href="<?php echo \Ultrafunk\Globals\is_player() ? esc_url(home_url('/list/')) : esc_url(home_url('/')); ?>" aria-label="Home"><img src="<?php echo wp_get_attachment_image_src(get_theme_mod('custom_logo'), 'full')[0]; ?>" alt=""></a>
     <?php echo $nav_icons['search']; ?>
   </div>
   <?php

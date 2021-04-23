@@ -22,10 +22,9 @@ abstract class Request
 {
   protected $is_valid = false;
   
-  public $items_per_page = 12;
-  public $current_page   = 1;
-  public $max_pages      = 1;
-  public $query_args     = array();
+  public $current_page = 1;
+  public $max_pages    = 1;
+  public $query_args   = array();
   
   public function __construct()
   {

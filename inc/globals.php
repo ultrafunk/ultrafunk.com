@@ -20,7 +20,7 @@ $ultrafunk_is_prod_build = false;
 
 class Globals
 {
-  public static $version = '1.19.8';
+  public static $version = '1.19.9';
 
   public static $dev_prod_consts = array(
     'menu_item_all_id'         => WP_DEBUG ? 2556 :  115,
@@ -29,7 +29,7 @@ class Globals
     'block_premium_intro_id'   => WP_DEBUG ? 1500 : 1500,
     'block_promo_intro_id'     => WP_DEBUG ? 2385 : 2717,
     'page_about_id'            => WP_DEBUG ?  806 :  806,
-    'player_items_per_page'    => WP_DEBUG ?   36 :   36,
+    'player_items_per_page'    => WP_DEBUG ?   25 :   50,
     'iframe_origin'            => WP_DEBUG ? 'https://wordpress.ultrafunk.com' : 'https://ultrafunk.com',
   );
 

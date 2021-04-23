@@ -63,20 +63,10 @@ function init(playbackSettings, autoplayToggleCallback)
   list.container = document.getElementById('tracklist-container');
   list.observer  = new IntersectionObserver(observerCallback, { root: list.container });
   
-  if (cueTrack() !== null)
-  {
+  if (cueInitialTrack() !== null)
     initYouTubeAPI();
-    document.addEventListener('keydown', documentEventKeyDown);
-    
-    //ToDo: Add common code in playback-controls.js for list-player & playback-interaction?
-    utils.addListener('.playback-details-control',   'click', scrollPlayerIntoView);
-    utils.addListener('.playback-thumbnail-control', 'click', scrollPlayerIntoView);
-    utils.addListener('.playback-timer-control',     'click', (event) => autoplayToggle(event));
-  }
   else
-  {
     showSnackbar('No playable YouTube tracks!', 0, 'help', () => { window.location.href = "/help/#list-player"; });
-  }
 
   utils.addListenerAll('i.nav-bar-arrow-back', 'click', prevNextNavTo, navigationVars.prev); // eslint-disable-line no-undef
   utils.addListenerAll('i.nav-bar-arrow-fwd',  'click', prevNextNavTo, navigationVars.next); // eslint-disable-line no-undef
@@ -205,7 +195,7 @@ function toggleMute()
 //
 // ************************************************************************************************
 
-function cueTrack()
+function cueInitialTrack()
 {
   current.trackId = getNextPlayableId();
 
@@ -244,7 +234,7 @@ function cueTrack()
     list.observer.observe(current.element);
   }
 
-  debug.log(`cueTrack() - current.trackId: ${current.trackId} - autoplayData: ${(current.autoplayData !== null) ? JSON.stringify(current.autoplayData) : 'N/A'}`);
+  debug.log(`cueInitialTrack() - current.trackId: ${current.trackId} - autoplayData: ${(current.autoplayData !== null) ? JSON.stringify(current.autoplayData) : 'N/A'}`);
 
   return current.trackId;
 }
@@ -479,6 +469,13 @@ function onYouTubePlayerReady()
 
   controls.ready(prevTrack, togglePlayPause, nextTrack, toggleMute);
   loadOrCueCurrentTrack(current.autoplayData?.autoplay === true);
+
+  //ToDo: Add common code in playback-controls.js for list-player & playback-interaction?
+  utils.addListener('.playback-details-control',   'click', scrollPlayerIntoView);
+  utils.addListener('.playback-thumbnail-control', 'click', scrollPlayerIntoView);
+  utils.addListener('.playback-timer-control',     'click', (event) => autoplayToggle(event));
+  
+  document.addEventListener('keydown', documentEventKeyDown);
 }
 
 function onYouTubePlayerStateChange(event)
