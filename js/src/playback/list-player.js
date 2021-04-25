@@ -110,12 +110,12 @@ function documentEventKeyDown(event)
 
       case 'ArrowLeft':
         event.preventDefault();
-        (event.shiftKey === false) ? prevTrack() : prevNextNavTo(event, navigationVars.prev); // eslint-disable-line no-undef
+        (event.shiftKey === false) ? prevTrack() : prevNextNavTo(null, navigationVars.prev); // eslint-disable-line no-undef
         break;
 
       case 'ArrowRight':
         event.preventDefault();
-        (event.shiftKey === false) ? nextTrack() : prevNextNavTo(event, navigationVars.next); // eslint-disable-line no-undef
+        (event.shiftKey === false) ? nextTrack() : prevNextNavTo(null, navigationVars.next); // eslint-disable-line no-undef
         break;
 
       case 'A':
@@ -249,7 +249,7 @@ function observerCallback(entries)
 
 function prevNextNavTo(event, destUrl)
 {
-  event.preventDefault();
+  event?.preventDefault();
   navigateTo(destUrl, controls.isPlaying());
 }
 

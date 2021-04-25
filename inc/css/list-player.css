@@ -50,7 +50,7 @@ body.list-player {
 .track-entry {
   font-size: 15px;
   line-height: 20px;
-  padding: 10px;
+  padding: 10px 8px 10px 13px;
   border-bottom: 1px solid var(--track-separator-color);
   display: flex;
   align-items: center;
@@ -343,7 +343,9 @@ body.list-player .site-footer-container {
   .track-entry {
     font-size: 14px;
     line-height: 18px;
-    padding: 10px 5px 10px 10px;
+    /*
+    padding: 10px 8px 10px 12px;
+    */
   }
 
   .track-entry .thumbnail::before {
@@ -369,14 +371,14 @@ body.list-player .site-footer-container {
 
   .track-more .share-playon-button,
   .track-more .menu-button {
-    width: 26px;
-    height: 26px;
-    padding: 5px;
+    width: 28px;
+    height: 28px;
+    padding: 4px;
   }
   
   .track-more .share-playon-button .material-icons,
   .track-more .menu-button .material-icons {
-    font-size: 26px;
+    font-size: 28px;
   }
 
 }
