@@ -93,8 +93,20 @@
   line-height: 20px;
   font-weight: 400;
   padding: 12px 30px;
-  display: block;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  white-space: pre-wrap;
+}
+
+.modal-dialog-single-choice.icon {
+  padding: 10px 30px;
+}
+
+.modal-dialog-single-choice .material-icons {
+  font-size: 24px;
+  margin-right: 14px;
+  margin-left: -1px;
 }
 
 .modal-dialog-single-choice:hover {
@@ -169,4 +181,13 @@
     padding: 12px 20px;
   }
 
+  .modal-dialog-single-choice.icon {
+    padding: 8px 20px;
+  }
+
+  .modal-dialog-single-choice .material-icons {
+    font-size: 22px;
+    margin-right: 12px;
+  }
+  
 }

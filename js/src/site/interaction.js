@@ -273,13 +273,13 @@ const shareModal = (() =>
   function getSingleChoiceList(verb)
   {
     return [
-      { id: 'copyToClipboardId', description: '<b>Copy Link</b> to Clipboard'   },
-      { id: 'shareOnEmailId',    description: '<b>Share</b> on Email'           },
-      { id: 'amazonMusicId',     description: `<b>${verb}</b> on Amazon Music`  },
-      { id: 'appleMusicId',      description: `<b>${verb}</b> on Apple Music`   },
-      { id: 'spotifyId',         description: `<b>${verb}</b> on Spotify`       },
-      { id: 'tidalId',           description: `<b>${verb}</b> on Tidal`         },
-      { id: 'youTubeMusicId',    description: `<b>${verb}</b> on YouTube Music` },
+      { id: 'copyToClipboardId', icon: 'content_copy', description: '<b>Copy Link</b> to Clipboard'   },
+      { id: 'shareOnEmailId',    icon: 'share',        description: '<b>Share</b> on Email'           },
+      { id: 'amazonMusicId',     icon: 'link',         description: `<b>${verb}</b> on Amazon Music`  },
+      { id: 'appleMusicId',      icon: 'link',         description: `<b>${verb}</b> on Apple Music`   },
+      { id: 'spotifyId',         icon: 'link',         description: `<b>${verb}</b> on Spotify`       },
+      { id: 'tidalId',           icon: 'link',         description: `<b>${verb}</b> on Tidal`         },
+      { id: 'youTubeMusicId',    icon: 'link',         description: `<b>${verb}</b> on YouTube Music` },
     ];
   }
 

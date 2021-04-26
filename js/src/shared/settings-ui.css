@@ -71,7 +71,7 @@ table.settings td.value-string {
 }
 
 table.settings td.current-value-false {
-  opacity: 0.20;
+  opacity: 0.3;
 }
 
 .settings-clear {
