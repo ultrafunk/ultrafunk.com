@@ -20,7 +20,7 @@ $ultrafunk_is_prod_build = false;
 
 class Globals
 {
-  public static $version = '1.19.11';
+  public static $version = '1.19.12';
 
   public static $dev_prod_consts = array(
     'menu_item_all_id'         => WP_DEBUG ? 2556 :  115,

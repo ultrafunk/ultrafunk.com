@@ -109,7 +109,7 @@ const siteSchema = {
     theme:             { description: 'Theme',                                    type: STRING,  values: ['light', 'dark', 'auto'],             default: 'auto',     valueStrings: ['Light', 'Dark', 'Auto / System']         },
   //preferredPlayer:   { description: 'Preferred Player (Gallery or List)',       type: INTEGER, values: [0, 1],                                default: 0,          valueStrings: ['Gallery', 'List']                        },
     galleryLayout:     { description: 'Gallery Player Track Layout',              type: STRING,  values: ['1-column', '2-column', '3-column'],  default: '3-column', valueStrings: ['1 Column', '2 Column', '3 / 4 Column']   },
-    tracksPerPage:     { description: 'Tracks Per Page for Search &amp; Shuffle', type: INTEGER, values: [...Array(22).keys()].map(i => i + 3), default: 12,         valueStrings: [...Array(22).keys()].map(i => `${i + 3}`) },
+    tracksPerPage:     { description: 'Gallery Tracks Per Page: Search + Shuffle',type: INTEGER, values: [...Array(22).keys()].map(i => i + 3), default: 12,         valueStrings: [...Array(22).keys()].map(i => `${i + 3}`) },
     keyboardShortcuts: { description: 'Keyboard Shortcuts',                       type: BOOLEAN, values: [true, false],                         default: true,       valueStrings: ['ON', 'OFF']                              },
   },
   priv: {

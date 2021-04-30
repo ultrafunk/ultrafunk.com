@@ -160,11 +160,11 @@ function moreButtonOnClick(element)
 
   mediaPlayers.setArtistTitle(element.closest('div.track-entry').getAttribute('data-artist-track-title'), artistTitle);
 
-  entryList.push({ id: null, class: 'dialog-body-text', description: `<b>${artistTitle.artist}</b><br><span class="light-text">${artistTitle.title}</span>` });
-  entryList.push({ id: null, class: 'dialog-body-title', description: 'Artists' });
-  artists.forEach(item => entryList.push({ id: `modal-item-id-${entryList.length + 1}`, description: item.innerText, link: item.href, icon: 'link' }));
-  entryList.push({ id: null, class: 'dialog-body-title', description: 'Channels' });
-  channels.forEach(item => entryList.push({ id: `modal-item-id-${entryList.length + 1}`, description: item.innerText, link: item.href, icon: 'link'  }));
+  entryList.push({ id: null, class: 'dialog-body-text', text: `<b>${artistTitle.artist}</b><br><span class="light-text">${artistTitle.title}</span>` });
+  entryList.push({ id: null, class: 'dialog-body-title', text: 'Artists' });
+  artists.forEach(item => entryList.push({ id: `modal-item-id-${entryList.length + 1}`, text: item.innerText, link: item.href, icon: 'link' }));
+  entryList.push({ id: null, class: 'dialog-body-title', text: 'Channels' });
+  channels.forEach(item => entryList.push({ id: `modal-item-id-${entryList.length + 1}`, text: item.innerText, link: item.href, icon: 'link' }));
 
   showModal('Track Details', entryList, (clickId) => { window.location.href = entryList[entryList.findIndex(item => (item.id === clickId))].link; });
 }

@@ -102,9 +102,9 @@ function setSingleChoiceList(singleChoiceList)
     const entryIconClass = (entryIcon.length !== 0)   ? 'icon'                                              : '';
 
     if (entry.id === null)
-      listHtml += `<div class="${mConfig.id}-${entry.class} ${entryIconClass}">${entryIcon}${entry.description}</div>`;
+      listHtml += `<div class="${mConfig.id}-${entry.class} ${entryIconClass}">${entryIcon}${entry.text}</div>`;
     else
-      listHtml += `<div id="${entry.id}" class="${mConfig.id}-dialog-single-choice ${entryIconClass}">${entryIcon}${entry.description}</div>`;
+      listHtml += `<div id="${entry.id}" class="${mConfig.id}-dialog-single-choice ${entryIconClass}">${entryIcon}<span class="text">${entry.text}</span></div>`;
   });
   
   mElements.body.innerHTML = listHtml;

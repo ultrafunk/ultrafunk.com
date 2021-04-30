@@ -7,10 +7,14 @@
 
 .site-theme-light {
   --modal-background-color: #fff;
+  --single-choice-hover-color: #000;
+  --single-choice-background-hover-color: #d8d8d8;
 }
 
 .site-theme-dark {
   --modal-background-color: #444;
+  --single-choice-hover-color: #fff;
+  --single-choice-background-hover-color: #666;
 }
 
 #modal-dialog {
@@ -96,22 +100,28 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  white-space: pre-wrap;
 }
 
 .modal-dialog-single-choice.icon {
-  padding: 10px 30px;
+  padding: 8px 30px;
+  color: var(--primary-icon-color);
+}
+
+.modal-dialog-single-choice .text {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .modal-dialog-single-choice .material-icons {
-  font-size: 24px;
-  margin-right: 14px;
+  font-size: 28px;
+  margin-right: 15px;
   margin-left: -1px;
 }
 
 .modal-dialog-single-choice:hover {
-  color: var(--link-hover-color);
-  background-color: var(--list-row-odd-color);
+  color: var(--single-choice-hover-color);
+  background-color: var(--single-choice-background-hover-color);
 }
 
 #modal-dialog.show {
@@ -182,11 +192,11 @@
   }
 
   .modal-dialog-single-choice.icon {
-    padding: 8px 20px;
+    padding: 7px 20px;
   }
 
   .modal-dialog-single-choice .material-icons {
-    font-size: 22px;
+    font-size: 24px;
     margin-right: 12px;
   }
   
