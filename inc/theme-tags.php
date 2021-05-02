@@ -475,7 +475,7 @@ function perf_results()
     $results = ($ultrafunk_is_prod_build ? 'PROD - ' : 'DEV - ') . get_num_queries() . ' queries in ' . timer_stop(0) . ' seconds';
 
     if ($perf_data['time_start'] !== 0)
-      $results .= ' - cRndTrans: ' . $perf_data['create_rnd_transient'] . ' ms - gRndTrans: ' . $perf_data['get_rnd_transient'] . ' ms';
+      $results .= ' - cRnd: ' . $perf_data['create_rnd_transient'] . ' ms - gRnd: ' . $perf_data['get_rnd_transient'] . ' ms';
 
     echo '<!-- ' . esc_html($results) . ' -->';
   }

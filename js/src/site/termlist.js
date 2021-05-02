@@ -5,11 +5,11 @@
 //
 
 
-import * as debugLogger from '../shared/debuglogger.js';
-import * as termRest    from './term-rest.js';
-import { KEY }          from '../shared/storage.js';
-import { shareModal }   from './interaction.js';
-import { replaceClass } from '../shared/utils.js';
+import * as debugLogger   from '../shared/debuglogger.js';
+import * as termRest      from './term-rest.js';
+import { shareModal }     from './interaction.js';
+import { replaceClass }   from '../shared/utils.js';
+import { KEY, setCookie } from '../shared/storage.js';
 
 import {
   setArtistTitle,
@@ -26,6 +26,7 @@ export {
 
 
 const debug            = debugLogger.newInstance('termlist');
+let settings           = {};
 const artistTitleRegEx = /\s{1,}[–·-]\s{1,}|\s{1,}(&#8211;)\s{1,}/;
 const iframeSrcRegEx   = /(?<=src=").*?(?=[?"])/i;
 let termlistContainer  = null;
@@ -35,19 +36,20 @@ let termlistContainer  = null;
 // Setup module
 // ************************************************************************************************
 
-function init()
+function init(siteSettings)
 {
   debug.log('init()');
 
+  settings          = siteSettings;
   termlistContainer = document.getElementById('termlist-container');
 
   termlistContainer.addEventListener('click', (event) =>
   {
     const playButton = event.target.closest('div.play-button');
-    if (playButton !== null ) return playShuffleButtonClick(event, playButton.querySelector('a').href);
+    if (playButton !== null ) return playButtonClick(event, playButton.querySelector('a').href);
 
     const shuffleButton = event.target.closest('div.shuffle-button');
-    if (shuffleButton !== null ) return playShuffleButtonClick(event, shuffleButton.querySelector('a').href);
+    if (shuffleButton !== null ) return shuffleButtonClick(event, shuffleButton.querySelector('a').href);
 
     const shareFindButton = event.target.closest('div.share-find-button');
     if (shareFindButton !== null ) return shareFindButtonClick(shareFindButton);
@@ -59,7 +61,7 @@ function init()
     if (playTrackButton !== null ) return playTrackButtonClick(event, playTrackButton);
 
     const linkElement = event.target.closest('a');
-    if (linkElement !== null) return saveState();
+    if (linkElement !== null) return linkClicked(event, linkElement);
   });
 
   restoreState();
@@ -115,25 +117,36 @@ function restoreState()
   termRest.deleteCache();
 }
 
+function getPrefPlayerPath(url)
+{
+  return (settings.user.preferredPlayer === 1) ? url.replace(/ultrafunk\.com\//, 'ultrafunk.com/list/') : url;
+}
+
 
 // ************************************************************************************************
 // Click event functions
 // ************************************************************************************************
 
-function playShuffleButtonClick(event, destUrl, trackId = null)
+function playButtonClick(event, destUrl, trackId = null)
 {
   event.preventDefault();
   saveState();
 //ToDo: Create a playbackSetting for this? Or use SHIFT + click to skip autoplay
   sessionStorage.setItem(KEY.UF_AUTOPLAY, JSON.stringify({ autoplay: (event.shiftKey === false), trackId: trackId, position: 0 }));
-  window.location.href = destUrl;
+  window.location.href = getPrefPlayerPath(destUrl);
+}
+
+function shuffleButtonClick(event, destUrl)
+{
+  setCookie('UF_RESHUFFLE', 'true');
+  playButtonClick(event, destUrl);
 }
 
 function shareFindButtonClick(element)
 {
   const termPath = element.getAttribute('data-term-path');
   const termName = element.getAttribute('data-term-name');
-  const termUrl  = element.getAttribute('data-term-url');
+  const termUrl  = getPrefPlayerPath(element.getAttribute('data-term-url'));
 
   shareModal.show({ title: `Share / Find ${termPath}`, string: termName, url: termUrl, verb: 'Find' });
 }
@@ -145,9 +158,20 @@ function playTrackButtonClick(event, element)
   const termUid  = element.getAttribute('data-term-uid');
 
   if (termUid !== null)
-    return playShuffleButtonClick(event, `/list/${termPath}/${termSlug}/`, termUid);
+    return playButtonClick(event, `/list/${termPath}/${termSlug}/`, termUid); // ToDo: Add support for settings.user.preferredPlayer here, not hardcoded to /list/
   else
-    return playShuffleButtonClick(event, element.getAttribute('data-term-url'));
+    return playButtonClick(event, element.getAttribute('data-term-url'));
+}
+
+function linkClicked(event, element)
+{
+  saveState();
+
+  if (element.closest('.permalink') !== null)
+  {
+    event.preventDefault();
+    window.location.href = getPrefPlayerPath(element.href);
+  }
 }
 
 function termlistHeaderClick(event)
@@ -240,6 +264,6 @@ function insertThumbnailListHtml(header, termSlug, termData, destElement)
 function insertLinksHtml(header, termData, destElement)
 {
   let html = `<b>${header}</b><br>`;
-  termData.forEach(item => html += `<a href="${item.link}">${item.name}</a>, `);
+  termData.forEach(item => html += `<a href="${getPrefPlayerPath(item.link)}">${item.name}</a>, `);
   destElement.innerHTML = html.slice(0, (html.length - 2));
 }

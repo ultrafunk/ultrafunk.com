@@ -102,15 +102,14 @@
   align-items: center;
 }
 
+.modal-dialog-single-choice:hover {
+  color: var(--single-choice-hover-color);
+  background-color: var(--single-choice-background-hover-color);
+}
+
 .modal-dialog-single-choice.icon {
   padding: 8px 30px;
   color: var(--primary-icon-color);
-}
-
-.modal-dialog-single-choice .text {
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
 }
 
 .modal-dialog-single-choice .material-icons {
@@ -119,9 +118,10 @@
   margin-left: -1px;
 }
 
-.modal-dialog-single-choice:hover {
-  color: var(--single-choice-hover-color);
-  background-color: var(--single-choice-background-hover-color);
+.modal-dialog-single-choice span.text {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 #modal-dialog.show {

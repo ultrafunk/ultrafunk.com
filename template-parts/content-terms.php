@@ -9,7 +9,7 @@ namespace Ultrafunk\ContentTerms;
 
 
 use function Ultrafunk\Globals\console_log;
-use function \Ultrafunk\SharedRequest\request_pagination;
+use function Ultrafunk\SharedRequest\request_pagination;
 
 
 /**************************************************************************************************************************/

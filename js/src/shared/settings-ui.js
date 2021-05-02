@@ -5,17 +5,17 @@
 //
 
 
-import * as debugLogger from './debuglogger.js?ver=1.19.12';
-import * as settings    from './settings.js?ver=1.19.12';
-import { addListener }  from './utils.js?ver=1.19.12';
-import { showSnackbar } from './snackbar.js?ver=1.19.12';
+import * as debugLogger from './debuglogger.js?ver=1.19.13';
+import * as settings    from './settings.js?ver=1.19.13';
+import { addListener }  from './utils.js?ver=1.19.13';
+import { showSnackbar } from './snackbar.js?ver=1.19.13';
 
 import {
   KEY,
   deleteCookie,
   readJson,
   writeJson,
-} from '../shared/storage.js?ver=1.19.12';
+} from '../shared/storage.js?ver=1.19.13';
 
 
 /*************************************************************************************************/
@@ -103,6 +103,7 @@ function readSettingsError()
     localStorage.removeItem(KEY.UF_PLAYBACK_SETTINGS);
     localStorage.removeItem(KEY.UF_SITE_SETTINGS);
     deleteCookie(KEY.UF_TRACKS_PER_PAGE);
+  //deleteCookie(KEY.UF_PREFERRED_PLAYER);
 
     readSettings(true);
 

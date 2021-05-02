@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () =>
     showIntroBanner();
   
   if (document.getElementById('termlist-container') !== null)
-    termlist.init();
+    termlist.init(mSettings);
 
   if (mElements.siteContentSearch !== null)
   {
@@ -63,7 +63,8 @@ document.addEventListener('DOMContentLoaded', () =>
   {
     readSettings();
     interaction.settingsUpdated(mSettings);
-    storage.setCookie(storage.KEY.UF_TRACKS_PER_PAGE, mSettings.user.tracksPerPage, (60 * 60 * 24 * 365 * 5));
+    storage.setCookie(storage.KEY.UF_TRACKS_PER_PAGE,  mSettings.user.tracksPerPage,   (60 * 60 * 24 * 365 * 5));
+  //storage.setCookie(storage.KEY.UF_PREFERRED_PLAYER, mSettings.user.preferredPlayer, (60 * 60 * 24 * 365 * 5));
   });
   
   document.addEventListener(mConfig.fullscreenElementEvent, (event) => mElements.fullscreenTarget = event.fullscreenTarget);

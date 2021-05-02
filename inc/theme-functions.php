@@ -39,7 +39,7 @@ function get_navigation_vars()
                              ? $params['items_per_page']
                              : get_dev_prod_const('player_items_per_page'),
     'galleryItemsPerPage' => (is_shuffle() || (is_player() && $params['is_player_shuffle']))
-                             ? get_cookie_tracks_per_page()
+                             ? get_cookie_value('UF_TRACKS_PER_PAGE', 3, 24, intval(get_option('posts_per_page', 12)))
                              : intval(get_option('posts_per_page', 12)),
   );
 
@@ -108,19 +108,19 @@ function modify_search_query($query)
 add_action('parse_query', '\Ultrafunk\ThemeFunctions\modify_search_query');
 
 //
+// Get named cookie value if it exists with range check
 //
-//
-function get_cookie_tracks_per_page()
+function get_cookie_value(string $cookie_name, int $min_val, int $max_val, int $default_val) : int
 {
-  if (isset($_COOKIE['UF_TRACKS_PER_PAGE']))
+  if (isset($_COOKIE[$cookie_name]))
   {
-    $tracks_per_page = intval($_COOKIE['UF_TRACKS_PER_PAGE']);
+    $cookie_val = intval($_COOKIE[$cookie_name]);
 
-    if (($tracks_per_page > 2) && ($tracks_per_page < 25))
-      return $tracks_per_page;
+    if (($cookie_val >= $min_val) && ($cookie_val <= $max_val))
+      return $cookie_val;
   }
 
-  return intval(get_option('posts_per_page', 12));
+  return $default_val;
 }
 
 //
@@ -131,7 +131,7 @@ function set_posts_per_page($query)
   if (!is_admin() && $query->is_main_query())
   {
     if ($query->is_search || is_shuffle())
-      $query->set('posts_per_page', get_cookie_tracks_per_page());
+      $query->set('posts_per_page', get_cookie_value('UF_TRACKS_PER_PAGE', 3, 24, intval(get_option('posts_per_page', 12))));
   }
 }
 add_action('pre_get_posts', '\Ultrafunk\ThemeFunctions\set_posts_per_page', 1);
