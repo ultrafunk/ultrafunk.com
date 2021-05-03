@@ -25,11 +25,9 @@ export {
 /*************************************************************************************************/
 
 
-const debug            = debugLogger.newInstance('termlist');
-let settings           = {};
-const artistTitleRegEx = /\s{1,}[–·-]\s{1,}|\s{1,}(&#8211;)\s{1,}/;
-const iframeSrcRegEx   = /(?<=src=").*?(?=[?"])/i;
-let termlistContainer  = null;
+const debug  = debugLogger.newInstance('termlist');
+let settings = {};
+let termlistContainer = null;
 
 
 // ************************************************************************************************
@@ -227,6 +225,14 @@ function fetchDataUpdateDOM(termlistEntry, termlistBody)
     }
   });
 }
+
+
+// ************************************************************************************************
+//
+// ************************************************************************************************
+
+const artistTitleRegEx = /\s{1,}[–·-]\s{1,}|\s{1,}(&#8211;)\s{1,}/;
+const iframeSrcRegEx   = /(?<=src=").*?(?=[?"])/i;
 
 function getThumbnail(contentHtml)
 {

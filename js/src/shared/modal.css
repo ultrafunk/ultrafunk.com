@@ -58,13 +58,13 @@
 .modal-dialog-title,
 .modal-dialog-body-title {
   font-size: 25px;
-  line-height: 25px;
+  line-height: 29px;
   font-weight: 700;
   text-transform: uppercase;
 }
 
 .modal-dialog-body-title {
-  padding: 20px 30px 10px 30px; 
+  padding: 18px 30px 8px 30px; 
 }
 
 .modal-dialog-close-button {
@@ -94,7 +94,7 @@
 
 .modal-dialog-single-choice {
   font-size: 20px;
-  line-height: 20px;
+  line-height: 24px;
   font-weight: 400;
   padding: 12px 30px;
   cursor: pointer;
@@ -162,11 +162,11 @@
   .modal-dialog-title,
   .modal-dialog-body-title {
     font-size: 20px;
-    line-height: 20px;
+    line-height: 24px;
   }
 
   .modal-dialog-body-title {
-    padding: 20px 20px 10px 20px;
+    padding: 16px 20px 6px 20px;
   }
   
   .modal-dialog-close-button {
@@ -187,12 +187,12 @@
 
   .modal-dialog-single-choice {
     font-size: 15px;
-    line-height: 15px;
+    line-height: 20px;
     padding: 12px 20px;
   }
 
   .modal-dialog-single-choice.icon {
-    padding: 7px 20px;
+    padding: 8px 20px;
   }
 
   .modal-dialog-single-choice .material-icons {
