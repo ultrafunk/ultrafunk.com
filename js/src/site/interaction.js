@@ -15,8 +15,7 @@ import { KEY, setValue } from '../shared/storage.js';
 export {
   init,
   settingsUpdated,
-  siteTheme,
-  galleryLayout,
+  m as mProps,
   shareModal,
 };
 
@@ -26,7 +25,13 @@ export {
 
 const debug         = debugLogger.newInstance('site-interaction');
 const htmlClassList = document.documentElement.classList;
-let settings        = {};
+
+// Only const top level variables in modules + m.prop namespace for clarity
+const m = {
+  settings:      {},
+  siteTheme:     null,
+  galleryLayout: null,
+};
 
 
 // ************************************************************************************************
@@ -37,10 +42,9 @@ function init(siteSettings)
 {
   debug.log('init()');
 
-  settings = siteSettings;
-
-  siteTheme.init();
-  galleryLayout.init();
+  m.settings      = siteSettings;
+  m.siteTheme     = new SiteThemeToggle('footer-site-theme-toggle');
+  m.galleryLayout = new GalleryLayoutToggle('footer-gallery-layout-toggle');
 
   utils.addListener('#menu-primary-menu .reshuffle-menu-item',      'click', utils.shuffleClick);
   utils.addListenerAll('.entry-meta-controls .track-share-control', 'click', trackShareControlClick);
@@ -48,9 +52,9 @@ function init(siteSettings)
 
 function settingsUpdated(updatedSettings)
 {
-  settings = updatedSettings;
-  siteTheme.setCurrent();
-  galleryLayout.setCurrent();
+  m.settings = updatedSettings;
+  m.siteTheme.setCurrent();
+  m.galleryLayout.setCurrent();
 }
 
 function trackShareControlClick(event)
@@ -68,13 +72,13 @@ function trackShareControlClick(event)
 
 function getCurrentSetting(settings, currentId, defaultSetting)
 {
-  const setting = Object.values(settings).find(value => value.id === currentId);
+  const setting = Object.values(settings).find(value => (value.id === currentId));
   return ((setting !== undefined) ? setting : defaultSetting);
 }
 
 function getNextSetting(settings, currentSetting)
 {
-  const index = Object.values(settings).findIndex(value => value.id === currentSetting.id);
+  const index = Object.values(settings).findIndex(value => (value.id === currentSetting.id));
   const keys  = Object.keys(settings);
   return (((index + 1) < keys.length) ? settings[keys[index + 1]] : settings[keys[0]]);
 }
@@ -84,164 +88,129 @@ function getNextSetting(settings, currentSetting)
 // Site theme handling
 // ************************************************************************************************
 
-const siteTheme = (() =>
+class SiteThemeToggle extends utils.ToggleElement
 {
-  let currentTheme = {};
-  const elements   = { toggle: null };
+  constructor(elementId)
+  {
+    super(elementId, false);
 
-  const config = {
-    toggleId:       '#footer-site-theme-toggle',
-    prefDarkScheme: '(prefers-color-scheme: dark)',
-  };
-  
-  const themes = {
-    light: { id: 'light', text: 'light', class: 'site-theme-light' },
-    dark:  { id: 'dark',  text: 'dark',  class: 'site-theme-dark'  },
-    auto:  { id: 'auto',  text: 'auto'                             }, // This has no CSS class since auto is always light or dark
-  };
+    this.themes = {
+      light: { id: 'light', text: 'light', class: 'site-theme-light' },
+      dark:  { id: 'dark',  text: 'dark',  class: 'site-theme-dark'  },
+      auto:  { id: 'auto',  text: 'auto'                             }, // This has no CSS class since auto is always light or dark
+    };
 
-  return {
-    init,
-    setCurrent,
-    toggle,
-  };
+    this.setCurrent();
 
-  function init()
-  {
-    elements.toggle = document.querySelector(config.toggleId);
-    elements.toggle.addEventListener('click', toggle);
-    window.matchMedia(config.prefDarkScheme).addEventListener('change', matchMediaPrefColorScheme);
-    setCurrent();
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => this.matchMediaPrefColorScheme(event));
   }
-  
-  function setCurrent()
+
+  setCurrent()
   {
-    currentTheme = getCurrentSetting(themes, settings.user.theme, themes.auto);
-    updateData();
+    this.currentTheme = getCurrentSetting(this.themes, m.settings.user.theme, this.themes.auto);
+    this.update();
   }
-  
-  function matchMediaPrefColorScheme()
+
+  matchMediaPrefColorScheme()
   {
-    if (currentTheme.id === themes.auto.id)
-      updateData();
+    if (this.currentTheme.id === this.themes.auto.id)
+      this.update();
   }
-  
-  function toggle(event)
+
+  toggle()
   {
-    event.preventDefault();
-    currentTheme = getNextSetting(themes, currentTheme);
-    settings.user.theme = currentTheme.id;
-    updateData();  
+    this.currentTheme = getNextSetting(this.themes, this.currentTheme);
+    m.settings.user.theme = this.currentTheme.id;
+    this.update();  
   }
-  
-  function updateData()
+
+  update()
   {
-    let newTheme = currentTheme;
+    let newTheme = this.currentTheme;
   
-    if (currentTheme.id === themes.auto.id)
-      newTheme = window.matchMedia(config.prefDarkScheme).matches ? themes.dark : themes.light;
+    if (this.currentTheme.id === this.themes.auto.id)
+      newTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? this.themes.dark : this.themes.light;
   
     setValue(KEY.UF_SITE_THEME, newTheme.id);
-    updateDOM(newTheme);
-  }
   
-  function updateDOM(newTheme)
-  {
     // Only update DOM if something has actually changed...
     if (htmlClassList.contains(newTheme.class) === false)
     {
-      debug.log(`updateDOM() - newSiteTheme: ${newTheme.id}`);
+      debug.log(`SiteThemeToggle.update() - newSiteTheme: ${newTheme.id}`);
     
-      htmlClassList.remove(themes.light.class, themes.dark.class);
+      htmlClassList.remove(this.themes.light.class, this.themes.dark.class);
       htmlClassList.add(newTheme.class);
     }
 
     // Always update this because AUTO is not a separate class (only DARK + LIGHT are classes)
-    elements.toggle.querySelector('span').textContent = currentTheme.text;
+    this.textContent = this.currentTheme.text;
   }
-})();
+}
 
 
 // ************************************************************************************************
 // Gallery layout handling
 // ************************************************************************************************
 
-const galleryLayout = (() =>
+class GalleryLayoutToggle extends utils.ToggleElement
 {
-  let currentLayout = {};
-  const elements    = { toggle: null };
-
-  const config = {
-    toggleId: '#footer-gallery-layout-toggle',
-    minWidth: `(max-width: ${utils.getCssPropString('--site-gallery-layout-min-width')})`,
-  };
-
-  const layouts = {
-    oneColumn:   { id: '1-column', text: '1 column',     class: 'gallery-layout-1-column' },
-    twoColumn:   { id: '2-column', text: '2 column',     class: 'gallery-layout-2-column' },
-    threeColumn: { id: '3-column', text: '3 / 4 column', class: 'gallery-layout-3-column' },
-  };
-
-  return {
-    init,
-    setCurrent,
-    toggle,
-  };
-
-  function init()
+  constructor(elementId)
   {
-    elements.toggle = document.querySelector(config.toggleId);
-    elements.toggle.addEventListener('click', toggle);
-    window.matchMedia(config.minWidth).addEventListener('change', matchMediaMinWidth);
-    setCurrent();
+    super(elementId, false);
+
+    this.minWidth = `(max-width: ${utils.getCssPropString('--site-gallery-layout-min-width')})`;
+
+    this.layouts = {
+      oneColumn:   { id: '1-column', text: '1 column',     class: 'gallery-layout-1-column' },
+      twoColumn:   { id: '2-column', text: '2 column',     class: 'gallery-layout-2-column' },
+      threeColumn: { id: '3-column', text: '3 / 4 column', class: 'gallery-layout-3-column' },
+    };
+
+    this.setCurrent();
+
+    window.matchMedia(this.minWidth).addEventListener('change', (event) => this.matchMediaMinWidth(event));
   }
 
-  function setCurrent()
+  setCurrent()
   {
-    currentLayout = getCurrentSetting(layouts, settings.user.galleryLayout, layouts.threeColumn);
-    elements.toggle.querySelector('span').textContent = currentLayout.text;
-    updateData();
+    this.currentLayout = getCurrentSetting(this.layouts, m.settings.user.galleryLayout, this.layouts.threeColumn);
+    this.update();
   }
-  
-  function matchMediaMinWidth(event)
+
+  matchMediaMinWidth(event)
   {
     if (htmlClassList.contains('user-layout'))
-      event.matches ? htmlClassList.remove(currentLayout.class) : htmlClassList.add(currentLayout.class);
+      event.matches ? htmlClassList.remove(this.currentLayout.class) : htmlClassList.add(this.currentLayout.class);
   }
-  
-  function toggle(event)
+
+  toggle(event)
   {
-    event.preventDefault();
-    currentLayout = getNextSetting(layouts, currentLayout);
-    settings.user.galleryLayout = currentLayout.id;
-    updateData();
+    this.currentLayout = getNextSetting(this.layouts, this.currentLayout);
+    m.settings.user.galleryLayout = this.currentLayout.id;
+    this.update();
 
     if (event.type === 'click')
-      elements.toggle.scrollIntoView();
+      this.element.scrollIntoView();
   }
-  
-  function updateData()
+
+  update()
   {
-    setValue(KEY.UF_GALLERY_LAYOUT, currentLayout.id);
-    updateDOM();
-  }
-  
-  function updateDOM()
-  {
+    setValue(KEY.UF_GALLERY_LAYOUT, this.currentLayout.id);
+
     // Only update DOM if needed and when something has actually changed
-    if ((htmlClassList.contains('user-layout')) && (htmlClassList.contains(currentLayout.class) === false))
+    if ((htmlClassList.contains('user-layout')) && (htmlClassList.contains(this.currentLayout.class) === false))
     {
-      debug.log(`updateDOM() - newGalleryLayout: ${currentLayout.id}`);
+      debug.log(`GalleryLayoutToggle.update() - newGalleryLayout: ${this.currentLayout.id}`);
 
-      htmlClassList.remove(layouts.oneColumn.class, layouts.twoColumn.class, layouts.threeColumn.class);
+      htmlClassList.remove(this.layouts.oneColumn.class, this.layouts.twoColumn.class, this.layouts.threeColumn.class);
 
-      if (window.matchMedia(config.minWidth).matches === false)
-        htmlClassList.add(currentLayout.class);
+      if (window.matchMedia(this.minWidth).matches === false)
+        htmlClassList.add(this.currentLayout.class);
     }
 
-    elements.toggle.querySelector('span').textContent = currentLayout.text;
+    this.textContent = this.currentLayout.text;
   }
-})();
+}
 
 
 // ************************************************************************************************

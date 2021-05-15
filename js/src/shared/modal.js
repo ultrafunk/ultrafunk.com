@@ -18,29 +18,31 @@ export {
 
 const debug = debugLogger.newInstance('modal');
 
-const mConfig = {
+const m = {
+  selectedClick: null,
+};
+
+const config = {
   id: 'modal',
 };
 
-const mTemplate = `
-  <div id="${mConfig.id}-dialog" tabindex="-1">
-    <div class="${mConfig.id}-dialog-container">
-      <div class="${mConfig.id}-dialog-header">
-        <div class="${mConfig.id}-dialog-title"></div>
-        <div class="${mConfig.id}-dialog-close-button"><span class="material-icons" title="Dismiss">close</span></div>
+const template = `
+  <div id="${config.id}-dialog" tabindex="-1">
+    <div class="${config.id}-dialog-container">
+      <div class="${config.id}-dialog-header">
+        <div class="${config.id}-dialog-title"></div>
+        <div class="${config.id}-dialog-close-icon"><span class="material-icons" title="Dismiss">close</span></div>
       </div>
-      <div class="${mConfig.id}-dialog-body"></div>
+      <div class="${config.id}-dialog-body"></div>
     </div>
   </div>
 `;
 
-const mElements = {
+const elements = {
   overlay:   null,
   container: null,
   body:      null,
 };
-
-let selectedClick = null;
 
 
 // ************************************************************************************************
@@ -53,42 +55,42 @@ function showModal(title, singleChoiceList, selectedClickCallback)
 
   init();
   
-  selectedClick = selectedClickCallback;
+  m.selectedClick = selectedClickCallback;
   setSingleChoiceList(singleChoiceList);
 
-  mElements.container.querySelector(`.${mConfig.id}-dialog-title`).innerHTML = title;
-  mElements.overlay.classList.add('show');
-  mElements.overlay.addEventListener('keydown', keyDown);
-  mElements.overlay.focus();
+  elements.container.querySelector(`.${config.id}-dialog-title`).innerHTML = title;
+  elements.overlay.classList.add('show');
+  elements.overlay.addEventListener('keydown', keyDown);
+  elements.overlay.focus();
   disablePageScrolling(true);
 }
 
 function init()
 {
-  if (mElements.container === null)
+  if (elements.container === null)
   {
-    document.body.insertAdjacentHTML('beforeend', mTemplate);
+    document.body.insertAdjacentHTML('beforeend', template);
     
-    mElements.overlay   = document.getElementById(`${mConfig.id}-dialog`);
-    mElements.container = mElements.overlay.querySelector(`.${mConfig.id}-dialog-container`);
-    mElements.body      = mElements.overlay.querySelector(`.${mConfig.id}-dialog-body`);
+    elements.overlay   = document.getElementById(`${config.id}-dialog`);
+    elements.container = elements.overlay.querySelector(`.${config.id}-dialog-container`);
+    elements.body      = elements.overlay.querySelector(`.${config.id}-dialog-body`);
 
-    mElements.overlay.addEventListener('click', (event) =>
+    elements.overlay.addEventListener('click', (event) =>
     {
-      if (event.target === mElements.overlay)
+      if (event.target === elements.overlay)
         close();
     });
 
-    mElements.overlay.addEventListener('animationend', () =>
+    elements.overlay.addEventListener('animationend', () =>
     {
-      if (mElements.overlay.classList.contains('hide'))
+      if (elements.overlay.classList.contains('hide'))
       {
-        mElements.overlay.className = '';
+        elements.overlay.className = '';
         disablePageScrolling(false);
       }
     });
 
-    mElements.overlay.querySelector(`.${mConfig.id}-dialog-close-button`).addEventListener('click', close);
+    elements.overlay.querySelector(`.${config.id}-dialog-close-icon`).addEventListener('click', close);
   }
 }
 
@@ -102,24 +104,24 @@ function setSingleChoiceList(singleChoiceList)
     const entryIconClass = (entryIcon.length !== 0)   ? 'icon'                                              : '';
 
     if (entry.id === null)
-      listHtml += `<div class="${mConfig.id}-${entry.class} ${entryIconClass}">${entryIcon}${entry.text}</div>`;
+      listHtml += `<div class="${config.id}-${entry.class} ${entryIconClass}">${entryIcon}${entry.text}</div>`;
     else
-      listHtml += `<div id="${entry.id}" class="${mConfig.id}-dialog-single-choice ${entryIconClass}">${entryIcon}<span class="text">${entry.text}</span></div>`;
+      listHtml += `<div id="${entry.id}" class="${config.id}-dialog-single-choice ${entryIconClass}">${entryIcon}<span class="text">${entry.text}</span></div>`;
   });
   
-  mElements.body.innerHTML = listHtml;
+  elements.body.innerHTML = listHtml;
 
   singleChoiceList.forEach(entry =>
   {
     if (entry.id !== null)
-      mElements.body.querySelector(`#${entry.id}`).addEventListener('click', singleChoiceListClick);
+      elements.body.querySelector(`#${entry.id}`).addEventListener('click', singleChoiceListClick);
   });
 }
 
 function singleChoiceListClick()
 {
   close();
-  setTimeout(() => selectedClick(this.id), 150);
+  setTimeout(() => m.selectedClick(this.id), 150);
 }
 
 function keyDown(event)
@@ -132,8 +134,8 @@ function keyDown(event)
 
 function close()
 {
-  mElements.overlay.removeEventListener('keydown', keyDown);
-  mElements.overlay.classList.replace('show', 'hide');
+  elements.overlay.removeEventListener('keydown', keyDown);
+  elements.overlay.classList.replace('show', 'hide');
 }
 
 function disablePageScrolling(disable)

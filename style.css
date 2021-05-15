@@ -4,7 +4,7 @@ Theme URI:    https://github.com/ultrafunk/ultrafunk.com
 Author:       Ultrafunk
 Author URI:   https://ultrafunk.com
 Description:  ultrafunk.com WordPress theme
-Version:      1.19.14
+Version:      1.20.0
 Tested up to: 5.5
 Requires PHP: 7.4
 License:      Apache License 2.0
@@ -719,20 +719,20 @@ a:hover#footer-player-toggle {
   text-decoration: none;
 }
 
-a:hover#footer-autoplay-toggle,
-a:hover#footer-crossfade-toggle,
-a:hover#footer-site-theme-toggle,
-a:hover#footer-gallery-layout-toggle {
+#footer-autoplay-toggle:hover,
+#footer-crossfade-toggle:hover,
+#footer-site-theme-toggle:hover,
+#footer-gallery-layout-toggle:hover {
   opacity: var(--control-hover-opacity);
-  text-decoration: none;
+  cursor: pointer;
 }
 
 @media not all and (pointer: fine) {
 
-  a:hover#footer-autoplay-toggle,
-  a:hover#footer-crossfade-toggle,
-  a:hover#footer-site-theme-toggle,
-  a:hover#footer-gallery-layout-toggle {
+  #footer-autoplay-toggle:hover,
+  #footer-crossfade-toggle:hover,
+  #footer-site-theme-toggle:hover,
+  #footer-gallery-layout-toggle:hover {
     opacity: 1;
   }
   

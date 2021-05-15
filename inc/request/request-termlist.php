@@ -5,7 +5,7 @@
  */
 
 
-namespace Ultrafunk\RequestTerms;
+namespace Ultrafunk\RequestTermlist;
 
 
 use Ultrafunk\SharedRequest\Request;
@@ -15,7 +15,7 @@ use function Ultrafunk\SharedRequest\get_max_pages;
 /**************************************************************************************************************************/
 
 
-class RequestTerms extends Request
+class RequestTermlist extends Request
 {
   public function __construct(object $wp_env, string $matched_route, array $url_parts)
   {
@@ -23,7 +23,7 @@ class RequestTerms extends Request
 
     if (($matched_route === 'artists') || ($matched_route === 'artists_letter'))
     {
-      add_filter('terms_clauses', function($clauses, $taxonomies, $args)
+      add_filter('terms_clauses', function(array $clauses, array $taxonomies, array $args) : array
       {
         if(!isset($args['first_letter']))
           return $clauses;
@@ -76,12 +76,12 @@ class RequestTerms extends Request
 /**************************************************************************************************************************/
 
 
-function terms_callback(bool $do_parse, object $wp_env, string $matched_route, array $url_parts) : bool
+function termlist_callback(bool $do_parse, object $wp_env, string $matched_route, array $url_parts) : bool
 {
-  $request = new RequestTerms($wp_env, $matched_route, $url_parts);
+  $request = new RequestTermlist($wp_env, $matched_route, $url_parts);
 
   if ($request->is_valid())
-    $request->render_content($wp_env, 'content-terms.php', '\Ultrafunk\ContentTerms\termlist');
+    $request->render_content($wp_env, 'content-termlist.php', '\Ultrafunk\ContentTermlist\content_termlist');
 
   return $do_parse;
 }

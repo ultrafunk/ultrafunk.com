@@ -72,7 +72,7 @@ class RequestShuffle
   //
   // Set unique ID cookie for random shuffle
   //
-  private function set_cookie($uid)
+  private function set_cookie(string $uid) : void
   {
     if (!isset($_COOKIE['UF_SHUFFLE_UID']))
     {
@@ -91,7 +91,7 @@ class RequestShuffle
   //
   // Create get_posts() args with optional 'tag_id' or 'cat'
   //
-  private function get_posts_args()
+  private function get_posts_args() : ?array
   {
     $args = array(
       'fields'         => 'ids',
@@ -116,7 +116,7 @@ class RequestShuffle
   //
   // Get term field from slug
   //
-  private function get_term_field_from_slug($slug, $taxonomy, $field)
+  private function get_term_field_from_slug(string $slug, string $taxonomy, string $field)
   {
     $wp_term = get_term_by('slug', $slug, $taxonomy);
 
@@ -129,7 +129,7 @@ class RequestShuffle
   //
   // Get term name from slug
   //
-  public function set_slug_name()
+  public function set_slug_name() : void
   {
     if ($this->params['type'] === 'artist')
       $this->params['slug_name'] = $this->get_term_field_from_slug($this->params['slug'], 'post_tag', 'name');
@@ -141,7 +141,7 @@ class RequestShuffle
   //
   // Get unique ID cookie for random shuffle
   //
-  public function get_transient_name()
+  public function get_transient_name() : string
   {
     if (isset($_COOKIE['UF_SHUFFLE_UID']))
     {
@@ -190,7 +190,7 @@ class RequestShuffle
   //
   // Get page number for the current shuffle type
   //
-  public function get_page_num($max_page_num)
+  public function get_page_num(int $max_page_num) : int
   {
     $page_num = 0;
     

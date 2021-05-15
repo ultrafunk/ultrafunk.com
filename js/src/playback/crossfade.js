@@ -38,12 +38,12 @@ const CURVE = {
 };
 
 const STATE = {
-  NONE:   0,
-  INIT:   1,
-  FADING: 2,
+  NONE:  -1,
+  INIT:   0,
+  FADING: 1,
 };
 
-const mConfig = {
+const config = {
   intervalEqPow:   33, // Milliseconds between each crossfade update event
   intervalLinear: 100,
 };
@@ -108,7 +108,7 @@ const getInstance = ((playbackSettings, mediaPlayers) =>
 
       fadeOutPlayer.getPosition((positionMilliseconds) =>
       {
-        const updateInterval = (fadePreset.curve === CURVE.EQUAL_POWER) ? mConfig.intervalEqPow : mConfig.intervalLinear;
+        const updateInterval = (fadePreset.curve === CURVE.EQUAL_POWER) ? config.intervalEqPow : config.intervalLinear;
         fadeStartTime        = ((positionMilliseconds + updateInterval) / 1000);
         const timeRemaining  = fadeOutPlayer.getDuration() - fadeStartTime;
         const fadeRemaining  = timeRemaining - (updateInterval / 1000);

@@ -5,7 +5,7 @@
  */
 
 
-namespace Ultrafunk\ContentPlayer;
+namespace Ultrafunk\ContentListPlayer;
 
 
 use function Ultrafunk\Globals\console_log;
@@ -15,7 +15,7 @@ use function Ultrafunk\SharedRequest\request_pagination;
 /**************************************************************************************************************************/
 
 
-function content_player($request)
+function content_list_player(object $request) : void
 {
   $tracks = get_posts($request->query_args);
 
@@ -40,7 +40,7 @@ function content_player($request)
   }
 }
 
-function find_video_id_pos($content)
+function find_video_id_pos(string $content) : ?array
 {
   $id_prefix_strings = array('/watch?v=', '/embed/', 'youtu.be/');
 
@@ -55,13 +55,13 @@ function find_video_id_pos($content)
   return null;
 }
 
-function term_links($tags, $path)
+function term_links(array $tags, string $path) : void
 {
   foreach ($tags as $tag)
     echo "<a href='/list/$path/$tag->slug/'>$tag->name</a>";
 }
 
-function tracklist_entries($request, $tracks)
+function tracklist_entries(object $request, array $tracks) : void
 {
   global $ultrafunk_is_prod_build;
   $artist_title_regex = '/\s{1,}[–·-]\s{1,}/u'; // '/u' option MUST be set to handle Unicode
@@ -99,7 +99,9 @@ function tracklist_entries($request, $tracks)
         <?php if (isset($video_id_pos)) { ?>
           <div class="artist-title text-nowrap-ellipsis"><span><b><?php echo esc_html($artist_title[0]); ?></b></span><br><span><?php echo esc_html($artist_title[1]); ?></span></div>
         <?php } else { ?>
-          <div class="artist-title text-nowrap-ellipsis" title="Link: Play SoundCloud track"><a href="<?php echo $track_url; ?>"><span><b><?php echo esc_html($artist_title[0]); ?></b></span><br><span><?php echo esc_html($artist_title[1]); ?></span></a></div>
+          <div class="artist-title text-nowrap-ellipsis" title="Link: Play SoundCloud track">
+            <a href="<?php echo $track_url; ?>"><span><b><?php echo esc_html($artist_title[0]); ?></b></span><br><span><?php echo esc_html($artist_title[1]); ?></span></a>
+          </div>
         <?php } ?>
       </div>
       <div class="track-more">

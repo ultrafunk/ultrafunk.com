@@ -11,7 +11,7 @@ namespace Ultrafunk\ThemeTags;
 use function Ultrafunk\Globals\ {
   console_log,
   is_termlist,
-  is_player,
+  is_list_player,
   is_shuffle,
   get_dev_prod_const,
   get_perf_data,
@@ -29,7 +29,7 @@ use function Ultrafunk\ThemeFunctions\ {
 /**************************************************************************************************************************/
 
 
-function get_user_layout_class()
+function get_user_layout_class() : string
 {
   if (!is_singular() && !is_search() && !is_404())
   {
@@ -38,13 +38,12 @@ function get_user_layout_class()
     if (isset($wp_query) && ($wp_query->found_posts >= 3))
       return 'user-layout';
   }
+
+  return '';
 }
 
-function pre_wp_head()
+function pre_wp_head() : void
 {
-  if (is_shuffle() || (is_player() && get_request_params()['is_player_shuffle']))
-    echo '<meta name="robots" content="noindex">' . PHP_EOL;
-
   ?>
   <script>
     const siteTheme      = localStorage.getItem('UF_SITE_THEME');
@@ -81,7 +80,7 @@ function pre_wp_head()
     echo '<link rel="modulepreload" href="' . esc_url(get_template_directory_uri()) . $ultrafunk_js_preload_chunk . '" as="script" crossorigin>' . PHP_EOL;
 }
 
-function head()
+function head() : void
 {
   $meta_description = '<meta name="description" content="Ultrafunk is a free and open interactive playlist with carefully chosen and continually updated tracks rooted in Funk and other related genres you might like." />' . PHP_EOL;
 
@@ -89,6 +88,9 @@ function head()
     echo $meta_description;
   else if (get_the_ID() === get_dev_prod_const('page_about_id'))
     echo $meta_description;
+
+  if (!is_page() && !is_list_player() && !is_termlist())
+    echo '<script defer src="https://w.soundcloud.com/player/api.js"></script>' . PHP_EOL;
 
   ?>
   <noscript><link rel="stylesheet" href="<?php echo esc_url(get_template_directory_uri()); ?>/inc/css/style-noscript.css" media="all" /></noscript>
@@ -122,10 +124,10 @@ function head()
   }
 }
 
-function body_attributes()
+function body_attributes() : void
 {
   global $wp_query;
-  $track_count = 0;
+  $gallery_track_count = 0;
   
   // 404 never has any posts / tracks
   if (isset($wp_query) && $wp_query->have_posts() && !is_404())
@@ -133,7 +135,7 @@ function body_attributes()
     foreach($wp_query->posts as $post)
     {
       if ($post->post_type === 'post')
-        $track_count++;
+        $gallery_track_count++;
     }
   }
 
@@ -143,21 +145,23 @@ function body_attributes()
   if (is_termlist())
     $classes[] = 'termlist';
 
-  if (is_player())
+  if (is_list_player())
     $classes[] = 'list-player';
 
-  if (($track_count === 0) && !is_player())
+  if (($gallery_track_count === 0) && !is_list_player())
     $classes[] = 'no-playback';
-  else if ($track_count === 1)
+  else if ($gallery_track_count === 1)
     $classes[] = 'single-track';
-  else if ($track_count > 1)
+  else if ($gallery_track_count > 1)
     $classes[] = 'multiple-tracks';
 
   body_class($classes);
-  echo " data-track-count=\"$track_count\"";
+
+  if ($gallery_track_count > 0)
+    echo " data-gallery-track-count=\"$gallery_track_count\"";
 }
 
-function header_progress_controls()
+function header_progress_controls() : void
 {
   ?>
   <div id="progress-controls">
@@ -167,69 +171,79 @@ function header_progress_controls()
   <?php
 }
 
-function header_site_branding()
+function header_site_branding() : void
 {
   $nav_icons = get_nav_bar_icons();
 
   ?>
   <div class="site-branding">
     <?php echo $nav_icons['menu']; ?>
-    <a href="<?php echo \Ultrafunk\Globals\is_player() ? esc_url(home_url('/list/')) : esc_url(home_url('/')); ?>" aria-label="Home"><img src="<?php echo wp_get_attachment_image_src(get_theme_mod('custom_logo'), 'full')[0]; ?>" alt=""></a>
+    <a href="<?php echo \Ultrafunk\Globals\is_list_player() ? esc_url(home_url('/list/')) : esc_url(home_url('/')); ?>" aria-label="Home">
+      <img src="<?php echo wp_get_attachment_image_src(get_theme_mod('custom_logo'), 'full')[0]; ?>" alt="">
+    </a>
     <?php echo $nav_icons['search']; ?>
   </div>
   <?php
 }
 
-function header_playback_controls()
+function header_playback_controls() : void
 {
   ?>
   <div id="playback-controls">
-    <div class="playback-details-control state-disabled" title="Single: Show current track&#010;Double: Toggle Fullscreen (f)"><span class="playback-details-artist"></span><br><span class="playback-details-title"></span></div>
-    <div class="playback-thumbnail-control state-disabled" title="Single: Show current track&#010;Double: Toggle Fullscreen (f)"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/inc/img/thumbnail_placeholder.png" alt=""></div>
-    <div class="playback-timer-control state-disabled" title="Single: Toggle Autoplay (shift + a)"><span class="playback-timer-position"></span><br><span class="playback-timer-duration"></span></div>
-    <div class="playback-prev-control state-disabled" title="Previous track / seek (arrow left)"><i class="material-icons">skip_previous</i></div>
-    <div class="playback-play-pause-control state-disabled" title="Play / Pause (space)"><i class="material-icons">play_circle_filled</i></div>
-    <div class="playback-next-control state-disabled" title="Next track (arrow right)"><i class="material-icons">skip_next</i></div>
-    <div class="playback-shuffle-control state-disabled" title="<?php echo esc_attr(get_shuffle_menu_item_title()); ?>"><a href="<?php echo esc_url(get_shuffle_menu_item_url()); ?>"><i class="material-icons">shuffle</i></a></div>
-    <div class="playback-mute-control state-disabled" title="Mute / Unmute (m)"><i class="material-icons">volume_up</i></div>
+    <div class="playback-details-control state-disabled" title="Single: Show current track&#010;Double: Toggle Fullscreen (f)">
+      <span class="playback-details-artist"></span><br><span class="playback-details-title"></span>
+    </div>
+    <div class="playback-thumbnail-control state-disabled" title="Single: Show current track&#010;Double: Toggle Fullscreen (f)">
+      <img src="<?php echo esc_url(get_template_directory_uri()); ?>/inc/img/thumbnail_placeholder.png" alt="">
+    </div>
+    <div class="playback-timer-control state-disabled" title="Single: Toggle Autoplay (shift + a)">
+      <span class="playback-timer-position"></span><br><span class="playback-timer-duration"></span>
+    </div>
+    <div class="playback-prev-control state-disabled" title="Previous track / seek (arrow left)"><span class="material-icons">skip_previous</span></div>
+    <div class="playback-play-pause-control state-disabled" title="Play / Pause (space)"><span class="material-icons">play_circle_filled</span></div>
+    <div class="playback-next-control state-disabled" title="Next track (arrow right)"><span class="material-icons">skip_next</span></div>
+    <div class="playback-shuffle-control state-disabled" title="<?php echo esc_attr(get_shuffle_menu_item_title()); ?>">
+      <a href="<?php echo esc_url(get_shuffle_menu_item_url()); ?>"><span class="material-icons">shuffle</span></a>
+    </div>
+    <div class="playback-mute-control state-disabled" title="Mute / Unmute (m)"><span class="material-icons">volume_up</span></div>
   </div>
   <?php
 }
 
-function get_nav_bar_icons()
+function get_nav_bar_icons() : array
 {
-  $nav_icons['search'] = '<div class="nav-search-toggle" title="Show / Hide search (s)"><i class="material-icons">search</i></div>';
-  $nav_icons['menu']   = '<div class="nav-menu-toggle" title="Toggle Channel menu (c)"><i class="material-icons">menu</i></div>';
+  $nav_icons['search'] = '<div class="nav-search-toggle" title="Show / Hide search (s)"><span class="material-icons">search</span></div>';
+  $nav_icons['menu']   = '<div class="nav-menu-toggle" title="Toggle Channel menu (c)"><span class="material-icons">menu</span></div>';
 
   return $nav_icons;
 }
 
-function get_nav_bar_arrows()
+function get_nav_bar_arrows() : array
 {
   $nav_vars = get_navigation_vars();
   
   if (($nav_vars['prev'] !== null) || ($nav_vars['next'] !== null))
   {
     if ($nav_vars['prev'] !== null)
-      $nav_arrows['back'] = '<a href="' . $nav_vars['prev'] . '" class="nav-bar-prev-link"><i class="material-icons nav-bar-arrow-back" title="Previous track / page (shift + arrow left)">arrow_backward</i></a>';
+      $nav_arrows['back'] = '<a href="' . $nav_vars['prev'] . '" class="nav-bar-prev-link"><span class="material-icons nav-bar-arrow-back" title="Previous track / page (shift + arrow left)">arrow_backward</span></a>';
     else
-      $nav_arrows['back'] = '<i class="material-icons nav-bar-arrow-back disbled">arrow_backward</i>';
+      $nav_arrows['back'] = '<span class="material-icons nav-bar-arrow-back disbled">arrow_backward</span>';
 
     if ($nav_vars['next'] !== null)
-      $nav_arrows['fwd'] = '<a href="' . $nav_vars['next'] . '" class="nav-bar-next-link"><i class="material-icons nav-bar-arrow-fwd" title="Next track / page (shift + arrow right)">arrow_forward</i></a>';
+      $nav_arrows['fwd'] = '<a href="' . $nav_vars['next'] . '" class="nav-bar-next-link"><span class="material-icons nav-bar-arrow-fwd" title="Next track / page (shift + arrow right)">arrow_forward</span></a>';
     else
-      $nav_arrows['fwd'] = '<i class="material-icons nav-bar-arrow-fwd disbled">arrow_forward</i>';
+      $nav_arrows['fwd'] = '<span class="material-icons nav-bar-arrow-fwd disbled">arrow_forward</span>';
   }
   else
   {
-    $nav_arrows['back'] = '<a href="" title="Go back" onclick="javascript:history.back();return false;" class="nav-bar-prev-link"><i class="material-icons nav-bar-arrow-back">arrow_backward</i></a>';
-    $nav_arrows['fwd']  = '<i class="material-icons nav-bar-arrow-fwd disbled">arrow_forward</i>';
+    $nav_arrows['back'] = '<a href="" title="Go back" onclick="javascript:history.back();return false;" class="nav-bar-prev-link"><span class="material-icons nav-bar-arrow-back">arrow_backward</span></a>';
+    $nav_arrows['fwd']  = '<span class="material-icons nav-bar-arrow-fwd disbled">arrow_forward</span>';
   }
 
   return $nav_arrows;
 }
 
-function header_nav_bars()
+function header_nav_bars() : void
 {
   $nav_icons  = get_nav_bar_icons();
   $nav_arrows = get_nav_bar_arrows();
@@ -259,7 +273,7 @@ function header_nav_bars()
   <?php
 }
 
-function get_wp_pagination($before = ' ( ', $separator = ' / ', $after = ' ) ')
+function get_wp_pagination(string $before = ' ( ', string $separator = ' / ', string $after = ' ) ') : string
 {
   global $wp_query;
   $pagination = '';
@@ -271,7 +285,7 @@ function get_wp_pagination($before = ' ( ', $separator = ' / ', $after = ' ) ')
   return $pagination;
 }
 
-function get_search_hits()
+function get_search_hits() : string
 {
   global $wp_query;
     
@@ -286,7 +300,7 @@ function get_search_hits()
   return '';
 }
 
-function nav_bar_title()
+function nav_bar_title() : void
 {
   $prefix     = is_shuffle() ? '<b>Shuffle: </b>' : '<b>Channel: </b>';
   $title      = esc_html(get_title());
@@ -318,7 +332,7 @@ function nav_bar_title()
     else
       $prefix = '<span class="go-back-to"><b>Go Back: </b><span class="go-back-title"></span></span>';
   }
-  else if (is_player())
+  else if (is_list_player())
   {
     $prefix     = '<b>' . $params['title_parts']['prefix'] . ': </b>';
     $pagination = ($params['max_pages'] > 1) ? ' ( ' . $params['current_page'] . ' / ' . $params['max_pages'] . ' )' : '';
@@ -342,7 +356,7 @@ function nav_bar_title()
   echo '<div class="nav-bar-title">' . $prefix . $title . $pagination . '</div>';
 }
 
-function content_pagination()
+function content_pagination() : void
 {
   $prefix = is_shuffle() ? 'Shuffle: ' : 'Channel: ';
   $title  = esc_html(get_title());
@@ -370,7 +384,7 @@ function content_pagination()
   echo $title_pagination;
 }
 
-function entry_title()
+function entry_title() : void
 {
   if (is_singular())
     esc_html(the_title('<h2 class="entry-title">', '</h2>'));
@@ -378,20 +392,26 @@ function entry_title()
     esc_html(the_title(sprintf('<h2 class="entry-title"><a href="%s" rel="bookmark">', esc_url(get_permalink())), '</a></h2>'));
 }
 
-function meta_controls()
+function meta_controls() : void
 {
   ?>
   <div class="entry-meta-controls">
-    <div class="track-share-control"><span class="material-icons" title="Share track / Play On" data-artist-track-title="<?php echo esc_html(get_the_title()); ?>" data-track-url="<?php echo esc_url(get_permalink()); ?>">share</span></div>
+    <div class="track-share-control">
+      <span class="material-icons" title="Share track / Play On"
+        data-artist-track-title="<?php echo esc_html(get_the_title()); ?>"
+        data-track-url="<?php echo esc_url(get_permalink()); ?>">share</span>
+    </div>
     <div class="crossfade-controls">
       <div class="crossfade-preset-control state-disabled"></div>
-      <div class="crossfade-fadeto-control state-disabled"><img src="<?php echo esc_url(get_template_directory_uri()); ?>/inc/img/crossfade_icon.png" alt="" title="Crossfade to this track"></div>
+      <div class="crossfade-fadeto-control state-disabled">
+        <img src="<?php echo esc_url(get_template_directory_uri()); ?>/inc/img/crossfade_icon.png" alt="" title="Crossfade to this track">
+      </div>
     </div>
   </div>
   <?php
 }
 
-function content_excerpt()
+function content_excerpt() : void
 {
   the_excerpt();
 
@@ -400,7 +420,7 @@ function content_excerpt()
   <?php
 }
 
-function intro_banner()
+function intro_banner() : void
 {
   $property    = '';
   $content     = '';
@@ -444,7 +464,7 @@ function intro_banner()
   }
 }
 
-function content_widgets()
+function content_widgets() : void
 {
   if (is_active_sidebar('content-widgets-1'))
   {
@@ -465,7 +485,7 @@ function content_widgets()
   }
 }
 
-function perf_results()
+function perf_results() : void
 {
   global $ultrafunk_is_prod_build;
   $perf_data = get_perf_data();

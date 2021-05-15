@@ -26,8 +26,11 @@ export {
 
 
 const debug  = debugLogger.newInstance('termlist');
-let settings = {};
-let termlistContainer = null;
+
+const m = {
+  settings:          {},
+  termlistContainer: null,
+};
 
 
 // ************************************************************************************************
@@ -38,10 +41,10 @@ function init(siteSettings)
 {
   debug.log('init()');
 
-  settings          = siteSettings;
-  termlistContainer = document.getElementById('termlist-container');
+  m.settings          = siteSettings;
+  m.termlistContainer = document.getElementById('termlist-container');
 
-  termlistContainer.addEventListener('click', (event) =>
+  m.termlistContainer.addEventListener('click', (event) =>
   {
     const playButton = event.target.closest('div.play-button');
     if (playButton !== null ) return playButtonClick(event, playButton.querySelector('a').href);
@@ -117,7 +120,7 @@ function restoreState()
 
 function getPrefPlayerPath(url)
 {
-  return (settings.user.preferredPlayer === 1) ? url.replace(/ultrafunk\.com\//, 'ultrafunk.com/list/') : url;
+  return (m.settings.user.preferredPlayer === 1) ? url.replace(/ultrafunk\.com\//, 'ultrafunk.com/list/') : url;
 }
 
 
@@ -151,7 +154,7 @@ function shareFindButtonClick(element)
 
 function playTrackButtonClick(event, element)
 {
-  const termPath = (termlistContainer.getAttribute('data-term-type') === 'categories') ? 'channel' : 'artist';
+  const termPath = (m.termlistContainer.getAttribute('data-term-type') === 'categories') ? 'channel' : 'artist';
   const termSlug = element.getAttribute('data-term-slug');
   const termUid  = element.getAttribute('data-term-uid');
 
@@ -195,7 +198,7 @@ function termlistHeaderClick(event)
 
 function fetchDataUpdateDOM(termlistEntry, termlistBody)
 {
-  const termType      = termlistContainer.getAttribute('data-term-type');
+  const termType      = m.termlistContainer.getAttribute('data-term-type');
   const termId        = parseInt(termlistEntry.getAttribute('data-term-id'));
   const termSlug      = termlistEntry.getAttribute('data-term-slug');
   const isAllChannels = (termType === 'categories');

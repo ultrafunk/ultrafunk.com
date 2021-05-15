@@ -33,7 +33,7 @@ remove_action('wp_head', 'wp_shortlink_wp_head');
 //
 // Theme setup
 //
-function ultrafunk_theme_setup()
+function ultrafunk_theme_setup() : void
 {
   register_nav_menus(array(
     'primary-menu' => "Primary Menu",
@@ -46,7 +46,7 @@ function ultrafunk_theme_setup()
 add_action('after_setup_theme', 'ultrafunk_theme_setup');
 
 // Add custom footer logo
-function ultrafunk_customizer_setting($wp_customize)
+function ultrafunk_customizer_setting(object $wp_customize) : void
 {
   $wp_customize->add_setting('ultrafunk_footer_logo', array('sanitize_callback' => 'esc_url_raw'));
 
@@ -62,7 +62,7 @@ function ultrafunk_customizer_setting($wp_customize)
 add_action('customize_register', 'ultrafunk_customizer_setting');
   
 // Add theme taxonomy widget
-function ultrafunk_widgets_init()
+function ultrafunk_widgets_init() : void
 {
   register_sidebar(
     array(
@@ -78,7 +78,7 @@ function ultrafunk_widgets_init()
 add_action('widgets_init', 'ultrafunk_widgets_init');
 
 // Limit number of entries shown by the built-in Archive widget
-function ultrafunk_limit_archives($args)
+function ultrafunk_limit_archives(array $args) : array
 {
   $args['limit'] = 15;
   return $args;
@@ -88,14 +88,13 @@ add_filter('widget_archives_args', 'ultrafunk_limit_archives');
 //
 // Enqueue scripts and styles.
 //
-function ultrafunk_scripts()
+function ultrafunk_scripts() : void
 {
   global $ultrafunk_is_prod_build;
   $version = \Ultrafunk\Globals\get_version();
 
   wp_enqueue_style('google-fonts-roboto', 'https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;700&display=swap', array(), null);
   wp_enqueue_style('google-fonts-material-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons&display=block', array(), null);
-  wp_enqueue_script('soundcloud-api-script', 'https://w.soundcloud.com/player/api.js', array(), null);
 
   if ($ultrafunk_is_prod_build)
   {
@@ -124,11 +123,9 @@ function ultrafunk_scripts()
 add_action('wp_enqueue_scripts', 'ultrafunk_scripts');
 
 // Customize enqueued script tags when needeed
-function ultrafunk_modify_script_tag($tag, $handle, $source)
+function ultrafunk_modify_script_tag(string $tag, string $handle, string $source) : string
 {
-  if ($handle === 'soundcloud-api-script')
-    $tag = str_ireplace('<script ', '<script defer ', $tag);
-  else if (($handle === 'interaction-script') || ($handle === 'ultrafunk-script'))
+  if (($handle === 'interaction-script') || ($handle === 'ultrafunk-script'))
     $tag = str_ireplace('<script ', '<script type="module" ', $tag);
 
   return $tag;
@@ -138,7 +135,7 @@ add_filter('script_loader_tag', 'ultrafunk_modify_script_tag', 10, 3);
 //
 // Set custom "theme_color" in PWA app manifest JSON
 //
-function ultrafunk_web_app_manifest($manifest)
+function ultrafunk_web_app_manifest(array $manifest) : array
 {
   $manifest['theme_color']      = '#0a1428';
   $manifest['background_color'] = '#0a1428';
@@ -164,7 +161,7 @@ add_filter('web_app_manifest', 'ultrafunk_web_app_manifest', 10, 3);
 //
 // Customize Admin interface
 //
-function ultrafunk_reusable_blocks_admin_menu()
+function ultrafunk_reusable_blocks_admin_menu() : void
 {
   add_menu_page('Reusable Blocks', 'Reusable Blocks', 'edit_posts', 'edit.php?post_type=wp_block', '', 'dashicons-editor-table', 22);
 }
@@ -177,8 +174,8 @@ require get_template_directory() . '/inc/build-env.php';
 require get_template_directory() . '/inc/request/route-request.php';
 require get_template_directory() . '/inc/request/shared-request.php';
 require get_template_directory() . '/inc/request/request-shuffle.php';
-require get_template_directory() . '/inc/request/request-terms.php';
-require get_template_directory() . '/inc/request/request-player.php';
+require get_template_directory() . '/inc/request/request-termlist.php';
+require get_template_directory() . '/inc/request/request-list-player.php';
 require get_template_directory() . '/inc/theme-functions.php';
 require get_template_directory() . '/inc/theme-tags.php';
 require get_template_directory() . '/inc/theme-widgets.php';

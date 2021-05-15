@@ -24,11 +24,11 @@
       <div class="footer-settings-block">
         <a href="/settings/"><b><u>SETTINGS</u></b></a>
         <div class="footer-toggles">
-          <a href="<?php echo \Ultrafunk\Globals\is_player() ? '/' : '/list/'; ?>" id="footer-player-toggle" title="Gallery or List Player">Player = <span class="player-gallery-list">Gallery</span></a>
-          <a href="#" id="footer-autoplay-toggle" title="Toggle Autoplay On / Off (shift + a)">Autoplay = <span class="autoplay-on-off">On</span></a>
-          <a href="#" id="footer-crossfade-toggle" title="Toggle Auto Crossfade On / Off (x)">Auto Crossfade = <span class="crossfade-on-off">Off</span></a>
-          <a href="#" id="footer-site-theme-toggle" title="Light, Dark or Automatic theme (shift + t)">Theme = <span class="site-theme-light-dark-auto">Auto</span></a>
-          <a href="#" id="footer-gallery-layout-toggle" title="Gallery Player: 1, 2 or 3 / 4 column layout (shift + l)">Gallery = <span class="gallery-layout-1x-2x-3x">3 / 4 Column</span></a>
+          <a href="<?php echo \Ultrafunk\Globals\is_list_player() ? '/' : '/list/'; ?>" id="footer-player-toggle" title="Gallery or List Player">Player = <span class="player-gallery-list">...</span></a>
+          <div id="footer-autoplay-toggle" title="Toggle Autoplay On / Off (shift + a)">Autoplay = <span class="autoplay-on-off">...</span></div>
+          <div id="footer-crossfade-toggle" title="Toggle Auto Crossfade On / Off (x)">Auto Crossfade = <span class="crossfade-on-off">...</span></div>
+          <div id="footer-site-theme-toggle" title="Light, Dark or Automatic theme (shift + t)">Theme = <span class="site-theme-light-dark-auto">...</span></div>
+          <div id="footer-gallery-layout-toggle" title="Gallery Player: 1, 2 or 3 / 4 column layout (shift + l)">Gallery = <span class="gallery-layout-1x-2x-3x">...</span></div>
         </div>
       </div>
     </div>

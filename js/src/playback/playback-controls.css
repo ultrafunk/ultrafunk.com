@@ -63,7 +63,7 @@ body.autoplay-off .progress-bar-control {
 
 /**************************************************************************************************
 * Playback controls
-* - Details:      Artist + title
+* - Details:      Artist + Title
 * - Thumbnail:    Track image
 * - Timer:        Track position and duration
 * - Previous:     Prev track + seek to start
@@ -149,6 +149,12 @@ body.autoplay-off .progress-bar-control {
   user-select: none;
   min-width: 38px;
   cursor: pointer;
+}
+
+.playback-details-control.state-hidden,
+.playback-thumbnail-control.state-hidden,
+.playback-timer-control.state-hidden {
+  visibility: hidden;
 }
 
 .playback-prev-control .material-icons,

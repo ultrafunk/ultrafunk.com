@@ -20,31 +20,33 @@ export {
 
 const debug = debugLogger.newInstance('snackbar');
 
-const mConfig = {
+const m = {
+  snackbarId:       0,
+  actionClick:      null,
+  afterClose:       null,
+  visibleTimeoutId: -1,
+  fadeTimeoutId:    -1,
+};
+
+const config = {
   id: 'snackbar',
 };
 
-const mTemplate = `
-  <div id="${mConfig.id}">
-    <div class="${mConfig.id}-container">
-      <div class="${mConfig.id}-message"></div>
-      <div class="${mConfig.id}-action-button"></div>
-      <div class="${mConfig.id}-close-button"><span class="material-icons" title="Dismiss">close</span></div>
+const template = `
+  <div id="${config.id}">
+    <div class="${config.id}-container">
+      <div class="${config.id}-message"></div>
+      <div class="${config.id}-action-text"></div>
+      <div class="${config.id}-close-icon"><span class="material-icons" title="Dismiss">close</span></div>
     </div>
   </div>
 `;
 
-const mElements = {
-  snackbar:     null,
-  actionButton: null,
-  closeButton:  null,
+const elements = {
+  snackbar:   null,
+  actionText: null,
+  closeIcon:  null,
 };
-
-let snackbarId       = 0;
-let actionClick      = null;
-let afterClose       = null;
-let visibleTimeoutId = -1;
-let fadeTimeoutId    = -1;
 
 
 // ************************************************************************************************
@@ -58,105 +60,105 @@ function showSnackbar(message, timeout = 5, actionText = null, actionClickCallba
   init();
   reset();
 
-  mElements.snackbar.querySelector(`.${mConfig.id}-message`).innerHTML = message;
-  mElements.snackbar.classList.add('show');
-  mElements.actionButton.style.display = 'none';
-  afterClose = afterCloseCallback;
+  elements.snackbar.querySelector(`.${config.id}-message`).innerHTML = message;
+  elements.snackbar.classList.add('show');
+  elements.actionText.style.display = 'none';
+  m.afterClose = afterCloseCallback;
 
   if ((actionText !== null) && (actionClickCallback !== null))
   {
-    actionClick = actionClickCallback;
-    mElements.actionButton.style.display = 'block';
-    mElements.actionButton.textContent   = actionText;
-    mElements.actionButton.addEventListener('click', actionButtonClick);
+    m.actionClick = actionClickCallback;
+    elements.actionText.style.display = 'block';
+    elements.actionText.textContent   = actionText;
+    elements.actionText.addEventListener('click', actionTextClick);
   }
   else
   {
-    // Fix edge case when actionButton is hidden...
-    matchesMedia(MATCH.SITE_MAX_WIDTH_MOBILE) ? mElements.closeButton.style.paddingLeft = '10px' : mElements.closeButton.style.paddingLeft = '20px';
+    // Fix edge case when actionText is hidden...
+    matchesMedia(MATCH.SITE_MAX_WIDTH_MOBILE) ? elements.closeIcon.style.paddingLeft = '10px' : elements.closeIcon.style.paddingLeft = '20px';
   }
   
   if (timeout !== 0)
   {
-    visibleTimeoutId = setTimeout(() =>
+    m.visibleTimeoutId = setTimeout(() =>
     {
-      mElements.snackbar.classList.add('hide');
+      elements.snackbar.classList.add('hide');
       
-      fadeTimeoutId = setTimeout(() =>
+      m.fadeTimeoutId = setTimeout(() =>
       {
-        mElements.snackbar.className = '';
+        elements.snackbar.className = '';
 
-        if (afterClose !== null)
+        if (m.afterClose !== null)
         {
-          afterClose();
+          m.afterClose();
         }
       }, 450);
     },
     (timeout * 1000));
   }
 
-  return ++snackbarId;
+  return ++m.snackbarId;
 }
 
 function init()
 {
-  if (mElements.snackbar === null)
+  if (elements.snackbar === null)
   {
-    document.body.insertAdjacentHTML('beforeend', mTemplate);
+    document.body.insertAdjacentHTML('beforeend', template);
 
-    mElements.snackbar     = document.getElementById(mConfig.id);
-    mElements.actionButton = mElements.snackbar.querySelector(`.${mConfig.id}-action-button`);
-    mElements.closeButton  = mElements.snackbar.querySelector(`.${mConfig.id}-close-button`);
+    elements.snackbar   = document.getElementById(config.id);
+    elements.actionText = elements.snackbar.querySelector(`.${config.id}-action-text`);
+    elements.closeIcon  = elements.snackbar.querySelector(`.${config.id}-close-icon`);
     
-    mElements.closeButton.addEventListener('click', () =>
+    elements.closeIcon.addEventListener('click', () =>
     {
-      if (afterClose !== null)
-        afterClose();
+      if (m.afterClose !== null)
+        m.afterClose();
         
       reset(true);
     });
   }
 }
 
-function actionButtonClick()
+function actionTextClick()
 {
-  actionClick();
+  m.actionClick();
   reset(true);
 }
 
 function isShowing()
 {
-  return ((mElements.snackbar !== null) && (mElements.snackbar.classList.length === 1) && mElements.snackbar.classList.contains('show'));
+  return ((elements.snackbar !== null) && (elements.snackbar.classList.length === 1) && elements.snackbar.classList.contains('show'));
 }
 
 function dismissSnackbar(dismissId = 0)
 {
   if (isShowing())
   {
-    if ((snackbarId === 0) || (snackbarId === dismissId))
+    if ((m.snackbarId === 0) || (m.snackbarId === dismissId))
     {
-      mElements.snackbar.classList.add('hide');
-      fadeTimeoutId = setTimeout(() => mElements.snackbar.className = '', 450);
+      elements.snackbar.classList.add('hide');
+      m.fadeTimeoutId = setTimeout(() => elements.snackbar.className = '', 450);
     }
   }
 }
 
 function reset(hideSnackbar = false)
 {
-  if (visibleTimeoutId !== -1)
+  if (m.visibleTimeoutId !== -1)
   {
-    clearTimeout(visibleTimeoutId);
-    visibleTimeoutId = -1;
+    clearTimeout(m.visibleTimeoutId);
+    m.visibleTimeoutId = -1;
   }
 
-  if (fadeTimeoutId !== -1)
+  if (m.fadeTimeoutId !== -1)
   {
-    clearTimeout(fadeTimeoutId);
-    fadeTimeoutId = -1;
+    clearTimeout(m.fadeTimeoutId);
+    m.fadeTimeoutId = -1;
   }
 
-  mElements.actionButton.removeEventListener('click', actionButtonClick);
+  elements.actionText.removeEventListener('click', actionTextClick);
 
   if (hideSnackbar)
-    mElements.snackbar.classList.remove('show');
+    elements.snackbar.classList.remove('show');
 }

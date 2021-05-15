@@ -22,14 +22,20 @@ export {
 /*************************************************************************************************/
 
 
-const debug         = debugLogger.newInstance('embedded-players');
-const eventLog      = new eventLogger.Playback(10);
-let eventHandler    = null;
-let loadEventsTotal = 0;
-let loadEventsCount = 1;
-let settings, players, playbackState, playbackTimer;
+const debug    = debugLogger.newInstance('embedded-players');
+const eventLog = new eventLogger.Playback(10);
 
-const mConfig = {
+const m = {
+  settings:        {},
+  players:         {},
+  playbackState:   null,
+  playbackTimer:   null,
+  eventHandler:    null,
+  loadEventsTotal: 0,
+  loadEventsCount: 1,
+};
+
+const config = {
   youTubeIframeIdRegEx:    /youtube-uid/i,
   soundCloudIframeIdRegEx: /soundcloud-uid/i,
   maxPlaybackStartDelay:   3, // VERY rough estimate of "max" network buffering delay in seconds (see also: maxBufferingDelay)
@@ -42,7 +48,7 @@ const mConfig = {
 
 function init(args)
 {
-  ({ settings = null, players = null, playbackState = null, playbackTimer = null } = args);
+  ({ settings: m.settings, players: m.players, playbackState: m.playbackState, playbackTimer: m.playbackTimer } = args);
 
   initYouTubeAPI();
   initSoundCloudAPI();
@@ -55,27 +61,28 @@ function init(args)
 
 function getTrackCount(embeddedEventHandler)
 {
-  const trackCount = parseInt(document.body.getAttribute('data-track-count'));
+  let trackCount = document.body.getAttribute('data-gallery-track-count');
+  (trackCount === null) ? trackCount = 0 : trackCount = parseInt(trackCount);
 
   debug.log(`getTrackCount(): ${trackCount}`);
 
-  loadEventsTotal = trackCount + 3;       // The total number of loadEvents include 3 stages before embedded players are loaded
-  eventHandler    = embeddedEventHandler; // This is set here to be available as early as possible since it is called before init()
+  m.loadEventsTotal = trackCount + 3;       // The total number of loadEvents include 3 stages before embedded players are loaded
+  m.eventHandler    = embeddedEventHandler; // This is set here to be available as early as possible since it is called before init()
 
   return trackCount;
 }
 
 function getLoadingPercent()
 {
-  return { loadingPercent: (100 * (loadEventsCount++ / loadEventsTotal)) };
+  return { loadingPercent: (100 * (m.loadEventsCount++ / m.loadEventsTotal)) };
 }
 
 function updatePlayersReady()
 {
-  if (loadEventsCount >= loadEventsTotal)
-    eventHandler(EVENT.READY);
+  if (m.loadEventsCount >= m.loadEventsTotal)
+    m.eventHandler(EVENT.READY);
   else
-    eventHandler(EVENT.LOADING, getLoadingPercent());
+    m.eventHandler(EVENT.LOADING, getLoadingPercent());
 }
 
 
@@ -92,7 +99,7 @@ function getAllPlayers()
     const iframe = entry.querySelector('iframe');
     let   player = {};
 
-    if (mConfig.youTubeIframeIdRegEx.test(iframe.id)) 
+    if (config.youTubeIframeIdRegEx.test(iframe.id)) 
     {
       const embeddedPlayer = new YT.Player(iframe.id, // eslint-disable-line no-undef
       {
@@ -106,7 +113,7 @@ function getAllPlayers()
 
       player = new mediaPlayers.YouTube(entry.id, iframe.id, embeddedPlayer, iframe.src);
     }
-    else if (mConfig.soundCloudIframeIdRegEx.test(iframe.id))
+    else if (config.soundCloudIframeIdRegEx.test(iframe.id))
     {
       /* eslint-disable */
       const embeddedPlayer = SC.Widget(iframe.id);
@@ -127,7 +134,7 @@ function getAllPlayers()
     }
 
     mediaPlayers.setArtistTitle(entry.getAttribute('data-artist-track-title'), player);
-    players.add(player);
+    m.players.add(player);
   });
 }
 
@@ -144,11 +151,11 @@ function onPlayerError(player, mediaUrl)
   const eventSource = (player instanceof mediaPlayers.SoundCloud) ? eventLogger.SOURCE.SOUNDCLOUD : eventLogger.SOURCE.YOUTUBE;
 
   // Stop the current track if it is not the one we are going to next
-  if (players.isCurrent(player.getUid()) === false)
-    players.stop();
+  if (m.players.isCurrent(player.getUid()) === false)
+    m.players.stop();
   
   eventLog.add(eventSource, eventLogger.EVENT.PLAYER_ERROR, player.getUid());
-  eventHandler(EVENT.MEDIA_UNAVAILABLE, getPlayerErrorData(player, mediaUrl));
+  m.eventHandler(EVENT.MEDIA_UNAVAILABLE, getPlayerErrorData(player, mediaUrl));
 }
 
 function getPlayerErrorData(player, mediaUrl)
@@ -157,8 +164,8 @@ function getPlayerErrorData(player, mediaUrl)
   const title  = player.getTitle()  || 'N/A';
 
   return {
-    currentTrack: players.trackFromUid(player.getUid()),
-    numTracks:    players.getNumTracks(),
+    currentTrack: m.players.trackFromUid(player.getUid()),
+    numTracks:    m.players.getNumTracks(),
     trackId:      player.getTrackId(),
     mediaTitle:   `${artist} - ${title}`,
     mediaUrl:     mediaUrl,
@@ -174,12 +181,12 @@ function getPlayerErrorData(player, mediaUrl)
 function initYouTubeAPI()
 {
   debug.log('initYouTubeAPI()');
-  eventHandler(EVENT.LOADING, getLoadingPercent());
+  m.eventHandler(EVENT.LOADING, getLoadingPercent());
 
   window.onYouTubeIframeAPIReady = function()
   {
     debug.log('onYouTubeIframeAPIReady()');
-    eventHandler(EVENT.LOADING, getLoadingPercent());
+    m.eventHandler(EVENT.LOADING, getLoadingPercent());
   
     // ToDo: THIS SHOULD NOT BE TRIGGERED HERE ONLY?
     getAllPlayers();
@@ -220,18 +227,18 @@ function onYouTubeStateUnstarted(event)
   debug.log(`onYouTubePlayerStateChange: UNSTARTED (uID: ${event.target.h.id})`);
   
   if (eventLog.ytAutoplayBlocked(event.target.h.id, 3000))
-    eventHandler(EVENT.AUTOPLAY_BLOCKED);
+    m.eventHandler(EVENT.AUTOPLAY_BLOCKED);
 }
 
 function onYouTubeStateBuffering(event)
 {
   debug.log(`onYouTubePlayerStateChange: BUFFERING (uID: ${event.target.h.id})`);
 
-  if (players.crossfade.isFading() === false)
+  if (m.players.crossfade.isFading() === false)
   {
-    const player = players.playerFromUid(event.target.h.id);
-    player.mute(settings.masterMute);
-    player.setVolume(settings.masterVolume);
+    const player = m.players.playerFromUid(event.target.h.id);
+    player.mute(m.settings.masterMute);
+    player.setVolume(m.settings.masterVolume);
   }
 }
 
@@ -240,23 +247,23 @@ function onYouTubeStatePlaying(event)
   debug.log(`onYouTubePlayerStateChange: PLAYING   (uID: ${event.target.h.id})`);
   
   // Call order is important on play events for state handling: Always sync first!
-  playbackState.syncAll(event.target.h.id, playbackState.STATE.PLAY);
-  players.current.setDuration(Math.round(event.target.getDuration()));
-  playbackTimer.start();
+  m.playbackState.syncAll(event.target.h.id, m.playbackState.STATE.PLAY);
+  m.players.current.setDuration(Math.round(event.target.getDuration()));
+  m.playbackTimer.start();
 }
 
 function onYouTubeStatePaused(event)
 {
   debug.log(`onYouTubePlayerStateChange: PAUSED    (uID: ${event.target.h.id})`);
 
-  if (players.isCurrent(event.target.h.id))
+  if (m.players.isCurrent(event.target.h.id))
   {
-    playbackState.syncAll(event.target.h.id, playbackState.STATE.PAUSE);
-    playbackTimer.stop(false);
+    m.playbackState.syncAll(event.target.h.id, m.playbackState.STATE.PAUSE);
+    m.playbackTimer.stop(false);
   }
   else
   {
-    players.crossfade.stop();
+    m.players.crossfade.stop();
   }
 }
 
@@ -269,14 +276,14 @@ function onYouTubeStateEnded(event)
 {
   debug.log(`onYouTubePlayerStateChange: ENDED     (uID: ${event.target.h.id})`);
 
-  if (players.isCurrent(event.target.h.id))
+  if (m.players.isCurrent(event.target.h.id))
   {
-    playbackTimer.stop(true);
-    eventHandler(EVENT.MEDIA_ENDED);
+    m.playbackTimer.stop(true);
+    m.eventHandler(EVENT.MEDIA_ENDED);
   }
   else
   {
-    players.crossfade.stop();
+    m.players.crossfade.stop();
   }
 }
 
@@ -284,7 +291,7 @@ function onYouTubePlayerError(event)
 {
   debug.log('onYouTubePlayerError: ' + event.data);
 
-  const player = players.playerFromUid(event.target.h.id);
+  const player = m.players.playerFromUid(event.target.h.id);
   player.setPlayable(false);
   onPlayerError(player, event.target.getVideoUrl());
 }
@@ -298,7 +305,7 @@ function onYouTubePlayerError(event)
 function initSoundCloudAPI()
 {
   debug.log('initSoundCloudAPI()');
-  eventHandler(EVENT.LOADING, getLoadingPercent());
+  m.eventHandler(EVENT.LOADING, getLoadingPercent());
 }
 
 function onSoundCloudPlayerEventReady()
@@ -312,25 +319,25 @@ function onSoundCloudPlayerEventPlay(event)
   debug.log(`onSoundCloudPlayerEvent: PLAY   (uID: ${event.soundId})`);
   eventLog.add(eventLogger.SOURCE.SOUNDCLOUD, eventLogger.EVENT.STATE_PLAYING, event.soundId);
 
-  if (players.crossfade.isFading() && players.isCurrent(event.soundId))
+  if (m.players.crossfade.isFading() && m.players.isCurrent(event.soundId))
   {
     // Call order is important on play events for state handling: Always sync first!
-    if (eventLog.scPlayDoubleTrigger(event.soundId, (mConfig.maxPlaybackStartDelay * 1000)))
-      playbackState.syncAll(event.soundId, playbackState.STATE.PLAY);
+    if (eventLog.scPlayDoubleTrigger(event.soundId, (config.maxPlaybackStartDelay * 1000)))
+      m.playbackState.syncAll(event.soundId, m.playbackState.STATE.PLAY);
   }
   else
   {
     // Call order is important on play events for state handling: Always sync first!
-    playbackState.syncAll(event.soundId, playbackState.STATE.PLAY);
+    m.playbackState.syncAll(event.soundId, m.playbackState.STATE.PLAY);
 
-    players.current.mute(settings.masterMute);
-    players.current.setVolume(settings.masterVolume);
+    m.players.current.mute(m.settings.masterMute);
+    m.players.current.setVolume(m.settings.masterVolume);
   }
 
-  players.current.getEmbeddedPlayer().getDuration(durationMilliseconds =>
+  m.players.current.getEmbeddedPlayer().getDuration(durationMilliseconds =>
   {
-    players.current.setDuration(Math.round(durationMilliseconds / 1000));
-    playbackTimer.start();
+    m.players.current.setDuration(Math.round(durationMilliseconds / 1000));
+    m.playbackTimer.start();
   });  
 }
 
@@ -341,31 +348,31 @@ function onSoundCloudPlayerEventPause(event)
   
   if (eventLog.scAutoplayBlocked(event.soundId, 3000))
   {
-    playbackTimer.stop(false);
-    eventHandler(EVENT.AUTOPLAY_BLOCKED);
+    m.playbackTimer.stop(false);
+    m.eventHandler(EVENT.AUTOPLAY_BLOCKED);
   }
   else if (eventLog.scWidgetPlayBlocked(event.soundId, 30000))
   {
-    playbackTimer.stop(false);
-    eventHandler(EVENT.PLAYBACK_BLOCKED, { currentTrack: players.trackFromUid(event.soundId), numTracks: players.getNumTracks() });
+    m.playbackTimer.stop(false);
+    m.eventHandler(EVENT.PLAYBACK_BLOCKED, { currentTrack: m.players.trackFromUid(event.soundId), numTracks: m.players.getNumTracks() });
   }
   else
   {
     // Only sync state if we get pause events on the same (current) player
-    if (players.isCurrent(event.soundId))
+    if (m.players.isCurrent(event.soundId))
     {
-      players.current.getPosition(positionMilliseconds =>
+      m.players.current.getPosition(positionMilliseconds =>
       {
         if (positionMilliseconds > 0)
         {
-          playbackState.syncAll(event.soundId, playbackState.STATE.PAUSE);
-          playbackTimer.stop(false);
+          m.playbackState.syncAll(event.soundId, m.playbackState.STATE.PAUSE);
+          m.playbackTimer.stop(false);
         }
       });    
     }
     else
     {
-      players.crossfade.stop();
+      m.players.crossfade.stop();
     }
   }
 }
@@ -374,14 +381,14 @@ function onSoundCloudPlayerEventFinish(event)
 {
   debug.log(`onSoundCloudPlayerEvent: FINISH (uID: ${event.soundId})`);
 
-  if (players.isCurrent(event.soundId))
+  if (m.players.isCurrent(event.soundId))
   {
-    playbackTimer.stop(true);
-    eventHandler(EVENT.MEDIA_ENDED);
+    m.playbackTimer.stop(true);
+    m.eventHandler(EVENT.MEDIA_ENDED);
   }
   else
   {
-    players.crossfade.stop();
+    m.players.crossfade.stop();
   }
 }
 
@@ -389,8 +396,8 @@ function onSoundCloudPlayerEventError()
 {
   this.getCurrentSound(soundObject =>
   {
-    const player = players.playerFromUid(soundObject.id);
-    debug.log(`onSoundCloudPlayerEvent: ERROR for track: ${players.trackFromUid(soundObject.id)}. ${player.getArtist()} - ${player.getTitle()} - [${player.getUid()} / ${player.getIframeId()}]`);
+    const player = m.players.playerFromUid(soundObject.id);
+    debug.log(`onSoundCloudPlayerEvent: ERROR for track: ${m.players.trackFromUid(soundObject.id)}. ${player.getArtist()} - ${player.getTitle()} - [${player.getUid()} / ${player.getIframeId()}]`);
     player.setPlayable(false);
   });
 }

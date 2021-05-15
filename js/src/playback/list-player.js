@@ -30,12 +30,16 @@ export {
 /*************************************************************************************************/
 
 
-const debug           = debugLogger.newInstance('list-player');
-const eventLog        = new eventLogger.Playback(10);
-let settings          = {};
-let player            = null;
-let autoplayToggle    = null;
-let firstStatePlaying = true;
+const debug    = debugLogger.newInstance('list-player');
+const eventLog = new eventLogger.Playback(10);
+
+const m = {
+  settings:          {},
+  player:            null,
+  autoplayData:      null,
+  autoplayToggle:    null,
+  firstStatePlaying: true,
+};
 
 const list = {
   container: null,
@@ -43,10 +47,9 @@ const list = {
 };
 
 const current = {
-  trackId:      null,
-  element:      null,
-  snackbarId:   0,
-  autoplayData: null,
+  trackId:    null,
+  element:    null,
+  snackbarId: 0,
 };
 
 
@@ -54,12 +57,12 @@ const current = {
 //
 // ************************************************************************************************
 
-function init(playbackSettings, autoplayToggleCallback)
+function init(playbackSettings, autoplayToggle)
 {
   debug.log('init');
 
-  settings       = playbackSettings;
-  autoplayToggle = autoplayToggleCallback;
+  m.settings       = playbackSettings;
+  m.autoplayToggle = autoplayToggle;
   list.container = document.getElementById('tracklist-container');
   list.observer  = new IntersectionObserver(observerCallback, { root: list.container });
   
@@ -68,8 +71,8 @@ function init(playbackSettings, autoplayToggleCallback)
   else
     showSnackbar('No playable YouTube tracks!', 0, 'help', () => { window.location.href = "/help/#list-player"; });
 
-  utils.addListenerAll('i.nav-bar-arrow-back', 'click', prevNextNavTo, navigationVars.prev); // eslint-disable-line no-undef
-  utils.addListenerAll('i.nav-bar-arrow-fwd',  'click', prevNextNavTo, navigationVars.next); // eslint-disable-line no-undef
+  utils.addListenerAll('span.nav-bar-arrow-back', 'click', prevNextNavTo, navigationVars.prev); // eslint-disable-line no-undef
+  utils.addListenerAll('span.nav-bar-arrow-fwd',  'click', prevNextNavTo, navigationVars.next); // eslint-disable-line no-undef
 
   list.container.addEventListener('click', (event) =>
   {
@@ -91,7 +94,10 @@ function init(playbackSettings, autoplayToggleCallback)
 
 function documentEventKeyDown(event)
 {
-  if (utils.keyboardShortcuts.allow() && (event.repeat === false) && (event.ctrlKey === false) && (event.altKey === false))
+  if (utils.keyboardShortcuts.allow() &&
+      (event.repeat  === false)       &&
+      (event.ctrlKey === false)       &&
+      (event.altKey  === false))
   {
     switch(event.code)
     {
@@ -110,16 +116,16 @@ function documentEventKeyDown(event)
 
       case 'ArrowLeft':
         event.preventDefault();
-        (event.shiftKey === false) ? prevTrack() : prevNextNavTo(null, navigationVars.prev); // eslint-disable-line no-undef
+        (event.shiftKey === true) ? prevNextNavTo(null, navigationVars.prev) : prevTrack(); // eslint-disable-line no-undef
         break;
 
       case 'ArrowRight':
         event.preventDefault();
-        (event.shiftKey === false) ? nextTrack() : prevNextNavTo(null, navigationVars.next); // eslint-disable-line no-undef
+        (event.shiftKey === true) ? prevNextNavTo(null, navigationVars.next) : nextTrack(); // eslint-disable-line no-undef
         break;
 
       case 'A':
-        autoplayToggle(event);
+        m.autoplayToggle.toggle(event);
         break;
 
       case 'f':
@@ -132,7 +138,7 @@ function documentEventKeyDown(event)
       case 'M':
         event.preventDefault();
         toggleMute();
-        showSnackbar(settings.user.masterMute ? 'Volume is muted (<b>m</b> to unmute)' : 'Volume is unmuted (<b>m</b> to mute)', 3);
+        showSnackbar(m.settings.user.masterMute ? 'Volume is muted (<b>m</b> to unmute)' : 'Volume is unmuted (<b>m</b> to mute)', 3);
         break;
     }
   }
@@ -180,14 +186,14 @@ function scrollPlayerIntoView()
   {
     top:      scrollTop,
     left:     0,
-    behavior: (settings.user.smoothScrolling ? 'smooth' : 'auto'),
+    behavior: (m.settings.user.smoothScrolling ? 'smooth' : 'auto'),
   });
 }
 
 function toggleMute()
 {
-  settings.user.masterMute ? settings.user.masterMute = false : settings.user.masterMute = true;
-  settings.user.masterMute ? player.embedded.mute()           : player.embedded.unMute();
+  m.settings.user.masterMute ? m.settings.user.masterMute = false : m.settings.user.masterMute = true;
+  m.settings.user.masterMute ? m.player.embedded.mute()           : m.player.embedded.unMute();
 }
 
 
@@ -201,20 +207,20 @@ function cueInitialTrack()
 
   if (current.trackId !== null)
   {
-    current.autoplayData = JSON.parse(sessionStorage.getItem(KEY.UF_AUTOPLAY));
+    m.autoplayData = JSON.parse(sessionStorage.getItem(KEY.UF_AUTOPLAY));
     sessionStorage.removeItem(KEY.UF_AUTOPLAY);
   
-    if ((current.autoplayData !== null) && (current.autoplayData.trackId !== null))
+    if ((m.autoplayData !== null) && (m.autoplayData.trackId !== null))
     {
-      const matchesVideoId = current.autoplayData.trackId.match(/^[a-zA-Z0-9-_]{11}$/);
+      const matchesVideoId = m.autoplayData.trackId.match(/^[a-zA-Z0-9-_]{11}$/);
       
       if (matchesVideoId !== null)
       {
         current.trackId = matchesVideoId[0];
       }
-      else if (current.autoplayData.trackId.match(/^track-(?!0)\d{1,6}$/i) !== null)
+      else if (m.autoplayData.trackId.match(/^track-(?!0)\d{1,6}$/i) !== null)
       {
-        const trackElement = list.container.querySelectorAll(`[data-post-id="${current.autoplayData.trackId.slice(6)}"]`);
+        const trackElement = list.container.querySelectorAll(`[data-post-id="${m.autoplayData.trackId.slice(6)}"]`);
 
         if (trackElement.length === 1)
         {
@@ -234,7 +240,7 @@ function cueInitialTrack()
     list.observer.observe(current.element);
   }
 
-  debug.log(`cueInitialTrack() - current.trackId: ${current.trackId} - autoplayData: ${(current.autoplayData !== null) ? JSON.stringify(current.autoplayData) : 'N/A'}`);
+  debug.log(`cueInitialTrack() - current.trackId: ${current.trackId} - autoplayData: ${(m.autoplayData !== null) ? JSON.stringify(m.autoplayData) : 'N/A'}`);
 
   return current.trackId;
 }
@@ -298,7 +304,7 @@ function setCurrentTrack(nextTrackId, playNextTrack = true, isPointerClick = fal
   else
   {
     if (controls.isPlaying())
-      player.embedded.stopVideo();
+      m.player.embedded.stopVideo();
 
     current.element.classList.remove('current', 'playing', 'paused');
 
@@ -316,16 +322,16 @@ function setCurrentTrack(nextTrackId, playNextTrack = true, isPointerClick = fal
 
 function loadOrCueCurrentTrack(playTrack)
 {
-  player.setArtistTitleThumbnail(current.element.getAttribute('data-artist-track-title'), current.trackId);
+  m.player.setArtistTitleThumbnail(current.element.getAttribute('data-artist-track-title'), current.trackId);
   
   if (playTrack)
   {
-    player.embedded.loadVideoById(current.trackId);
+    m.player.embedded.loadVideoById(current.trackId);
     setPlayStateClass(true);
   }
   else
   {
-    player.embedded.cueVideoById(current.trackId);
+    m.player.embedded.cueVideoById(current.trackId);
     setPlayStateClass(false);
   }
 }
@@ -342,7 +348,7 @@ function getStatus()
       status = {
         isPlaying:    controls.isPlaying(),
         currentTrack: (index + 1),
-        position:     Math.ceil(player.embedded.getCurrentTime()),
+        position:     Math.ceil(m.player.embedded.getCurrentTime()),
         trackId:      `track-${element.getAttribute('data-post-id')}`,
       };
     }
@@ -358,7 +364,7 @@ function getStatus()
 
 function togglePlayPause()
 {
-  controls.isPlaying() ? player.embedded.pauseVideo() : player.embedded.playVideo();
+  controls.isPlaying() ? m.player.embedded.pauseVideo() : m.player.embedded.playVideo();
 }
 
 function advanceToNextTrack(autoplay = false)
@@ -374,7 +380,7 @@ function advanceToNextTrack(autoplay = false)
 function prevTrack()
 {
   const prevTrackId = getPrevPlayableId();
-  const position    = player.embeddedPlayer.getCurrentTime();
+  const position    = m.player.embeddedPlayer.getCurrentTime();
 
   if ((prevTrackId !== null) && (position <= 5))
   {
@@ -383,7 +389,7 @@ function prevTrack()
   }
   else if (position !== 0)
   {
-    player.seekTo(0);
+    m.player.seekTo(0);
     playbackTimer.update(0, 0);
   }
 }
@@ -406,7 +412,7 @@ function setPlayStateClass(isPlayingState)
 
 function skipToNextTrack()
 {
-  if ((controls.isPlaying() === false) && (current.autoplayData !== null))
+  if ((controls.isPlaying() === false) && (m.autoplayData !== null))
   {
     eventLog.add(eventLogger.SOURCE.ULTRAFUNK, eventLogger.EVENT.RESUME_AUTOPLAY, null);
     eventLog.add(eventLogger.SOURCE.YOUTUBE, -1, getNextPlayableId());
@@ -446,9 +452,9 @@ function initYouTubeAPI()
       }
     });
 
-    player = new mediaPlayers.Playlist(embeddedPlayer);
-    controls.init(settings.user, player, (positionSeconds) => { player.seekTo(positionSeconds); });
-    debug.log(player);
+    m.player = new mediaPlayers.Playlist(embeddedPlayer);
+    controls.init(m.settings.user, m.player, (positionSeconds) => { m.player.seekTo(positionSeconds); });
+    debug.log(m.player);
   };
 
   const tag = document.createElement('script');
@@ -464,16 +470,16 @@ function onYouTubePlayerReady()
 
   current.element.classList.add('current');
   
-  if (current.autoplayData?.autoplay === true)
+  if (m.autoplayData?.autoplay === true)
     eventLog.add(eventLogger.SOURCE.ULTRAFUNK, eventLogger.EVENT.RESUME_AUTOPLAY, null);
 
   controls.ready(prevTrack, togglePlayPause, nextTrack, toggleMute);
-  loadOrCueCurrentTrack(current.autoplayData?.autoplay === true);
+  loadOrCueCurrentTrack(m.autoplayData?.autoplay === true);
 
   //ToDo: Add common code in playback-controls.js for list-player & playback-interaction?
   utils.addListener('.playback-details-control',   'click', scrollPlayerIntoView);
   utils.addListener('.playback-thumbnail-control', 'click', scrollPlayerIntoView);
-  utils.addListener('.playback-timer-control',     'click', (event) => autoplayToggle(event));
+  utils.addListener('.playback-timer-control',     'click', (event) => m.autoplayToggle.toggle(event));
   
   document.addEventListener('keydown', documentEventKeyDown);
 }
@@ -494,14 +500,14 @@ function onYouTubePlayerStateChange(event)
       if (eventLog.ytAutoplayBlocked(current.trackId, 3000))
       {
         setPlayStateClass(false);
-        current.snackbarId = showSnackbar('Autoplay blocked, Play to continue', 0, 'play', () => player.embedded.playVideo());
+        current.snackbarId = showSnackbar('Autoplay blocked, Play to continue', 0, 'play', () => m.player.embedded.playVideo());
       }
       break;
     
     // eslint-disable-next-line no-undef
     case YT.PlayerState.ENDED:
       playbackTimer.stop(true);
-      advanceToNextTrack(settings.user.autoplay);
+      advanceToNextTrack(m.settings.user.autoplay);
       break;
     
     // eslint-disable-next-line no-undef
@@ -522,16 +528,16 @@ function onYouTubePlayerStateChange(event)
 function onYouTubeStatePlaying(event)
 {
   dismissSnackbar(current.snackbarId);
-  player.setDuration(Math.round(event.target.getDuration()));
+  m.player.setDuration(Math.round(event.target.getDuration()));
 
-  if (firstStatePlaying)
+  if (m.firstStatePlaying)
   {
-    firstStatePlaying    = false;
-    current.autoplayData = null;
+    m.firstStatePlaying = false;
+    m.autoplayData      = null;
     
     setTimeout(() =>
     {
-      if (settings.user.autoplay && controls.isPlaying() && (window.pageYOffset < 1))
+      if (m.settings.user.autoplay && controls.isPlaying() && (window.pageYOffset < 1))
         scrollPlayerIntoView();
     },
     6000);
@@ -574,7 +580,7 @@ const playbackTimer = (() =>
     intervalId = setInterval(() =>
     {
       if (isVisible && controls.isPlaying())
-        update((player.embedded.getCurrentTime() * 1000), player.getDuration());
+        update((m.player.embedded.getCurrentTime() * 1000), m.player.getDuration());
     },
     250);
   }

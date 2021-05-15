@@ -21,14 +21,14 @@ class RouteRequest
   private $routes = array(
     'shuffle' => array(
       'callback' => 'Ultrafunk\RequestShuffle\shuffle_callback',
-      'routes'   => array (
+      'routes'   => array(
         'shuffle_all'       => '/^shuffle\/all$/',
         'shuffle_all_page'  => '/^shuffle\/all\/page\/(?!0)\d{1,6}$/',
         'shuffle_slug'      => '/^shuffle\/(\bchannel\b|\bartist\b)*\/[a-z0-9-]*$/',
         'shuffle_slug_page' => '/^shuffle\/(\bchannel\b|\bartist\b)*\/[a-z0-9-]*\/page\/(?!0)\d{1,6}$/',
       )),
     'artists' => array(
-      'callback' => 'Ultrafunk\RequestTerms\terms_callback',
+      'callback' => 'Ultrafunk\RequestTermlist\termlist_callback',
       'routes'   => array(
         'artists'             => '/^artists$/',
       //'artists_page'        => '/^artists\/page\/(?!0)\d{1,6}$/',
@@ -36,24 +36,24 @@ class RouteRequest
       //'artists_letter_page' => '/^artists\/[a-z]\/page\/(?!0)\d{1,6}$/',
       )),
     'channels' => array(
-      'callback' => 'Ultrafunk\RequestTerms\terms_callback',
+      'callback' => 'Ultrafunk\RequestTermlist\termlist_callback',
       'routes'   => array(
         'channels'      => '/^channels$/',
       //'channels_page' => '/^channels\/page\/(?!0)\d{1,6}$/',
     )),
     'list' => array(
-      'callback' => 'Ultrafunk\RequestPlayer\player_callback',
+      'callback' => 'Ultrafunk\RequestListPlayer\list_player_callback',
       'routes'   => array(
-        'player_all'          => '/^list$/',
-        'player_all_page'     => '/^list\/page\/(?!0)\d{1,6}$/',
-        'player_artist'       => '/^list\/artist\/[a-z0-9-]*$/',
-        'player_artist_page'  => '/^list\/artist\/[a-z0-9-]*\/page\/(?!0)\d{1,6}$/',
-        'player_channel'      => '/^list\/channel\/[a-z0-9-]*$/',
-        'player_channel_page' => '/^list\/channel\/[a-z0-9-]*\/page\/(?!0)\d{1,6}$/',
-        'shuffle_all'         => '/^list\/shuffle\/all$/',
-        'shuffle_all_page'    => '/^list\/shuffle\/all\/page\/(?!0)\d{1,6}$/',
-        'shuffle_slug'        => '/^list\/shuffle\/(\bchannel\b|\bartist\b)*\/[a-z0-9-]*$/',
-        'shuffle_slug_page'   => '/^list\/shuffle\/(\bchannel\b|\bartist\b)*\/[a-z0-9-]*\/page\/(?!0)\d{1,6}$/',
+        'list_player_all'          => '/^list$/',
+        'list_player_all_page'     => '/^list\/page\/(?!0)\d{1,6}$/',
+        'list_player_artist'       => '/^list\/artist\/[a-z0-9-]*$/',
+        'list_player_artist_page'  => '/^list\/artist\/[a-z0-9-]*\/page\/(?!0)\d{1,6}$/',
+        'list_player_channel'      => '/^list\/channel\/[a-z0-9-]*$/',
+        'list_player_channel_page' => '/^list\/channel\/[a-z0-9-]*\/page\/(?!0)\d{1,6}$/',
+        'shuffle_all'              => '/^list\/shuffle\/all$/',
+        'shuffle_all_page'         => '/^list\/shuffle\/all\/page\/(?!0)\d{1,6}$/',
+        'shuffle_slug'             => '/^list\/shuffle\/(\bchannel\b|\bartist\b)*\/[a-z0-9-]*$/',
+        'shuffle_slug_page'        => '/^list\/shuffle\/(\bchannel\b|\bartist\b)*\/[a-z0-9-]*\/page\/(?!0)\d{1,6}$/',
       )
     )
   );

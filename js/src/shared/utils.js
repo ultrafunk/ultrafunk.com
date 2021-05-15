@@ -20,6 +20,7 @@ export {
   shuffleClick,
   fullscreenElement,
   keyboardShortcuts,
+  ToggleElement,
 };
 
 
@@ -184,3 +185,29 @@ const keyboardShortcuts = (() =>
     document.addEventListener('denyKeyboardShortcuts',  () => { if (settings.keyboardShortcuts) allow = false; });
   }
 })();
+
+
+// ************************************************************************************************
+// 
+// ************************************************************************************************
+
+class ToggleElement
+{
+  constructor(elementId, updateOnConstruct = true)
+  {
+    this.element     = document.getElementById(elementId);
+    this.spanElement = this.element.querySelector('span');
+    
+    this.element.addEventListener('click', (event) =>
+    {
+      event?.preventDefault();
+      this.toggle(event);
+    });
+    
+    if (updateOnConstruct)
+      this.update();
+  }
+
+  get classList()              { return this.element.classList;              }
+  set textContent(textContent) { this.spanElement.textContent = textContent; }
+}

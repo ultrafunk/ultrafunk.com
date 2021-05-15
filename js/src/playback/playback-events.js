@@ -25,16 +25,16 @@ export {
 /*************************************************************************************************/
 
 
-const debug  = debugLogger.newInstance('playback-events');
-let settings = {};
+const debug = debugLogger.newInstance('playback-events');
 
-const mConfig = {
-  nowPlayingIconsSelector: 'h2.entry-title',
+const m = {
+  settings:        {},
+  snackbarId:      0,
+  nowPlayingIcons: null,
 };
 
-const mShared = {
-  nowPlayingIcons:  null,
-  snackbarId:       0,
+const config = {
+  nowPlayingIconsSelector: 'h2.entry-title',
 };
 
 const EVENT = {
@@ -75,8 +75,8 @@ const eventListeners = {
 function init(playbackSettings)
 {
   debug.log('init()');
-  settings = playbackSettings;
-  mShared.nowPlayingIcons = document.querySelectorAll(mConfig.nowPlayingIconsSelector);
+  m.settings        = playbackSettings;
+  m.nowPlayingIcons = document.querySelectorAll(config.nowPlayingIconsSelector);
 }
 
 
@@ -120,16 +120,16 @@ function mediaPlaying(playbackEvent)
   debugEvent(playbackEvent);
   
   // If autoplayBlocked() snackbar is still visible, dismiss it when playback starts
-  dismissSnackbar(mShared.snackbarId);
+  dismissSnackbar(m.snackbarId);
 
   if (playbackEvent.data.numTracks > 1)
   {
-    const nowPlayingIcon = document.querySelector(`#${playbackEvent.data.trackId} ${mConfig.nowPlayingIconsSelector}`);
+    const nowPlayingIcon = document.querySelector(`#${playbackEvent.data.trackId} ${config.nowPlayingIconsSelector}`);
 
     resetNowPlayingIcons(nowPlayingIcon);
     utils.replaceClass(nowPlayingIcon, 'playing-paused', 'now-playing-icon');
 
-    if (settings.user.animateNowPlayingIcon)
+    if (m.settings.user.animateNowPlayingIcon)
       nowPlayingIcon.classList.add('playing-animate');
   }
 
@@ -144,7 +144,7 @@ function mediaPaused(playbackEvent)
   debugEvent(playbackEvent);
 
   if (playbackEvent.data.numTracks > 1)
-    document.querySelector(`#${playbackEvent.data.trackId} ${mConfig.nowPlayingIconsSelector}`).classList.add('playing-paused');
+    document.querySelector(`#${playbackEvent.data.trackId} ${config.nowPlayingIconsSelector}`).classList.add('playing-paused');
 
   /*
   if (settings.user.keepMobileScreenOn)
@@ -202,11 +202,7 @@ function autoplayBlocked(playbackEvent)
 {
   debugEvent(playbackEvent);
 
-  mShared.snackbarId = showSnackbar('Autoplay blocked, Play to continue', 0, 'play', () =>
-  {
-    if (playbackEvent.data.isPlaying === false)
-      playbackEvent.callback.togglePlayPause();
-  });
+  m.snackbarId = showSnackbar('Autoplay blocked, Play to continue', 0, 'play', () => playbackEvent.callback.togglePlayPause());
 }
 
 function playbackBlocked(playbackEvent)
@@ -246,7 +242,7 @@ function debugEvent(playbackEvent = null)
 
 function resetNowPlayingIcons(nowPlayingElement)
 {
-  mShared.nowPlayingIcons.forEach(element =>
+  m.nowPlayingIcons.forEach(element =>
   {
     if (element !== nowPlayingElement)
       element.classList.remove('now-playing-icon', 'playing-animate', 'playing-paused');
@@ -295,7 +291,7 @@ function navigateTo(destUrl, continueAutoplay = false)
 
 function scrollToId(trackId)
 {
-  if (settings.user.autoScroll)
+  if (m.settings.user.autoScroll)
   {
     // Actual functional 'offsetTop' calculation: https://stackoverflow.com/a/52477551
     const offsetTop    = Math.round(window.scrollY + document.getElementById(trackId).getBoundingClientRect().top);
@@ -311,7 +307,7 @@ function scrollToId(trackId)
     {
       top:      (offsetTop - (headerHeight + getContentMarginTop())),
       left:     0,
-      behavior: (settings.user.smoothScrolling ? 'smooth' : 'auto'),
+      behavior: (m.settings.user.smoothScrolling ? 'smooth' : 'auto'),
     });
   }
 }

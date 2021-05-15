@@ -19,8 +19,11 @@ export {
 /*************************************************************************************************/
 
 
-const debug  = debugLogger.newInstance('screen-wakelock');
-let wakeLock = null;
+const debug = debugLogger.newInstance('screen-wakelock');
+
+const m = {
+  wakeLock: null,
+};
 
 
 // ************************************************************************************************
@@ -71,7 +74,7 @@ function stateVisible()
 {
   debug.log('stateVisible()');
 
-  if (isSupported() && (wakeLock === null))
+  if (isSupported() && (m.wakeLock === null))
     request();
 }
 
@@ -79,16 +82,16 @@ async function request()
 {
   try
   {
-    wakeLock = await navigator.wakeLock.request('screen');
+    m.wakeLock = await navigator.wakeLock.request('screen');
 
     debug.log('request(): Screen Wake Lock is Enabled');
   //showSnackbar('Keep Screen On success', 3);
 
-    wakeLock.addEventListener('release', () =>
+    m.wakeLock.addEventListener('release', () =>
     {
       debug.log('request(): Screen Wake Lock was Released');
     //showSnackbar('Keep Screen On was released', 3);
-      wakeLock = null;
+      m.wakeLock = null;
     });
 
     return true;

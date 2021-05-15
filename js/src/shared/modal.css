@@ -67,7 +67,7 @@
   padding: 18px 30px 8px 30px; 
 }
 
-.modal-dialog-close-button {
+.modal-dialog-close-icon {
   display: inline-flex;
   color: var(--primary-icon-color);
   padding: 0px 0px 0px 15px;
@@ -77,12 +77,12 @@
   margin-right: -10px;
 }
 
-.modal-dialog-close-button .material-icons {
+.modal-dialog-close-icon .material-icons {
   font-size: 40px;
   cursor: pointer;
 }
 
-.modal-dialog-close-button:hover {
+.modal-dialog-close-icon:hover {
   opacity: var(--control-hover-opacity);
 }
 
@@ -169,13 +169,13 @@
     padding: 16px 20px 6px 20px;
   }
   
-  .modal-dialog-close-button {
+  .modal-dialog-close-icon {
     width: 32px;
     height: 32px;
     margin-right: -5px;
   }
 
-  .modal-dialog-close-button .material-icons {
+  .modal-dialog-close-icon .material-icons {
     font-size: 32px;
   }
 

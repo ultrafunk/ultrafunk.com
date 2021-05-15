@@ -27,7 +27,7 @@ const SOURCE = {
 // interaction.js event sources
   KEYBOARD: 100,
   MOUSE:    110,
-// playback.js event sources
+// Playback event sources
   YOUTUBE:    1,
   SOUNDCLOUD: 2,
   ULTRAFUNK:  50,
@@ -40,7 +40,7 @@ const EVENT = {
   KEY_ARROW_LEFT:  80,
   KEY_ARROW_RIGHT: 81,
   MOUSE_CLICK:     82,
-// playback.js event types
+// Playback event types
   STATE_ERROR:     -5,
   STATE_UNSTARTED: -1, // YT.PlayerState.UNSTARTED
   STATE_ENDED:     0,  // YT.PlayerState.ENDED

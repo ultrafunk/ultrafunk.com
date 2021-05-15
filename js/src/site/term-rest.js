@@ -22,8 +22,11 @@ export {
 /*************************************************************************************************/
 
 
-const debug   = debugLogger.newInstance('term-rest');
-let termCache = {};
+const debug = debugLogger.newInstance('term-rest');
+
+const m = {
+  termCache: {},
+};
 
 
 // ************************************************************************************************
@@ -32,9 +35,9 @@ let termCache = {};
 
 function fetchPosts(termType, termId, maxItems, callback)
 { 
-  if (termId in termCache)
+  if (termId in m.termCache)
   {
-    callback(termCache[termId].posts);
+    callback(m.termCache[termId].posts);
   }
   else
   {
@@ -53,7 +56,7 @@ function fetchPosts(termType, termId, maxItems, callback)
     })
     .then(data =>
     {
-      termCache[termId] = { posts: data };
+      m.termCache[termId] = { posts: data };
       callback(data);
     })
     .catch(reason =>
@@ -71,10 +74,10 @@ function fetchPosts(termType, termId, maxItems, callback)
 
 function fetchMeta(termData, termId, maxItems, callback)
 {
-  if (('categories' in termCache[termId]) && ('tags' in termCache[termId]))
+  if (('categories' in m.termCache[termId]) && ('tags' in m.termCache[termId]))
   {
-    callback('categories', termCache[termId].categories);
-    callback('tags',       termCache[termId].tags);
+    callback('categories', m.termCache[termId].categories);
+    callback('tags',       m.termCache[termId].tags);
   }
   else
   {
@@ -118,7 +121,7 @@ function fetchMetadata(termType, termId, termIds, maxItems, callback)
     })
     .then(data =>
     {
-      termCache[termId][termType] = data;
+      m.termCache[termId][termType] = data;
       callback(termType, data);
     })
     .catch(reason =>
@@ -129,7 +132,7 @@ function fetchMetadata(termType, termId, termIds, maxItems, callback)
   }
   else
   {
-    termCache[termId][termType] = null;
+    m.termCache[termId][termType] = null;
     callback(termType, null);
   }
 }
@@ -141,15 +144,15 @@ function fetchMetadata(termType, termId, termIds, maxItems, callback)
 
 function readCache()
 {
-  termCache = JSON.parse(sessionStorage.getItem(KEY.UF_TERMLIST_CACHE));
+  m.termCache = JSON.parse(sessionStorage.getItem(KEY.UF_TERMLIST_CACHE));
   
-  if (termCache === null)
-    termCache = {};
+  if (m.termCache === null)
+    m.termCache = {};
 }
 
 function writeCache()
 {
-  sessionStorage.setItem(KEY.UF_TERMLIST_CACHE, JSON.stringify(termCache));
+  sessionStorage.setItem(KEY.UF_TERMLIST_CACHE, JSON.stringify(m.termCache));
 }
 
 function deleteCache()
@@ -159,5 +162,5 @@ function deleteCache()
 
 function hasCache()
 {
-  return (Object.keys(termCache).length > 0);
+  return (Object.keys(m.termCache).length > 0);
 }

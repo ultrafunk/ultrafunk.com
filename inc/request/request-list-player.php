@@ -5,7 +5,7 @@
  */
 
 
-namespace Ultrafunk\RequestPlayer;
+namespace Ultrafunk\RequestListPlayer;
 
 
 use Ultrafunk\SharedRequest\Request;
@@ -16,7 +16,7 @@ use function Ultrafunk\Globals\get_request_params;
 /**************************************************************************************************************************/
 
 
-class RequestPlayer extends Request
+class RequestListPlayer extends Request
 {
   public function __construct(object $wp_env, string $matched_route, array $url_parts)
   {
@@ -24,26 +24,26 @@ class RequestPlayer extends Request
     
     switch ($matched_route)
     {
-      case 'player_all':
-      case 'player_all_page':
-        $this->is_player_all = true;
-        $this->route_path    = 'list';
-        $this->title_parts   = array('prefix' => 'Channel', 'title' => 'All Tracks');
-        $this->current_page  = isset($url_parts[2]) ? intval($url_parts[2]) : 1;
-        $this->max_pages     = get_max_pages(wp_count_posts()->publish, $this->items_per_page);
-        $this->query_args    = array('paged' => $this->current_page, 'posts_per_page' => $this->items_per_page);
-        $this->is_valid      = ($this->current_page <= $this->max_pages);
+      case 'list_player_all':
+      case 'list_player_all_page':
+        $this->is_list_player_all = true;
+        $this->route_path   = 'list';
+        $this->title_parts  = array('prefix' => 'Channel', 'title' => 'All Tracks');
+        $this->current_page = isset($url_parts[2]) ? intval($url_parts[2]) : 1;
+        $this->max_pages    = get_max_pages(intval(wp_count_posts()->publish), $this->items_per_page);
+        $this->query_args   = array('paged' => $this->current_page, 'posts_per_page' => $this->items_per_page);
+        $this->is_valid     = ($this->current_page <= $this->max_pages);
         break;
 
-      case 'player_artist':
-      case 'player_artist_page':
-        $this->is_player_artist = true;
+      case 'list_player_artist':
+      case 'list_player_artist_page':
+        $this->is_list_player_artist = true;
         $this->set_artist_channel_vars($url_parts, 'post_tag', 'tag', 'Artist');
         break;
 
-      case 'player_channel':
-      case 'player_channel_page':
-        $this->is_player_channel = true;
+      case 'list_player_channel':
+      case 'list_player_channel_page':
+        $this->is_list_player_channel = true;
         $this->set_artist_channel_vars($url_parts, 'category', 'category_name', 'Channel');
         break;
 
@@ -59,7 +59,7 @@ class RequestPlayer extends Request
     }
   }
 
-  private function set_artist_channel_vars($url_parts, $taxonomy, $term_name, $title_prefix)
+  private function set_artist_channel_vars(array $url_parts, string $taxonomy, string $term_name, string $title_prefix) : void
   {
     $slug           = sanitize_title($url_parts[2]);
     $this->taxonomy = $taxonomy;
@@ -76,14 +76,14 @@ class RequestPlayer extends Request
     }
   }
 
-  private function set_shuffle_vars($wp_env, $matched_route, $url_parts, $title = null)
+  private function set_shuffle_vars(object $wp_env, string $matched_route, array $url_parts, string $title = null) : void
   {
     // Shift array to fit request-shuffle format = remove the first 'player' url part
     array_shift($url_parts);
 
     if (\Ultrafunk\RequestShuffle\shuffle_callback(true, $wp_env, $matched_route, $url_parts) === false)
     {
-      $this->is_player_shuffle = true;
+      $this->is_list_player_shuffle = true;
       $shuffle_params     = get_request_params();
       $this->route_path   = 'list/shuffle/' . $shuffle_params['path'];
       $this->title_parts  = array('prefix' => 'Shuffle', 'title' => (($title !== null) ? $title : $shuffle_params['slug_name']));
@@ -99,8 +99,17 @@ class RequestPlayer extends Request
   {
     if ($this->is_valid)
     {
-      $this->is_player = true;
-      $this->set_request_params(array('is_player', 'is_player_all', 'is_player_artist', 'is_player_channel', 'is_player_shuffle'), array('WP_Term'));
+      $this->is_list_player = true;
+      
+      $this->set_request_params(array(
+        'is_list_player',
+        'is_list_player_all',
+        'is_list_player_artist',
+        'is_list_player_channel',
+        'is_list_player_shuffle',
+        ),
+        array('WP_Term'),
+      );
     }
 
     return $this->is_valid;
@@ -111,12 +120,12 @@ class RequestPlayer extends Request
 /**************************************************************************************************************************/
 
 
-function player_callback(bool $do_parse, object $wp_env, string $matched_route, array $url_parts) : bool
+function list_player_callback(bool $do_parse, object $wp_env, string $matched_route, array $url_parts) : bool
 {
-  $request = new RequestPlayer($wp_env, $matched_route, $url_parts);
+  $request = new RequestListPlayer($wp_env, $matched_route, $url_parts);
 
   if ($request->is_valid())
-    $request->render_content($wp_env, 'content-player.php', '\Ultrafunk\ContentPlayer\content_player');
+    $request->render_content($wp_env, 'content-list-player.php', '\Ultrafunk\ContentListPlayer\content_list_player');
 
   return $do_parse;
 }

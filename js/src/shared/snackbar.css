@@ -8,19 +8,19 @@
 .site-theme-light {
   --snackbar-background-color: #444;
   --snackbar-text-color: #fff;
-  --snackbar-action-button-color: #4b96ff;
-  --snackbar-action-button-hover-color: #dd0000;
-  --snackbar-close-button-color: #999;
-  --snackbar-close-button-hover-color: #fff;
+  --snackbar-action-text-color: #4b96ff;
+  --snackbar-action-text-hover-color: #fff;
+  --snackbar-close-icon-color: #999;
+  --snackbar-close-icon-hover-color: #fff;
 }
 
 .site-theme-dark {
   --snackbar-background-color: #555;
   --snackbar-text-color: #fff;
-  --snackbar-action-button-color: #4b96ff;
-  --snackbar-action-button-hover-color: #dd0000;
-  --snackbar-close-button-color: #999;
-  --snackbar-close-button-hover-color: #fff;
+  --snackbar-action-text-color: #4b96ff;
+  --snackbar-action-text-hover-color: #fff;
+  --snackbar-close-icon-color: #999;
+  --snackbar-close-icon-hover-color: #fff;
 }
 
 #snackbar {
@@ -56,11 +56,11 @@
   width: 100%;
 }
 
-.snackbar-action-button {
+.snackbar-action-text {
   font-weight: 700;
   font-size: 25px;
   cursor: pointer;
-  color: var(--snackbar-action-button-color);
+  color: var(--snackbar-action-text-color);
   text-decoration: none;
   text-transform: uppercase;
   margin-left: 20px;
@@ -68,13 +68,13 @@
   white-space: nowrap;
 }
 
-.snackbar-action-button:hover {
-  color: var(--snackbar-action-button-hover-color);
+.snackbar-action-text:hover {
+  color: var(--snackbar-action-text-hover-color);
   text-decoration: none;
 }
 
-.snackbar-close-button {
-  color: var(--snackbar-close-button-color);
+.snackbar-close-icon {
+  color: var(--snackbar-close-icon-color);
   float: right;
   padding: 0px 0px 0px 12px;
   width: 40px;
@@ -82,13 +82,13 @@
   user-select: none;
 }
 
-.snackbar-close-button .material-icons {
+.snackbar-close-icon .material-icons {
   font-size: 40px;
   cursor: pointer;
 }
 
-.snackbar-close-button:hover {
-  color: var(--snackbar-close-button-hover-color);
+.snackbar-close-icon:hover {
+  color: var(--snackbar-close-icon-hover-color);
 }
 
 #snackbar.show {
@@ -140,18 +140,18 @@
     padding: 4px 0px;
   }
 
-  .snackbar-action-button {
+  .snackbar-action-text {
     font-size: 18px;
     margin-left: 8px;
   }
   
-  .snackbar-close-button {
+  .snackbar-close-icon {
     padding: 0px 0px 0px 2px;
     width: 32px;
     height: 32px;
   }
   
-  .snackbar-close-button .material-icons {
+  .snackbar-close-icon .material-icons {
     font-size: 32px;
   }
   

@@ -30,23 +30,27 @@ export {
 /*************************************************************************************************/
 
 
-const debug  = debugLogger.newInstance('playback-controls');
-let settings = {};
-let players  = {};
+const debug = debugLogger.newInstance('playback-controls');
 
-const mConfig = {
+const m = {
+  settings: {},
+  players:  {},
+};
+
+const config = {
   progressControlsId: 'progress-controls',
   playbackControlsId: 'playback-controls',
 };
 
 const STATE = {
-  DISABLED: { CLASS: 'state-disabled', ID: 1 },
-  ENABLED:  { CLASS: 'state-enabled',  ID: 2 },
-  PLAYING:  { CLASS: 'state-playing',  ID: 3 },
-  PAUSED:   { CLASS: 'state-paused',   ID: 4 },
+  DISABLED: { CLASS: 'state-disabled', ID: 10 },
+  ENABLED:  { CLASS: 'state-enabled',  ID: 20 },
+  HIDDEN:   { CLASS: 'state-hidden',   ID: 30 },
+  PLAYING:  { CLASS: 'state-playing',  ID: 40 },
+  PAUSED:   { CLASS: 'state-paused',   ID: 50 },
 };
 
-const mControls = {
+const controls = {
 //Progress Controls
   progressSeek:    { element:  null, STATE: STATE.DISABLED, click: null },
   progressBar:     { element:  null, STATE: STATE.DISABLED },
@@ -70,45 +74,45 @@ function init(playbackSettings, mediaPlayers, seekClickCallback)
 {
   debug.log('init()');
 
-  settings = playbackSettings;
-  players  = mediaPlayers;
+  m.settings = playbackSettings;
+  m.players  = mediaPlayers;
 
-  const playbackProgress = document.getElementById(mConfig.progressControlsId);
+  const playbackProgress = document.getElementById(config.progressControlsId);
 
   if (playbackProgress !== null)
   {
-    mControls.progressSeek.element = playbackProgress.querySelector('.progress-seek-control');
-    mControls.progressSeek.click   = seekClickCallback;
-    mControls.progressBar.element  = playbackProgress.querySelector('.progress-bar-control');
+    controls.progressSeek.element = playbackProgress.querySelector('.progress-seek-control');
+    controls.progressSeek.click   = seekClickCallback;
+    controls.progressBar.element  = playbackProgress.querySelector('.progress-bar-control');
   }
   else
   {
-    debug.error(`init(): Unable to getElementById() for '#${mConfig.progressControlsId}'`);
+    debug.error(`init(): Unable to getElementById() for '#${config.progressControlsId}'`);
   }
 
-  const playbackControls = document.getElementById(mConfig.playbackControlsId);
+  const playbackControls = document.getElementById(config.playbackControlsId);
 
   if (playbackControls !== null)
   {
-    mControls.details.element       = playbackControls.querySelector('.playback-details-control');
-    mControls.details.artistElement = mControls.details.element.querySelector('.playback-details-artist');
-    mControls.details.titleElement  = mControls.details.element.querySelector('.playback-details-title');
-    mControls.thumbnail.element     = playbackControls.querySelector('.playback-thumbnail-control');
-    mControls.thumbnail.img         = mControls.thumbnail.element.querySelector('img');
-    mControls.timer.element         = playbackControls.querySelector('.playback-timer-control');
-    mControls.timer.positionElement = mControls.timer.element.querySelector('.playback-timer-position');
-    mControls.timer.durationElement = mControls.timer.element.querySelector('.playback-timer-duration');
-    mControls.prevTrack.element     = playbackControls.querySelector('.playback-prev-control');
-    mControls.playPause.element     = playbackControls.querySelector('.playback-play-pause-control');
-    mControls.playPause.iconElement = mControls.playPause.element.querySelector('i');
-    mControls.nextTrack.element     = playbackControls.querySelector('.playback-next-control');
-    mControls.shuffle.element       = playbackControls.querySelector('.playback-shuffle-control');
-    mControls.mute.element          = playbackControls.querySelector('.playback-mute-control');
-    mControls.mute.iconElement      = mControls.mute.element.querySelector('i');
+    controls.details.element       = playbackControls.querySelector('.playback-details-control');
+    controls.details.artistElement = controls.details.element.querySelector('.playback-details-artist');
+    controls.details.titleElement  = controls.details.element.querySelector('.playback-details-title');
+    controls.thumbnail.element     = playbackControls.querySelector('.playback-thumbnail-control');
+    controls.thumbnail.img         = controls.thumbnail.element.querySelector('img');
+    controls.timer.element         = playbackControls.querySelector('.playback-timer-control');
+    controls.timer.positionElement = controls.timer.element.querySelector('.playback-timer-position');
+    controls.timer.durationElement = controls.timer.element.querySelector('.playback-timer-duration');
+    controls.prevTrack.element     = playbackControls.querySelector('.playback-prev-control');
+    controls.playPause.element     = playbackControls.querySelector('.playback-play-pause-control');
+    controls.playPause.iconElement = controls.playPause.element.querySelector('span');
+    controls.nextTrack.element     = playbackControls.querySelector('.playback-next-control');
+    controls.shuffle.element       = playbackControls.querySelector('.playback-shuffle-control');
+    controls.mute.element          = playbackControls.querySelector('.playback-mute-control');
+    controls.mute.iconElement      = controls.mute.element.querySelector('span');
   }
   else
   {
-    debug.error(`init(): Unable to getElementById() for '#${mConfig.playbackControlsId}'`);
+    debug.error(`init(): Unable to getElementById() for '#${config.playbackControlsId}'`);
   }
 }
 
@@ -116,33 +120,33 @@ function ready(prevClickCallback, playPauseClickCallback, nextClickCallback, mut
 {
   debug.log('ready()');
 
-  setState(mControls.progressSeek, STATE.ENABLED);
-  mControls.progressSeek.element.addEventListener('click', progressSeekClick);
-  setState(mControls.progressBar, STATE.ENABLED);
+  setState(controls.progressSeek, STATE.ENABLED);
+  controls.progressSeek.element.addEventListener('click', progressSeekClick);
+  setState(controls.progressBar, STATE.ENABLED);
   
-  setState(mControls.details, STATE.ENABLED);
-  setState(mControls.thumbnail, STATE.ENABLED);
-  setState(mControls.timer, STATE.ENABLED);
+  setState(controls.details,   STATE.HIDDEN);
+  setState(controls.thumbnail, STATE.HIDDEN);
+  setState(controls.timer,     STATE.HIDDEN);
 
-  if (settings.trackThumbnailOnMobile)
-    mControls.thumbnail.element.classList.add('show-on-mobile');
+  if (m.settings.trackThumbnailOnMobile)
+    controls.thumbnail.element.classList.add('show-on-mobile');
 
-  if (settings.trackTimesOnMobile)
-    mControls.timer.element.classList.add('show-on-mobile');
+  if (m.settings.trackTimesOnMobile)
+    controls.timer.element.classList.add('show-on-mobile');
 
-  setState(mControls.prevTrack, (players.getCurrentTrack() > 1) ? STATE.ENABLED : STATE.DISABLED);
-  mControls.prevTrack.element.addEventListener('click', prevClickCallback);
+  setState(controls.prevTrack, (m.players.getCurrentTrack() > 1) ? STATE.ENABLED : STATE.DISABLED);
+  controls.prevTrack.element.addEventListener('click', prevClickCallback);
 
-  setState(mControls.playPause, STATE.PAUSED);
-  mControls.playPause.element.addEventListener('click', playPauseClickCallback);
+  setState(controls.playPause, STATE.PAUSED);
+  controls.playPause.element.addEventListener('click', playPauseClickCallback);
 
-  setState(mControls.nextTrack, (players.getNumTracks() > 1) ? STATE.ENABLED : STATE.DISABLED);
-  mControls.nextTrack.element.addEventListener('click', nextClickCallback);
+  setState(controls.nextTrack, (m.players.getNumTracks() > 1) ? STATE.ENABLED : STATE.DISABLED);
+  controls.nextTrack.element.addEventListener('click', nextClickCallback);
 
-  setState(mControls.shuffle, STATE.ENABLED);
+  setState(controls.shuffle, STATE.ENABLED);
 
-  setState(mControls.mute, STATE.ENABLED);
-  mControls.mute.element.addEventListener('click', muteClickCallback);
+  setState(controls.mute, STATE.ENABLED);
+  controls.mute.element.addEventListener('click', muteClickCallback);
   updateMuteState();
 
   addSettingsObserver('autoplay',   updateAutoplayState);
@@ -176,21 +180,21 @@ function updateProgressPercent(progressPercent)
 
 function updateProgressBar(scaleX)
 {
-  mControls.progressBar.element.style.transform = `scaleX(${scaleX})`;
+  controls.progressBar.element.style.transform = `scaleX(${scaleX})`;
 }
 
 function progressSeekClick(event)
 {
-  if (mControls.timer.durationSeconds > 0)
+  if (controls.timer.durationSeconds > 0)
   {
     const progressPercent = ((event.clientX / document.documentElement.clientWidth) * 100);
-    const seekPosSeconds  = Math.round((mControls.timer.durationSeconds * progressPercent) / 100);
-    mControls.progressSeek.click(seekPosSeconds);
+    const seekPosSeconds  = Math.round((controls.timer.durationSeconds * progressPercent) / 100);
+    controls.progressSeek.click(seekPosSeconds);
 
     if (isPlaying() === false)
     {
       updateProgressPercent(progressPercent);
-      setTimer(seekPosSeconds, mControls.timer.durationSeconds);
+      setTimer(seekPosSeconds, controls.timer.durationSeconds);
     }
   }
 }
@@ -202,8 +206,15 @@ function progressSeekClick(event)
 
 function setDetails(playersStatus)
 {
-  mControls.details.artistElement.textContent = playersStatus.artist || ''; // Artist will contain the post title if all else fails
-  mControls.details.titleElement.textContent  = playersStatus.title  || '';
+  if (controls.details.STATE.ID === STATE.HIDDEN.ID)
+  {
+    setState(controls.details,   STATE.ENABLED);
+    setState(controls.thumbnail, STATE.ENABLED);
+    setState(controls.timer,     STATE.ENABLED);
+  }
+
+  controls.details.artistElement.textContent = playersStatus.artist || ''; // Artist will contain the post title if all else fails
+  controls.details.titleElement.textContent  = playersStatus.title  || '';
   setThumbnail(playersStatus.thumbnail);
   setTimer(-1, -1);
 }
@@ -211,39 +222,39 @@ function setDetails(playersStatus)
 function setThumbnail(thumbnail)
 {
   // Don't set thumbnail again if the image source / URL is unchanged
-  if (thumbnail.src !== mControls.thumbnail.img.src)
+  if (thumbnail.src !== controls.thumbnail.img.src)
   {
-    mControls.thumbnail.element.classList.remove('type-default', 'type-youtube', 'type-soundcloud');
-    mControls.thumbnail.element.classList.add('loading', thumbnail.class);
-    mControls.thumbnail.img.src = thumbnail.src;
-    mControls.thumbnail.img.decode().then(() => mControls.thumbnail.element.classList.remove('loading'));
+    controls.thumbnail.element.classList.remove('type-default', 'type-youtube', 'type-soundcloud');
+    controls.thumbnail.element.classList.add('loading', thumbnail.class);
+    controls.thumbnail.img.src = thumbnail.src;
+    controls.thumbnail.img.decode().then(() => controls.thumbnail.element.classList.remove('loading'));
   }
 }
 
 function setTimer(positionSeconds, durationSeconds)
 {
-  if ((positionSeconds !== -1) && (mControls.timer.positionSeconds !== positionSeconds))
+  if ((positionSeconds !== -1) && (controls.timer.positionSeconds !== positionSeconds))
   {
-    mControls.timer.positionSeconds = positionSeconds;
+    controls.timer.positionSeconds = positionSeconds;
 
-    if (settings.autoplay === false)
+    if (m.settings.autoplay === false)
       positionSeconds = durationSeconds - positionSeconds;
     
-    setTimerText(mControls.timer.positionElement, positionSeconds);
+    setTimerText(controls.timer.positionElement, positionSeconds);
   }
-  else if ((positionSeconds === -1) && (mControls.timer.positionSeconds === -1))
+  else if ((positionSeconds === -1) && (controls.timer.positionSeconds === -1))
   {
-    mControls.timer.positionElement.textContent = '00:00';
+    controls.timer.positionElement.textContent = '00:00';
   }
 
-  if ((durationSeconds !== -1) && (mControls.timer.durationSeconds !== durationSeconds))
+  if ((durationSeconds !== -1) && (controls.timer.durationSeconds !== durationSeconds))
   {
-    mControls.timer.durationSeconds = durationSeconds;
-    setTimerText(mControls.timer.durationElement, durationSeconds);
+    controls.timer.durationSeconds = durationSeconds;
+    setTimerText(controls.timer.durationElement, durationSeconds);
   }
-  else if ((durationSeconds === -1) && (mControls.timer.durationSeconds === -1))
+  else if ((durationSeconds === -1) && (controls.timer.durationSeconds === -1))
   {
-    mControls.timer.durationElement.textContent = '00:00';
+    controls.timer.durationElement.textContent = '00:00';
   }
 }
 
@@ -255,10 +266,10 @@ function setTimerText(element, seconds)
 
 function clearTimer()
 {
-  mControls.timer.positionElement.textContent = '00:00';
-  mControls.timer.durationElement.textContent = '00:00';
-  mControls.timer.positionSeconds = 0;
-  mControls.timer.durationSeconds = 0;
+  controls.timer.positionElement.textContent = '00:00';
+  controls.timer.durationElement.textContent = '00:00';
+  controls.timer.positionSeconds = 0;
+  controls.timer.durationSeconds = 0;
 }
 
 
@@ -269,69 +280,69 @@ function clearTimer()
 function isPlaying()
 {
   // ToDo: This might not be the best place to save / check playback state...?
-  return ((mControls.playPause.STATE.ID === STATE.PLAYING.ID) ? true : false);    
+  return ((controls.playPause.STATE.ID === STATE.PLAYING.ID) ? true : false);    
 }
 
 function updatePrevState()
 {
-  const playersStatus = players.getStatus();
+  const playersStatus = m.players.getStatus();
 
   clearTimer();
   setDetails(playersStatus);
 
   if ((isPlaying() === false) && (playersStatus.currentTrack <= 1))
-    setState(mControls.prevTrack, STATE.DISABLED);
+    setState(controls.prevTrack, STATE.DISABLED);
   
   if (playersStatus.currentTrack < playersStatus.numTracks)
-    setState(mControls.nextTrack, STATE.ENABLED);
+    setState(controls.nextTrack, STATE.ENABLED);
 }
 
 function setPlayState()
 {
-  const playersStatus = players.getStatus();
+  const playersStatus = m.players.getStatus();
 
-  setState(mControls.playPause, STATE.PLAYING);
-  mControls.playPause.iconElement.textContent = 'pause_circle_filled';
-  setState(mControls.prevTrack, STATE.ENABLED);
+  setState(controls.playPause, STATE.PLAYING);
+  controls.playPause.iconElement.textContent = 'pause_circle_filled';
+  setState(controls.prevTrack, STATE.ENABLED);
   setDetails(playersStatus);
 }
 
 function setPauseState()
 {
-  setState(mControls.playPause, STATE.PAUSED);
-  mControls.playPause.iconElement.textContent = 'play_circle_filled';
+  setState(controls.playPause, STATE.PAUSED);
+  controls.playPause.iconElement.textContent = 'play_circle_filled';
 }
 
 function blinkPlayPause(toggleBlink)
 {
   if (toggleBlink)
-    mControls.playPause.element.classList.toggle('time-remaining-warning');
+    controls.playPause.element.classList.toggle('time-remaining-warning');
   else
-    mControls.playPause.element.classList.remove('time-remaining-warning');
+    controls.playPause.element.classList.remove('time-remaining-warning');
 }
 
 function updateNextState()
 {
-  const playersStatus = players.getStatus();
+  const playersStatus = m.players.getStatus();
   
   clearTimer();
   setDetails(playersStatus);
-  setState(mControls.prevTrack, STATE.ENABLED);
+  setState(controls.prevTrack, STATE.ENABLED);
   
   if (playersStatus.currentTrack >= playersStatus.numTracks)
-    setState(mControls.nextTrack, STATE.DISABLED);
+    setState(controls.nextTrack, STATE.DISABLED);
 }
 
 function updateMuteState()
 {
-  mControls.mute.iconElement.textContent = settings.masterMute ? 'volume_off' : 'volume_up';
+  controls.mute.iconElement.textContent = m.settings.masterMute ? 'volume_off' : 'volume_up';
 }
 
 function updateAutoplayState()
 {
-  if ((isPlaying() === false) && (mControls.timer.positionSeconds !== -1) && ((mControls.timer.durationSeconds !== -1)))
+  if ((isPlaying() === false) && (controls.timer.positionSeconds !== -1) && ((controls.timer.durationSeconds !== -1)))
   {
-    setTimerText(mControls.timer.positionElement, settings.autoplay ? mControls.timer.positionSeconds : (mControls.timer.durationSeconds - mControls.timer.positionSeconds));
-    setTimerText(mControls.timer.durationElement, mControls.timer.durationSeconds);
+    setTimerText(controls.timer.positionElement, m.settings.autoplay ? controls.timer.positionSeconds : (controls.timer.durationSeconds - controls.timer.positionSeconds));
+    setTimerText(controls.timer.durationElement, controls.timer.durationSeconds);
   }
 }

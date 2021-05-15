@@ -16,16 +16,13 @@ import { siteSettings } from './shared/settings.js';
 /*************************************************************************************************/
 
 
-const debug   = debugLogger.newInstance('index');
-let mSettings = {};
+const debug  = debugLogger.newInstance('index');
 
-const mConfig = {
-  smoothScrolling:        false,
-  settingsUpdatedEvent:   'settingsUpdated',
-  fullscreenElementEvent: 'fullscreenElement',
+const m = {
+  settings: {},
 };
 
-const mElements = {
+const elements = {
   siteHeader:        null,
   introBanner:       null,
   siteContent:       null,
@@ -45,29 +42,29 @@ document.addEventListener('DOMContentLoaded', () =>
   readSettings();
   initIndex();
   
-  if (mElements.introBanner !== null)
+  if (elements.introBanner !== null)
     showIntroBanner();
   
   if (document.getElementById('termlist-container') !== null)
-    termlist.init(mSettings);
+    termlist.init(m.settings);
 
-  if (mElements.siteContentSearch !== null)
+  if (elements.siteContentSearch !== null)
   {
-    mElements.siteContentSearch.focus();
-    mElements.siteContentSearch.setSelectionRange(9999, 9999);
+    elements.siteContentSearch.focus();
+    elements.siteContentSearch.setSelectionRange(9999, 9999);
   }
 
   setPreviousPageTitle();
 
-  document.addEventListener(mConfig.settingsUpdatedEvent, () =>
+  document.addEventListener('settingsUpdated', () =>
   {
     readSettings();
-    interaction.settingsUpdated(mSettings);
-    storage.setCookie(storage.KEY.UF_TRACKS_PER_PAGE,  mSettings.user.tracksPerPage,   (60 * 60 * 24 * 365 * 5));
-  //storage.setCookie(storage.KEY.UF_PREFERRED_PLAYER, mSettings.user.preferredPlayer, (60 * 60 * 24 * 365 * 5));
+    interaction.settingsUpdated(m.settings);
+    storage.setCookie(storage.KEY.UF_TRACKS_PER_PAGE,  m.settings.user.tracksPerPage,   (60 * 60 * 24 * 365 * 5));
+  //storage.setCookie(storage.KEY.UF_PREFERRED_PLAYER, m.settings.user.preferredPlayer, (60 * 60 * 24 * 365 * 5));
   });
   
-  document.addEventListener(mConfig.fullscreenElementEvent, (event) => mElements.fullscreenTarget = event.fullscreenTarget);
+  document.addEventListener('fullscreenElement', (event) => elements.fullscreenTarget = event.fullscreenTarget);
   document.addEventListener('keydown', documentEventKeyDown);
 });
 
@@ -79,20 +76,20 @@ document.addEventListener('DOMContentLoaded', () =>
 function readSettings()
 {
   debug.log('readSettings()');
-  mSettings = storage.readWriteSettingsProxy(storage.KEY.UF_SITE_SETTINGS, siteSettings, true);
-  debug.log(mSettings);
+  m.settings = storage.readWriteSettingsProxy(storage.KEY.UF_SITE_SETTINGS, siteSettings, true);
+  debug.log(m.settings);
 }
 
 function initIndex()
 {
   debug.log('initIndex()');
 
-  mElements.siteHeader        = document.getElementById('site-header');
-  mElements.introBanner       = document.getElementById('intro-banner');
-  mElements.siteContent       = document.getElementById('site-content');
-  mElements.siteContentSearch = document.querySelector('#site-content form input.search-field');
+  elements.siteHeader        = document.getElementById('site-header');
+  elements.introBanner       = document.getElementById('intro-banner');
+  elements.siteContent       = document.getElementById('site-content');
+  elements.siteContentSearch = document.querySelector('#site-content form input.search-field');
 
-  interaction.init(mSettings);
+  interaction.init(m.settings);
 
   navSearch.init();
   navMenu.init();
@@ -109,7 +106,9 @@ function initIndex()
 function documentEventKeyDown(event)
 {
   // UI keyboard events (cannot be disable by the user)
-  if ((event.repeat === false) && (event.ctrlKey === false) && (event.altKey === false))
+  if ((event.repeat  === false) &&
+      (event.ctrlKey === false) &&
+      (event.altKey  === false))
   {
     switch (event.key)
     {
@@ -124,7 +123,10 @@ function documentEventKeyDown(event)
   }
 
   // User enabled keyboard shortcuts (on by default)
-  if (mSettings.user.keyboardShortcuts && (event.repeat === false) && (event.ctrlKey === false) && (event.altKey === false))
+  if (m.settings.user.keyboardShortcuts &&
+      (event.repeat  === false)         &&
+      (event.ctrlKey === false)         &&
+      (event.altKey  === false))
   {
     switch (event.key)
     {
@@ -140,7 +142,7 @@ function documentEventKeyDown(event)
       case 'L':
         if (searchNotFocused() && notSettingsPage())
         {
-          interaction.galleryLayout.toggle(event);
+          interaction.mProps.galleryLayout.toggle(event);
           resize.trigger();
         }
         break;
@@ -157,7 +159,7 @@ function documentEventKeyDown(event)
       case 'T':
         if (searchNotFocused() && notSettingsPage())
         {
-          interaction.siteTheme.toggle(event);
+          interaction.mProps.siteTheme.toggle(event);
         }
         break;
 
@@ -182,7 +184,7 @@ function documentEventKeyDown(event)
 
 function searchNotFocused()
 {
-  return ((navSearch.isVisible() === false) && (mElements.siteContentSearch !== document.activeElement));
+  return ((navSearch.isVisible() === false) && (elements.siteContentSearch !== document.activeElement));
 }
 
 function notSettingsPage()
@@ -192,7 +194,7 @@ function notSettingsPage()
 
 function notFullscreenElement()
 {
-  return ((mElements.fullscreenTarget === null) ? true : false);
+  return ((elements.fullscreenTarget === null) ? true : false);
 }
 
 function noPlayback()
@@ -218,16 +220,16 @@ function showIntroBanner()
   {
     if ((typeof bannerProperty !== 'undefined') && (bannerProperty !== null)) // eslint-disable-line no-undef
     {
-      if (mSettings.priv.banners[bannerProperty]) // eslint-disable-line no-undef
+      if (m.settings.priv.banners[bannerProperty]) // eslint-disable-line no-undef
       {
-        mElements.introBanner.style.display = 'block';
+        elements.introBanner.style.display = 'block';
         resize.trigger();
 
         utils.addListener('#intro-banner .intro-banner-close-button', 'click', () =>
         {
-          mElements.introBanner.style.display    = '';
-          mElements.siteContent.style.marginTop  = '';
-          mSettings.priv.banners[bannerProperty] = false; // eslint-disable-line no-undef
+          elements.introBanner.style.display      = '';
+          elements.siteContent.style.marginTop    = '';
+          m.settings.priv.banners[bannerProperty] = false; // eslint-disable-line no-undef
         });
       }
     }
@@ -275,38 +277,38 @@ function setPreviousPageTitle()
 
 const navMenu = (() =>
 {
-  const observer  = new ResizeObserver(observerCallback);
-  const elements  = { navMenu: null, modalOverlay: null };
-  let isVisible   = false;
+  const observer = new ResizeObserver(observerCallback);
+  let navMenu = null, modalOverlay = null;
+  let isVisible = false;
 
   return {
-    isVisible()   { return isVisible;                    },
-    scrolledTop() { elements.navMenu.style.display = ''; },
+    isVisible()   { return isVisible;           },
+    scrolledTop() { navMenu.style.display = ''; },
     init,
     toggle,
   };
 
   function init()
   {
-    elements.navMenu      = document.querySelector('#site-navigation .nav-menu-outer');
-    elements.modalOverlay = document.getElementById('nav-menu-modal-overlay');
+    navMenu      = document.querySelector('#site-navigation .nav-menu-outer');
+    modalOverlay = document.getElementById('nav-menu-modal-overlay');
 
     utils.addListenerAll('.nav-menu-toggle', 'click', toggle);
-    elements.modalOverlay.addEventListener('click', toggle);
-    elements.modalOverlay.addEventListener('transitionend', transitionEnd);
-    observer.observe(elements.navMenu.querySelector('.menu-primary-menu-container'));
+    modalOverlay.addEventListener('click', toggle);
+    modalOverlay.addEventListener('transitionend', transitionEnd);
+    observer.observe(navMenu.querySelector('.menu-primary-menu-container'));
   }
 
   function toggle()
   {
-    if (mElements.siteHeader.classList.contains('sticky-nav-up'))
+    if (elements.siteHeader.classList.contains('sticky-nav-up'))
     {
-      isVisible ? elements.navMenu.style.display = 'none' : elements.navMenu.style.display = 'flex';
+      isVisible ? navMenu.style.display = 'none' : navMenu.style.display = 'flex';
     }
     else
     {
-      if (mElements.siteHeader.classList.contains('sticky-nav-down') === false)
-        mElements.siteHeader.classList.toggle('hide-nav-menu');
+      if (elements.siteHeader.classList.contains('sticky-nav-down') === false)
+        elements.siteHeader.classList.toggle('hide-nav-menu');
     }
   }
 
@@ -316,13 +318,13 @@ const navMenu = (() =>
 
     if (isVisible)
     {
-      elements.modalOverlay.className = '';
-      elements.modalOverlay.classList.add('show');
-      setTimeout(() => elements.modalOverlay.classList.add('fadein'), 50);
+      modalOverlay.className = '';
+      modalOverlay.classList.add('show');
+      setTimeout(() => modalOverlay.classList.add('fadein'), 50);
     }
     else
     {
-      elements.modalOverlay.classList.add('fadeout');
+      modalOverlay.classList.add('fadeout');
     }
   }
 
@@ -330,8 +332,8 @@ const navMenu = (() =>
   {
     if (isVisible === false)
     {
-      elements.modalOverlay.className = '';
-      elements.navMenu.style.display  = '';
+      modalOverlay.className = '';
+      navMenu.style.display  = '';
     }
   }
 })();
@@ -345,8 +347,8 @@ const navSearch = (() =>
 {
   const allowKeyboardShortcutsEvent = new Event('allowKeyboardShortcuts');
   const denyKeyboardShortcutsEvent  = new Event('denyKeyboardShortcuts');
-  const elements = { searchContainer: null, searchField: null, brandingContainer: null };
-  let isVisible  = false;
+  let searchContainer = null, searchField = null, brandingContainer = null;
+  let isVisible = false;
 
   return {
     isVisible() { return isVisible; },
@@ -357,18 +359,18 @@ const navSearch = (() =>
 
   function init()
   {
-    elements.searchContainer   = document.getElementById('search-container');
-    elements.searchField       = elements.searchContainer.querySelector('.search-field');
-    elements.brandingContainer = mElements.siteHeader.querySelector('div.site-branding-container');
+    searchContainer   = document.getElementById('search-container');
+    searchField       = searchContainer.querySelector('.search-field');
+    brandingContainer = elements.siteHeader.querySelector('div.site-branding-container');
 
     utils.addListenerAll('.nav-search-toggle', 'click', toggle);
     // To prevent extra 'blur' event before 'click' event
     utils.addListenerAll('.nav-search-toggle', 'mousedown', (event) => event.preventDefault());
     // Hide nav search bar on focus loss
-    elements.searchField.addEventListener('blur', hide);
+    searchField.addEventListener('blur', hide);
     
     // Hide nav search bar on ESC
-    elements.searchField.addEventListener('keydown', (event) =>
+    searchField.addEventListener('keydown', (event) =>
     {
       if (event.key === 'Escape')
       {
@@ -391,17 +393,17 @@ const navSearch = (() =>
   
   function hasVisibleSearchContainer()
   {
-    if (elements.searchContainer.style.display.length === 0)
+    if (searchContainer.style.display.length === 0)
     {
       // Has no visible site header at all, bail out...
-      if (mElements.siteHeader.offsetHeight === 0)
+      if (elements.siteHeader.offsetHeight === 0)
         return false;
 
       // Is mobile with no visible nav-bar, bail out...
       if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
       {
-        if ((mElements.siteHeader.querySelector('.nav-bar-container-mobile-top').offsetHeight === 0) &&
-            (mElements.siteHeader.querySelector('.nav-bar-container-mobile-up').offsetHeight  === 0))
+        if ((elements.siteHeader.querySelector('.nav-bar-container-mobile-top').offsetHeight === 0) &&
+            (elements.siteHeader.querySelector('.nav-bar-container-mobile-up').offsetHeight  === 0))
         {
           return false;
         }
@@ -417,16 +419,16 @@ const navSearch = (() =>
   {
     setPosSize();
     setProps(true, denyKeyboardShortcutsEvent, 'flex', 'clear');
-    elements.searchField.focus();
-    elements.searchField.setSelectionRange(9999, 9999);    
+    searchField.focus();
+    searchField.setSelectionRange(9999, 9999);    
   }
   
   function setProps(visible, keyboardShortcutsEvent, display, icon)
   {
     isVisible = visible;
     document.dispatchEvent(keyboardShortcutsEvent);
-    elements.searchContainer.style.display = display;
-    document.querySelectorAll('div.nav-search-toggle i').forEach(element => element.textContent = icon);
+    searchContainer.style.display = display;
+    document.querySelectorAll('div.nav-search-toggle span').forEach(element => element.textContent = icon);
     isVisible ? document.getElementById('playback-controls').classList.add('hide') : document.getElementById('playback-controls').classList.remove('hide');
   }
 
@@ -436,31 +438,31 @@ const navSearch = (() =>
 
     if (utils.matchesMedia(utils.MATCH.SITE_MAX_WIDTH_MOBILE))
     {
-      if (elements.brandingContainer.offsetHeight !== 0)
-        position.top = elements.brandingContainer.offsetTop;
+      if (brandingContainer.offsetHeight !== 0)
+        position.top = brandingContainer.offsetTop;
       else
-        position.top = mElements.siteHeader.querySelector('.nav-bar-container-mobile-up').offsetTop;
+        position.top = elements.siteHeader.querySelector('.nav-bar-container-mobile-up').offsetTop;
 
       position = new DOMRect(63, (position.top + 3), (document.body.clientWidth - 63), 30);
     }
     else
     {
-      if (elements.brandingContainer.offsetHeight !== 0)
+      if (brandingContainer.offsetHeight !== 0)
       {
-        const rect = elements.brandingContainer.getBoundingClientRect();
+        const rect = brandingContainer.getBoundingClientRect();
         position   = new DOMRect(rect.left, (rect.top + 10), rect.right, (rect.height - 20));
       }
       else
       {
-        const rect = mElements.siteHeader.querySelector('.nav-bar-container').getBoundingClientRect();
+        const rect = elements.siteHeader.querySelector('.nav-bar-container').getBoundingClientRect();
         position   = new DOMRect((rect.left + 105), (rect.top + 2), (rect.right - 105), (rect.height - 4));
       }
     }
   
-    elements.searchContainer.style.left   = `${position.left}px`;
-    elements.searchContainer.style.top    = `${position.top}px`;
-    elements.searchContainer.style.width  = `${position.width - position.left}px`;
-    elements.searchContainer.style.height = `${position.height}px`;
+    searchContainer.style.left   = `${position.left}px`;
+    searchContainer.style.top    = `${position.top}px`;
+    searchContainer.style.width  = `${position.width - position.left}px`;
+    searchContainer.style.height = `${position.height}px`;
   }
 })();
 
@@ -489,10 +491,10 @@ const resize = (() =>
   {
     noPlayback() ? headerHeight = utils.getCssPropValue('--site-header-height-no-playback') : headerHeight = utils.getCssPropValue('--site-header-height');
 
-    if ((mElements.introBanner !== null) && (mElements.introBanner.style.display.length !== 0))
+    if ((elements.introBanner !== null) && (elements.introBanner.style.display.length !== 0))
     {
-      mElements.introBanner.style.marginTop = `${headerHeight}px`;
-      mElements.siteContent.style.marginTop = `${utils.getCssPropValue('--site-content-margin-top')}px`;
+      elements.introBanner.style.marginTop = `${headerHeight}px`;
+      elements.siteContent.style.marginTop = `${utils.getCssPropValue('--site-content-margin-top')}px`;
     }
   }
 })();
@@ -537,8 +539,8 @@ const scroll = (() =>
 
   function scrolledTop()
   {
-    mElements.siteHeader.classList.remove('sticky-nav-down', 'sticky-nav-up');
-    mElements.siteHeader.classList.add('hide-nav-menu');
+    elements.siteHeader.classList.remove('sticky-nav-down', 'sticky-nav-up');
+    elements.siteHeader.classList.add('hide-nav-menu');
     navMenu.scrolledTop();
   }
 
@@ -547,7 +549,7 @@ const scroll = (() =>
     if (isScrolledDown === false)
     {
       isScrolledDown = true;
-      utils.replaceClass(mElements.siteHeader, 'sticky-nav-up', 'sticky-nav-down');
+      utils.replaceClass(elements.siteHeader, 'sticky-nav-up', 'sticky-nav-down');
     }
   }
 
@@ -556,7 +558,7 @@ const scroll = (() =>
     if (isScrolledDown === true)
     {
       isScrolledDown = false;
-      utils.replaceClass(mElements.siteHeader, 'sticky-nav-down', 'sticky-nav-up');
+      utils.replaceClass(elements.siteHeader, 'sticky-nav-down', 'sticky-nav-up');
     }
 
     if (navMenu.isVisible())

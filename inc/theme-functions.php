@@ -15,7 +15,7 @@ use function Ultrafunk\Globals\ {
   console_log,
   is_shuffle,
   is_termlist,
-  is_player,
+  is_list_player,
   get_request_params,
   get_cached_title,
   set_cached_title,
@@ -29,7 +29,7 @@ use function Ultrafunk\Globals\ {
 //
 // Get prev + next post/posts URLs + other navigation variables
 //
-function get_navigation_vars()
+function get_navigation_vars() : array
 {
   $params   = get_request_params();
   $nav_vars = array(
@@ -38,7 +38,7 @@ function get_navigation_vars()
     'listItemsPerPage'    => isset($params['items_per_page'])
                              ? $params['items_per_page']
                              : get_dev_prod_const('player_items_per_page'),
-    'galleryItemsPerPage' => (is_shuffle() || (is_player() && $params['is_player_shuffle']))
+    'galleryItemsPerPage' => (is_shuffle() || (is_list_player() && $params['is_list_player_shuffle']))
                              ? get_cookie_value('UF_TRACKS_PER_PAGE', 3, 24, intval(get_option('posts_per_page', 12)))
                              : intval(get_option('posts_per_page', 12)),
   );
@@ -47,7 +47,7 @@ function get_navigation_vars()
   if (is_404())
     return $nav_vars;
 
-  if (is_termlist() || is_player())
+  if (is_termlist() || is_list_player())
     return request_get_navigation_vars($nav_vars);
 
   if (is_single())
@@ -86,7 +86,7 @@ function get_navigation_vars()
 // Enhance search results by replacing special chars in query string
 // This should be done by default in WordPress?
 //
-function modify_search_query($query)
+function modify_search_query(object $query) : void
 {
   if (!is_admin() && $query->is_main_query() && $query->is_search)
   {
@@ -126,7 +126,7 @@ function get_cookie_value(string $cookie_name, int $min_val, int $max_val, int $
 //
 // Set number of posts (tracks) per page for Search + Shuffle based on user setting
 //
-function set_posts_per_page($query)
+function set_posts_per_page(object $query) : void
 {
   if (!is_admin() && $query->is_main_query())
   {
@@ -139,7 +139,7 @@ add_action('pre_get_posts', '\Ultrafunk\ThemeFunctions\set_posts_per_page', 1);
 //
 // Get current title from context
 //
-function get_title()
+function get_title() : string
 {
   $title = get_cached_title();
 
@@ -157,7 +157,7 @@ function get_title()
   {
     $title = $params['is_termlist_artists'] ? ('Artists: ' . strtoupper($params['first_letter'])) : 'All Channels';
   }
-  else if (is_player())
+  else if (is_list_player())
   {
     $title = $params['title_parts']['title'];
   }
@@ -178,7 +178,7 @@ function get_title()
 //
 // Customize page titles
 //
-function customize_title($title)
+function customize_title(array $title) : array
 {
   $params = get_request_params();
 
@@ -195,9 +195,9 @@ function customize_title($title)
     else
       $title['title'] = esc_html(get_title());
   }
-  else if (is_player())
+  else if (is_list_player())
   {
-    $title_parts = $params['is_player_shuffle'] ? ($params['title_parts']['prefix'] . ': ' . get_title()) : get_title();
+    $title_parts = $params['is_list_player_shuffle'] ? ($params['title_parts']['prefix'] . ': ' . get_title()) : get_title();
 
     if ($params['max_pages'] > 1)
       $title_parts .= ' - Page ' . $params['current_page'];
@@ -212,7 +212,7 @@ add_filter('document_title_parts', '\Ultrafunk\ThemeFunctions\customize_title');
 //
 // Add uniqid and other custom options for SoundCloud and YouTube iframe embeds
 //
-function embed_iframe_setparams($cached_html)
+function embed_iframe_setparams(string $cached_html) : string
 {
   if (stripos($cached_html, 'youtube.com/') !== false)
   {
@@ -232,9 +232,21 @@ function embed_iframe_setparams($cached_html)
 add_filter('embed_oembed_html', '\Ultrafunk\ThemeFunctions\embed_iframe_setparams', 10, 1);
 
 //
+// Add noindex meta tag to all shuffle pages
+//
+function wp_robots_noindex(array $robots) : array
+{
+  if (is_shuffle() || (is_list_player() && get_request_params()['is_list_player_shuffle']))
+    $robots['noindex'] = true;
+
+  return $robots;
+}
+add_filter('wp_robots', '\Ultrafunk\ThemeFunctions\wp_robots_noindex');
+
+//
 // Disable iframe lazy loading
 //
-function disable_iframe_lazy_loading($default, $tag_name, $context)
+function disable_iframe_lazy_loading(bool $default, string $tag_name, string $context) : bool
 {
   if ('iframe' === $tag_name)
     return false;  
@@ -246,7 +258,7 @@ add_filter('wp_lazy_loading_enabled', '\Ultrafunk\ThemeFunctions\disable_iframe_
 //
 // Customize the default WordPress search form
 //
-function style_search_form($form)
+function style_search_form(string $form) : string
 {
   if (stripos($form, '<input type="search"') !== false)
     $form = str_ireplace('<input type="search"', '<input type="search" required', $form);
@@ -262,13 +274,13 @@ function get_shuffle_menu_item_url() : string
 {
   $params = get_request_params();
 
-  if (is_player())
+  if (is_list_player())
   {
     $request_path = '/list/shuffle/all/';
 
-    if ($params['is_player_shuffle'])
+    if ($params['is_list_player_shuffle'])
       $request_path = '/' . $params['route_path'] . '/';
-    else if ($params['is_player_channel'] || $params['is_player_artist'])
+    else if ($params['is_list_player_channel'] || $params['is_list_player_artist'])
       $request_path = '/' . str_ireplace('list/', 'list/shuffle/', $params['route_path']) . '/';
     
     return $request_path;
@@ -302,7 +314,7 @@ function get_shuffle_menu_item_url() : string
 //
 function get_shuffle_menu_item_title() : string
 {
-  if (is_player())
+  if (is_list_player())
     return ('Shuffle: ' . get_request_params()['title_parts']['title']);
 
   $title = '';
@@ -318,7 +330,7 @@ function get_shuffle_menu_item_title() : string
 //
 // Do needed magic to the nav menu items here from context
 //
-function setup_nav_menu_item($menu_item)
+function setup_nav_menu_item(object $menu_item) : object
 {
   if (is_admin())
     return $menu_item;
@@ -326,7 +338,7 @@ function setup_nav_menu_item($menu_item)
   $menu_item_all_id     = get_dev_prod_const('menu_item_all_id');
   $menu_item_shuffle_id = get_dev_prod_const('menu_item_shuffle_id');
 
-  if (is_player())
+  if (is_list_player())
   {
     $params = get_request_params();
 
@@ -335,10 +347,10 @@ function setup_nav_menu_item($menu_item)
     else
       $menu_item->url = str_replace('ultrafunk.com', 'ultrafunk.com/list', $menu_item->url);
 
-    if (($menu_item->ID === $menu_item_all_id) && ($params['is_player_all']))
+    if (($menu_item->ID === $menu_item_all_id) && ($params['is_list_player_all']))
       $menu_item->classes[] = 'current-menu-item';
   
-    if (($menu_item->ID === $menu_item_shuffle_id) && ($params['is_player_shuffle']))
+    if (($menu_item->ID === $menu_item_shuffle_id) && ($params['is_list_player_shuffle']))
       $menu_item->classes[] = 'current-menu-item';
 
     if (isset($params['WP_Term']) && ($params['WP_Term']->term_id === intval($menu_item->object_id)))

@@ -5,7 +5,7 @@
  */
 
 
-namespace Ultrafunk\ContentTerms;
+namespace Ultrafunk\ContentTermlist;
 
 
 use function Ultrafunk\Globals\console_log;
@@ -15,7 +15,7 @@ use function Ultrafunk\SharedRequest\request_pagination;
 /**************************************************************************************************************************/
 
 
-function termlist($request)
+function content_termlist(object $request) : void
 {
   $terms = get_terms(array(
     'taxonomy'     => $request->taxonomy,
@@ -53,7 +53,7 @@ function termlist($request)
   }
 }
 
-function termlist_entries($request, $terms)
+function termlist_entries(object $request, array $terms) : void
 {
   $odd_even = $request->is_termlist_artists ? 1 : 0;
   $home_url = esc_url(home_url());
@@ -69,8 +69,12 @@ function termlist_entries($request, $terms)
       <div class="termlist-header <?php echo $row_class; ?>" title="Show more or less">
         <div class="termlist-name"><?php echo "$term_name <span class='light-text'>($term->count)</span>"; ?></div>
         <div class="termlist-icons">
-          <div class="play-button" title="Play All - <?php echo $term_name; ?>"><a href="<?php echo "/$request->term_path/$term_slug/"; ?>" target="_blank"><span class="material-icons">play_arrow</span></a></div>
-          <div class="shuffle-button" title="Shuffle &amp; Play All - <?php echo $term_name; ?>"><a href="<?php echo "/shuffle/$request->term_path/$term_slug/"; ?>" target="_blank"><span class="material-icons">shuffle</span></a></div>
+          <div class="play-button" title="Play All - <?php echo $term_name; ?>">
+            <a href="<?php echo "/$request->term_path/$term_slug/"; ?>" target="_blank"><span class="material-icons">play_arrow</span></a>
+          </div>
+          <div class="shuffle-button" title="Shuffle &amp; Play All - <?php echo $term_name; ?>">
+            <a href="<?php echo "/shuffle/$request->term_path/$term_slug/"; ?>" target="_blank"><span class="material-icons">shuffle</span></a>
+          </div>
           <div class="share-find-button" title="Share <?php echo $term_name; ?> / Find On"
             data-term-path="<?php echo $request->term_path; ?>"
             data-term-name="<?php echo $term_name; ?>"

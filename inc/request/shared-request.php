@@ -31,7 +31,7 @@ abstract class Request
     $this->items_per_page = get_dev_prod_const('player_items_per_page');
   }
 
-  protected function set_request_params(array $bool_params = array(), array $null_params = array())
+  protected function set_request_params(array $bool_params = array(), array $null_params = array()) : void
   {
     foreach ($bool_params as $key)
       $params[$key] = isset($this->$key) ? $this->$key : false;
@@ -50,17 +50,17 @@ abstract class Request
 
   abstract public function is_valid() : bool;
 
-  public function render_content($wp_env, $template_name, $template_function)
+  public function render_content(object $wp_env, string $template_name, string $template_function) : void
   {
   //console_log($this);
   //console_log(get_request_params());
 
-    require get_template_directory() . '/template-parts/' . $template_name;
+    require_once get_template_directory() . '/template-parts/' . $template_name;
 
     $wp_env->send_headers();
     
     get_header();
-    call_user_func($template_function, $this);
+    $template_function($this);
     get_footer();
 
     exit;
@@ -71,12 +71,12 @@ abstract class Request
 /**************************************************************************************************************************/
 
 
-function get_max_pages($item_count, $items_per_page)
+function get_max_pages(int $item_count, int $items_per_page) : int
 {
-  return ($item_count > $items_per_page) ? ceil($item_count / $items_per_page) : 1;  
+  return ($item_count > $items_per_page) ? ((int)ceil($item_count / $items_per_page)) : 1;  
 }
 
-function request_pagination($request)
+function request_pagination(object $request) : void
 {
   if (isset($request->max_pages) && ($request->max_pages > 1))
   {
@@ -104,7 +104,7 @@ function request_pagination($request)
   }
 }
 
-function request_get_navigation_vars($prevNext)
+function request_get_navigation_vars(array $prevNext) : array
 {
   $params = get_request_params();
   $path   = isset($params['route_path']) ? $params['route_path'] : '';
