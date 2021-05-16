@@ -168,6 +168,7 @@ body.autoplay-off .progress-bar-control {
 .playback-prev-control,
 .playback-play-pause-control,
 .playback-next-control,
+.playback-repeat-control,
 .playback-shuffle-control,
 .playback-mute-control {
   display: inline-block;
@@ -177,6 +178,7 @@ body.autoplay-off .progress-bar-control {
 .playback-prev-control.state-disabled,
 .playback-play-pause-control.state-disabled,
 .playback-next-control.state-disabled,
+.playback-repeat-control.state-disabled,
 .playback-mute-control.state-disabled {
   opacity: var(--control-disabled-opacity);
   color: var(--primary-icon-color);
@@ -186,6 +188,7 @@ body.autoplay-off .progress-bar-control {
 .playback-prev-control.state-disabled:hover,
 .playback-play-pause-control.state-disabled:hover,
 .playback-next-control.state-disabled:hover,
+.playback-repeat-control.state-disabled:hover,
 .playback-mute-control.state-disabled:hover {
   opacity: var(--control-disabled-opacity);
   cursor: default;
@@ -222,6 +225,7 @@ body.autoplay-off .playback-play-pause-control.state-playing.time-remaining-warn
 
 .playback-prev-control,
 .playback-next-control,
+.playback-repeat-control,
 .playback-mute-control {
   color: var(--primary-icon-color);
   cursor: pointer;
@@ -229,10 +233,12 @@ body.autoplay-off .playback-play-pause-control.state-playing.time-remaining-warn
 
 .playback-prev-control:hover,
 .playback-next-control:hover,
+.playback-repeat-control:hover,
 .playback-mute-control:hover {
   opacity: var(--control-hover-opacity);
 }
 
+.playback-repeat-control .material-icons,
 .playback-shuffle-control .material-icons,
 .playback-mute-control .material-icons {
   font-size: 32px;
@@ -240,6 +246,16 @@ body.autoplay-off .playback-play-pause-control.state-playing.time-remaining-warn
   height: 32px;
   padding: 5px;
 }
+
+.playback-repeat-control {
+  display: none;
+}
+
+/*
+.playback-shuffle-control {
+  margin-left: 5px;
+}
+*/
 
 .playback-shuffle-control.state-disabled a {
   opacity: var(--control-disabled-opacity);
@@ -306,12 +322,14 @@ body.autoplay-off .playback-play-pause-control.state-playing.time-remaining-warn
 
   .playback-prev-control,
   .playback-next-control,
+  .playback-repeat-control,
   .playback-mute-control {
     color: var(--primary-icon-color);
   }
 
   .playback-prev-control:hover,
   .playback-next-control:hover,
+  .playback-repeat-control:hover,
   .playback-mute-control:hover {
     color: var(--primary-icon-color);
     opacity: 1;
@@ -350,7 +368,7 @@ body.autoplay-off .playing-animate::before {
 * Responsive
 ***************************************************************************************************/
 
-@media screen and (max-width: 1050px) {
+@media screen and (max-width: 1075px) {
 
   #playback-controls {
     margin-right: -15px;
@@ -365,6 +383,10 @@ body.autoplay-off .playing-animate::before {
   }
 
   .playback-timer-control {
+    display: none;
+  }
+
+  .playback-repeat-control {
     display: none;
   }
 

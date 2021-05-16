@@ -204,12 +204,11 @@ function toggleMute()
 function cueInitialTrack()
 {
   current.trackId = getNextPlayableId();
+  m.autoplayData  = JSON.parse(sessionStorage.getItem(KEY.UF_AUTOPLAY));
+  sessionStorage.removeItem(KEY.UF_AUTOPLAY);
 
   if (current.trackId !== null)
   {
-    m.autoplayData = JSON.parse(sessionStorage.getItem(KEY.UF_AUTOPLAY));
-    sessionStorage.removeItem(KEY.UF_AUTOPLAY);
-  
     if ((m.autoplayData !== null) && (m.autoplayData.trackId !== null))
     {
       const matchesVideoId = m.autoplayData.trackId.match(/^[a-zA-Z0-9-_]{11}$/);
@@ -338,8 +337,11 @@ function loadOrCueCurrentTrack(playTrack)
 
 function getStatus()
 {
-  let status      = {};
-  const currentId = list.container.querySelector('.track-entry.current').id;
+  let status      = { isPlaying: false, currentTrack: 1, position: 0, trackId: 0 };
+  const currentId = list.container.querySelector('.track-entry.current')?.id;
+
+  if (currentId === undefined)
+    return status;
   
   list.container.querySelectorAll('.track-entry').forEach((element, index) =>
   {

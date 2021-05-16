@@ -61,6 +61,7 @@ const controls = {
   prevTrack:       { element:  null, STATE: STATE.DISABLED },
   playPause:       { element:  null, STATE: STATE.DISABLED, iconElement: null },
   nextTrack:       { element:  null, STATE: STATE.DISABLED },
+  repeat:          { element:  null, STATE: STATE.DISABLED, iconElement: null },
   shuffle:         { element:  null, STATE: STATE.DISABLED },
   mute:            { element:  null, STATE: STATE.DISABLED, iconElement: null },
 };
@@ -106,6 +107,8 @@ function init(playbackSettings, mediaPlayers, seekClickCallback)
     controls.playPause.element     = playbackControls.querySelector('.playback-play-pause-control');
     controls.playPause.iconElement = controls.playPause.element.querySelector('span');
     controls.nextTrack.element     = playbackControls.querySelector('.playback-next-control');
+    controls.repeat.element        = playbackControls.querySelector('.playback-repeat-control');
+    controls.repeat.iconElement    = controls.repeat.element.querySelector('span');
     controls.shuffle.element       = playbackControls.querySelector('.playback-shuffle-control');
     controls.mute.element          = playbackControls.querySelector('.playback-mute-control');
     controls.mute.iconElement      = controls.mute.element.querySelector('span');
@@ -143,6 +146,7 @@ function ready(prevClickCallback, playPauseClickCallback, nextClickCallback, mut
   setState(controls.nextTrack, (m.players.getNumTracks() > 1) ? STATE.ENABLED : STATE.DISABLED);
   controls.nextTrack.element.addEventListener('click', nextClickCallback);
 
+  setState(controls.repeat, STATE.ENABLED);
   setState(controls.shuffle, STATE.ENABLED);
 
   setState(controls.mute, STATE.ENABLED);
