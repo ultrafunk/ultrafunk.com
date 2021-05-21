@@ -16,10 +16,9 @@
       <div class="footer-site-block">
         <a href="/about/">About</a><br>
         <a href="/help/">Help</a><br>
-        <a href="https://old.ultrafunk.com">Previous Projects</a><br>
         <a href="/privacy-policy/">Privacy Policy</a><br>
-        <a href="https://github.com/ultrafunk/">GitHub</a><br>
-        <a href="mailto:contact@ultrafunk.com">Contact</a>
+        <a href="mailto:contact@ultrafunk.com">Contact</a><br>
+        <a href="https://github.com/ultrafunk/">GitHub</a>
       </div>
       <div class="footer-settings-block">
         <a href="/settings/"><b><u>SETTINGS</u></b></a>

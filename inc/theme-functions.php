@@ -236,7 +236,7 @@ add_filter('embed_oembed_html', '\Ultrafunk\ThemeFunctions\embed_iframe_setparam
 //
 function wp_robots_noindex(array $robots) : array
 {
-  if (is_shuffle() || (is_list_player() && get_request_params()['is_list_player_shuffle']))
+  if (is_404() || is_shuffle() || (is_list_player() && get_request_params()['is_list_player_shuffle']))
     $robots['noindex'] = true;
 
   return $robots;

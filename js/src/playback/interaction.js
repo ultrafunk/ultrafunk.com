@@ -145,12 +145,12 @@ function documentEventKeyDown(event)
 
       case 'ArrowLeft':
         event.preventDefault();
-        (event.shiftKey === true) ? prevNextNavTo(null, navigationVars.prev) : galleryPlayer.prevClick(event); // eslint-disable-line no-undef
+        (event.shiftKey === true) ? prevNextNavTo(null, navigationVars.prev) : galleryPlayer.prevClick(); // eslint-disable-line no-undef
         break;
 
       case 'ArrowRight':
         event.preventDefault();
-        (event.shiftKey === true) ? prevNextNavTo(null, navigationVars.next) : galleryPlayer.nextClick(event); // eslint-disable-line no-undef
+        (event.shiftKey === true) ? prevNextNavTo(null, navigationVars.next) : galleryPlayer.nextClick(); // eslint-disable-line no-undef
         break;
 
       case 'A':

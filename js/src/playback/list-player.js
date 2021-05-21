@@ -273,9 +273,9 @@ function getPrevPlayableId()
   return (destElement !== null) ? destElement.id : null;
 }
 
-function getNextPlayableId()
+function getNextPlayableId(startElement = current.element)
 {
-  let destElement = (current.element !== null) ? current.element.nextElementSibling : list.container.querySelector('.track-entry');
+  let destElement = (startElement !== null) ? startElement.nextElementSibling : list.container.querySelector('.track-entry');
 
   while ((destElement !== null) && (destElement.id.length === 0))
     destElement = destElement.nextElementSibling;
@@ -369,14 +369,30 @@ function togglePlayPause()
   controls.isPlaying() ? m.player.embedded.pauseVideo() : m.player.embedded.playVideo();
 }
 
-function advanceToNextTrack(autoplay = false)
+function advanceToNextTrack(autoplay = false, isPlaybackError = false)
 {
+  const repeatMode  = isPlaybackError ? controls.REPEAT.OFF : controls.getRepeatMode();
   const nextTrackId = getNextPlayableId();
-  
-  if (nextTrackId === null)
-    navigateTo(navigationVars.next, autoplay); // eslint-disable-line no-undef
+
+  debug.log(`advanceToNextTrack() autoplay: ${autoplay} - isPlaybackError: ${isPlaybackError} - nextTrackId: ${nextTrackId} - repeatMode: ${debug.getObjectKeyForValue(controls.REPEAT, repeatMode)}`);
+
+  if (autoplay && (repeatMode === controls.REPEAT.ONE))
+  {
+    m.player.embeddedPlayer.seekTo(0);
+    m.player.embeddedPlayer.playVideo();
+  }
+  else if (autoplay && (nextTrackId === null) && (repeatMode === controls.REPEAT.ALL))
+  {
+    setCurrentTrack(getNextPlayableId(list.container.querySelector('.track-entry')));
+    scrollPlayerIntoView();
+  }
   else
-    autoplay ? setCurrentTrack(nextTrackId) : setPlayStateClass(false);
+  {
+    if (nextTrackId === null)
+      navigateTo(navigationVars.next, autoplay); // eslint-disable-line no-undef
+    else
+      autoplay ? setCurrentTrack(nextTrackId) : setPlayStateClass(false);
+  }
 }
 
 function prevTrack()
@@ -421,7 +437,7 @@ function skipToNextTrack()
   }
 
   if (controls.isPlaying() === false)
-    advanceToNextTrack(true);
+    advanceToNextTrack(true, true);
 }
 
 function stopSkipToNextTrack()

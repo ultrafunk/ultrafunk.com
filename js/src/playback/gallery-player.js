@@ -87,9 +87,9 @@ function togglePlayPause()
   }
 }
 
-function prevClick(event)
+function prevClick()
 {
-  debug.log(`prevClick() - prevTrack: ${m.players.getCurrentTrack() - 1} - numTracks: ${m.players.getNumTracks()} - event: ${((event !== null) ? event.type : 'null')}`);
+  debug.log(`prevClick() - prevTrack: ${m.players.getCurrentTrack() - 1} - numTracks: ${m.players.getNumTracks()}`);
 
   if (m.players.getCurrentTrack() > 0)
   {
@@ -112,26 +112,30 @@ function prevClick(event)
   }
 }
 
-function nextClick(event)
+function nextClick(isMediaEnded = false)
 {
-  debug.log(`nextClick() - nextTrack: ${m.players.getCurrentTrack() + 1} - numTracks: ${m.players.getNumTracks()} - event: ${((event !== null) ? event.type : 'null')}`);
+  const isLastTrack = ((m.players.getCurrentTrack() + 1) > m.players.getNumTracks());
 
-  if ((m.players.getCurrentTrack() + 1) <= m.players.getNumTracks())
+  debug.log(`nextClick() - isMediaEnded: ${isMediaEnded} - isLastTrack: ${isLastTrack} - autoplay: ${m.settings.autoplay}`);
+
+  if (repeatPlayback(isMediaEnded, isLastTrack))
+    return;
+
+  if (isLastTrack === false)
   {
     m.players.stop();
     
-    //Called from UI event handler for button or keyboard if (event !== null)
-    if ((event !== null) || (m.settings.autoplay))
+    if (isMediaEnded && (m.settings.autoplay === false))
+    {
+      controls.setPauseState();
+    }
+    else
     {
       if (m.players.nextTrack(controls.isPlaying()))
         controls.updateNextState();
     }
-    else
-    {
-      controls.setPauseState();
-    }
   }
-  else if (event === null)
+  else if (isMediaEnded)
   {
     controls.setPauseState();
     
@@ -140,6 +144,32 @@ function nextClick(event)
     else
       m.players.stop();
   }
+}
+
+function repeatPlayback(isMediaEnded, isLastTrack)
+{
+  if (isMediaEnded && m.settings.autoplay)
+  {
+    const repeatMode = controls.getRepeatMode();
+
+    debug.log(`repeatPlayback(): ${debug.getObjectKeyForValue(controls.REPEAT, repeatMode)}`);
+
+    if (repeatMode === controls.REPEAT.ONE)
+    {
+      m.players.current.seekTo(0);
+      m.players.current.play();
+      return true;
+    }
+    else if (isLastTrack && (repeatMode === controls.REPEAT.ALL))
+    {
+      m.players.stop();
+      m.players.setPlayerIndex(0);
+      playTrack(true);
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function seekClick(positionSeconds)
@@ -239,7 +269,7 @@ function embeddedEventHandler(embeddedEvent, embeddedEventData = null)
       break;
 
     case events.EVENT.MEDIA_ENDED:
-      nextClick(null);
+      nextClick(true);
       break;
 
     case events.EVENT.AUTOPLAY_BLOCKED:

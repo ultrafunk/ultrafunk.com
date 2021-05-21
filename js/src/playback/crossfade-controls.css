@@ -63,7 +63,7 @@ body.autoplay-off.multiple-tracks .crossfade-controls {
 
 .crossfade-preset-control.state-disabled,
 .crossfade-fadeto-control.state-disabled {
-  opacity: var(--control-content-disabled-opacity);
+  opacity: var(--control-disabled-opacity);
   cursor: default;
 }
 

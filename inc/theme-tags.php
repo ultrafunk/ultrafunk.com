@@ -202,7 +202,7 @@ function header_playback_controls() : void
     <div class="playback-prev-control state-disabled" title="Previous track / seek (arrow left)"><span class="material-icons">skip_previous</span></div>
     <div class="playback-play-pause-control state-disabled" title="Play / Pause (space)"><span class="material-icons">play_circle_filled</span></div>
     <div class="playback-next-control state-disabled" title="Next track (arrow right)"><span class="material-icons">skip_next</span></div>
-    <div class="playback-repeat-control state-disabled" title="Repeat off"><span class="material-icons">repeat</span></div>
+    <div class="playback-repeat-control state-disabled" title="Repeat off" data-repeat-mode="0"><span class="material-icons">repeat</span></div>
     <div class="playback-shuffle-control state-disabled" title="<?php echo esc_attr(get_shuffle_menu_item_title()); ?>">
       <a href="<?php echo esc_url(get_shuffle_menu_item_url()); ?>"><span class="material-icons">shuffle</span></a>
     </div>
@@ -423,25 +423,29 @@ function content_excerpt() : void
 
 function intro_banner() : void
 {
+  // Exit early since banners are not shown on paginated content
+  if (is_paged())
+    return;
+
   $property    = '';
   $content     = '';
   $show_banner = false;
 
-  if (is_front_page() && !is_paged() && !is_shuffle())
+  if (is_front_page() && !is_shuffle())
   {
     $property    = 'showFrontpageIntro';
     $post        = get_post(get_dev_prod_const('block_frontpage_intro_id'));
     $content     = apply_filters('the_content', wp_kses_post($post->post_content));
     $show_banner = true;
   }
-  else if (is_category('premium') && have_posts() && !is_paged())
+  else if (is_category('premium') && have_posts())
   {
     $property    = 'showPremiumIntro';
     $post        = get_post(get_dev_prod_const('block_premium_intro_id'));
     $content     = apply_filters('the_content', wp_kses_post($post->post_content));
     $show_banner = true;
   }
-  else if (is_category('promo') && have_posts() && !is_paged())
+  else if (is_category('promo') && have_posts())
   {
     $property    = 'showPromoIntro';
     $post        = get_post(get_dev_prod_const('block_promo_intro_id'));

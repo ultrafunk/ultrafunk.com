@@ -63,7 +63,7 @@ class DevBuild extends DebugLog
 
   getObjectKeyForValue(object, value)
   {
-    return Object.keys(object).find(key => object[key] === value);
+    return Object.keys(object).find(key => (object[key] === value));
   }
 }
 

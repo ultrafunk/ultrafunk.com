@@ -247,15 +247,13 @@ body.autoplay-off .playback-play-pause-control.state-playing.time-remaining-warn
   padding: 5px;
 }
 
-.playback-repeat-control {
-  display: none;
+.playback-repeat-control[data-repeat-mode="0"] {
+  opacity: var(--control-disabled-opacity);
 }
 
-/*
 .playback-shuffle-control {
   margin-left: 5px;
 }
-*/
 
 .playback-shuffle-control.state-disabled a {
   opacity: var(--control-disabled-opacity);

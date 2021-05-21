@@ -34,7 +34,7 @@ const config = {
   crossfadeToSelector:     '.crossfade-fadeto-control',
 };
 
-const controls = {
+const ctrl = {
   crossfadePreset: { elements: null },
   crossfadeTo:     { elements: null, click: null },
 };
@@ -51,13 +51,13 @@ function init(playbackSettings, mediaPlayers, crossfadeClickCallback)
   m.settings = playbackSettings;
   m.players  = mediaPlayers;
   
-  controls.crossfadePreset.elements = document.querySelectorAll(config.crossfadePresetSelector);
-  controls.crossfadeTo.elements     = document.querySelectorAll(config.crossfadeToSelector);
+  ctrl.crossfadePreset.elements = document.querySelectorAll(config.crossfadePresetSelector);
+  ctrl.crossfadeTo.elements     = document.querySelectorAll(config.crossfadeToSelector);
 
-  if ((controls.crossfadePreset.elements.length > 1) && (controls.crossfadeTo.elements.length > 1))
+  if ((ctrl.crossfadePreset.elements.length > 1) && (ctrl.crossfadeTo.elements.length > 1))
   {
-    controls.crossfadePreset.elements.forEach((element) => setCrossfadePreset(element, m.settings.trackCrossfadeDefPreset));
-    controls.crossfadeTo.click = crossfadeClickCallback;
+    ctrl.crossfadePreset.elements.forEach((element) => setCrossfadePreset(element, m.settings.trackCrossfadeDefPreset));
+    ctrl.crossfadeTo.click = crossfadeClickCallback;
   }
 }
 
@@ -65,15 +65,15 @@ function ready()
 {
   debug.log('ready()');
 
-  if ((controls.crossfadePreset.elements.length > 1) && (controls.crossfadeTo.elements.length > 1))
+  if ((ctrl.crossfadePreset.elements.length > 1) && (ctrl.crossfadeTo.elements.length > 1))
   {
-    controls.crossfadePreset.elements.forEach(element =>
+    ctrl.crossfadePreset.elements.forEach(element =>
     {
       element.addEventListener('click', crossfadePresetClick);
       replaceClass(element, STATE.DISABLED.CLASS, STATE.ENABLED.CLASS);
     });
 
-    controls.crossfadeTo.elements.forEach(element => element.addEventListener('click', crossfadeToClick));
+    ctrl.crossfadeTo.elements.forEach(element => element.addEventListener('click', crossfadeToClick));
 
     playbackEvents.addListener(playbackEvents.EVENT.MEDIA_PLAYING, updateCrossfadeToState);
     playbackEvents.addListener(playbackEvents.EVENT.MEDIA_PAUSED,  updateCrossfadeToState);
@@ -85,18 +85,17 @@ function ready()
 // Crossfade controls (preset and fadeTo)
 // ************************************************************************************************
 
-function setCrossfadePreset(element, presetIndex)
+function setCrossfadePreset(element, index)
 {
-  element.setAttribute(config.crossfadePresetData, presetIndex);
-  element.textContent = `${presetIndex + 1}`;
-  element.title       = `Preset: ${presetList.crossfade[presetIndex].name}`;
+  element.setAttribute(config.crossfadePresetData, index);
+  element.textContent = `${index + 1}`;
+  element.title       = `Preset: ${presetList.crossfade[index].name}`;
 }
 
 function crossfadePresetClick(event)
 {
-  let presetIndex = parseInt(event.target.getAttribute(config.crossfadePresetData));
-  ((presetIndex + 1) < presetList.crossfade.length) ? presetIndex++ : presetIndex = 0;
-  setCrossfadePreset(event.target, presetIndex);
+  const index = parseInt(event.target.getAttribute(config.crossfadePresetData));
+  setCrossfadePreset(event.target, ((index + 1) < presetList.crossfade.length) ? index + 1 : 0);
 }
 
 function crossfadeToClick(event)
@@ -111,7 +110,7 @@ function crossfadeToClick(event)
       const presetIndex = element.querySelector(config.crossfadePresetSelector).getAttribute(config.crossfadePresetData);
 
       replaceClass(event.target.closest(`div${config.crossfadeToSelector}`), STATE.ENABLED.CLASS, STATE.DISABLED.CLASS);
-      controls.crossfadeTo.click(m.players.uIdFromIframeId(iframe.id), presetList.crossfade[presetIndex]);
+      ctrl.crossfadeTo.click(m.players.uIdFromIframeId(iframe.id), presetList.crossfade[presetIndex]);
     }
   }
 }
@@ -123,7 +122,7 @@ function updateCrossfadeToState()
 
   debug.log(`updateCrossfadeToState() - playingState: ${isPlayingState} - currentTrack: ${currentTrack}`);
 
-  controls.crossfadeTo.elements.forEach((element, index) =>
+  ctrl.crossfadeTo.elements.forEach((element, index) =>
   {
     if (currentTrack === (index + 1))
       replaceClass(element, (isPlayingState ? STATE.ENABLED.CLASS : STATE.DISABLED.CLASS), (isPlayingState ? STATE.DISABLED.CLASS : STATE.ENABLED.CLASS));
