@@ -328,8 +328,8 @@ body.list-player .site-footer-container {
   
   body.list-player {
     --site-max-width: calc(100% - 40px);
-    --site-content-margin-top: 20px;
-    --site-content-margin-bottom: 20px;
+    --site-content-margin-top: 0px;
+    --site-content-margin-bottom: 0px;
   }
 
   body.list-player #site-content {

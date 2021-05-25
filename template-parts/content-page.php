@@ -14,7 +14,7 @@
   </header>
   <div class="entry-content">
     <?php
-    if (is_search())
+    if (is_search() && ($wp_query->post_count > 1))
       \Ultrafunk\ThemeTags\content_excerpt();
     else
       the_content();

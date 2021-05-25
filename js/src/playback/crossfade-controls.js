@@ -106,11 +106,11 @@ function crossfadeToClick(event)
 
     if (element !== null)
     {
-      const iframe      = element.querySelector('iframe');
-      const presetIndex = element.querySelector(config.crossfadePresetSelector).getAttribute(config.crossfadePresetData);
+      const iframe = element.querySelector('iframe');
+      const index  = element.querySelector(config.crossfadePresetSelector).getAttribute(config.crossfadePresetData);
 
       replaceClass(event.target.closest(`div${config.crossfadeToSelector}`), STATE.ENABLED.CLASS, STATE.DISABLED.CLASS);
-      ctrl.crossfadeTo.click(m.players.uIdFromIframeId(iframe.id), presetList.crossfade[presetIndex]);
+      ctrl.crossfadeTo.click(m.players.uIdFromIframeId(iframe.id), presetList.crossfade[index]);
     }
   }
 }

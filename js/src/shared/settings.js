@@ -12,6 +12,7 @@ export {
   INTEGER as TYPE_INTEGER,
   BOOLEAN as TYPE_BOOLEAN,
   STRING  as TYPE_STRING,
+  PREF_PLAYER,
   playbackSchema,
   playbackSettings,
   siteSchema,
@@ -30,6 +31,11 @@ const debug = debugLogger.newInstance('settings');
 const INTEGER = 1;
 const BOOLEAN = 2;
 const STRING  = 3;
+
+const PREF_PLAYER = {
+  GALLERY: 0,
+  LIST:    1,
+};
 
 
 // ************************************************************************************************

@@ -97,7 +97,7 @@ function getAllPlayers()
   entries.forEach(entry => 
   {
     const iframe = entry.querySelector('iframe');
-    let   player = {};
+    let player   = null;
 
     if (config.youTubeIframeIdRegEx.test(iframe.id)) 
     {
@@ -133,8 +133,11 @@ function getAllPlayers()
       /* eslint-enable */
     }
 
-    mediaPlayers.setArtistTitle(entry.getAttribute('data-artist-track-title'), player);
-    m.players.add(player);
+    if (player !== null)
+    {
+      mediaPlayers.setArtistTitle(entry.getAttribute('data-artist-track-title'), player);
+      m.players.add(player);
+    }
   });
 }
 

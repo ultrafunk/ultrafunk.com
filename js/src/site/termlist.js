@@ -8,6 +8,7 @@
 import * as debugLogger   from '../shared/debuglogger.js';
 import * as termRest      from './term-rest.js';
 import { shareModal }     from './interaction.js';
+import { PREF_PLAYER }    from '../shared/settings.js';
 import { replaceClass }   from '../shared/utils.js';
 import { KEY, setCookie } from '../shared/storage.js';
 
@@ -120,7 +121,7 @@ function restoreState()
 
 function getPrefPlayerPath(url)
 {
-  return (m.settings.user.preferredPlayer === 1) ? url.replace(/ultrafunk\.com\//, 'ultrafunk.com/list/') : url;
+  return (m.settings.user.preferredPlayer === PREF_PLAYER.LIST) ? url.replace(/ultrafunk\.com\//, 'ultrafunk.com/list/') : url;
 }
 
 
