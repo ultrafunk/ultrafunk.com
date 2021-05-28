@@ -30,7 +30,6 @@ const eventLog = new eventLogger.Interaction(10);
 const m = {
   settings:        {},
   isPlaybackReady: false,
-  statePlaying:    false,
 };
 
 const config = {
@@ -197,7 +196,12 @@ function playbackEventReady()
   utils.addListener('.playback-details-control',   'click', playbackDetailsClick);
   utils.addListener('.playback-thumbnail-control', 'click', playbackDetailsClick);
   utils.addListener('.playback-timer-control',     'click', (event) => elements.autoplayToggle.toggle(event));
-  document.addEventListener('visibilitychange', documentEventVisibilityChange);
+  
+  document.addEventListener('visibilitychange', () =>
+  {
+    if ((document.visibilityState === 'visible') && (m.settings.user.keepMobileScreenOn))
+      screenWakeLock.stateVisible();
+  });
 
   if (m.settings.user.keepMobileScreenOn)
     screenWakeLock.enable(m.settings);
@@ -240,37 +244,6 @@ function windowEventBlur()
       }, 250);
     }
   }, 0);
-}
-
-function documentEventVisibilityChange()
-{
-//debug.log(`documentEventVisibilityChange(): ${document.visibilityState}`);
-
-  if (document.visibilityState === 'visible')
-  {
-    if (m.settings.user.autoResumePlayback && m.statePlaying)
-    {
-      if (galleryPlayer.getStatus().isPlaying === false)
-        galleryPlayer.togglePlayPause();
-    }
-
-    /*
-    if (settings.user.keepMobileScreenOn && m.statePlaying)
-      screenWakeLock.stateVisible();
-    */
-    
-    if (m.settings.user.keepMobileScreenOn)
-      screenWakeLock.stateVisible();
-  }
-  else if (document.visibilityState === 'hidden')
-  {
-    if (m.settings.user.autoResumePlayback && galleryPlayer.getStatus().isPlaying)
-      m.statePlaying = true;
-    else
-      m.statePlaying = false;
-
-  //debug.log('documentEventVisibilityChange() - statePlaying: ' + m.statePlaying);
-  }
 }
 
 

@@ -5,15 +5,16 @@
 //
 
 
-import * as debugLogger  from '../shared/debuglogger.js';
-import * as eventLogger  from './eventlogger.js';
-import * as controls     from './playback-controls.js';
-import * as mediaPlayers from './mediaplayers.js';
-import * as utils        from '../shared/utils.js';
-import { KEY }           from '../shared/storage.js';
-import { showModal }     from '../shared/modal.js';
-import { shareModal }    from '../site/interaction.js';
-import { navigateTo }    from './playback-events.js';
+import * as debugLogger    from '../shared/debuglogger.js';
+import * as eventLogger    from './eventlogger.js';
+import * as controls       from './playback-controls.js';
+import * as mediaPlayers   from './mediaplayers.js';
+import * as screenWakeLock from './screen-wakelock.js';
+import * as utils          from '../shared/utils.js';
+import { KEY }             from '../shared/storage.js';
+import { showModal }       from '../shared/modal.js';
+import { shareModal }      from '../site/interaction.js';
+import { navigateTo }      from './playback-events.js';
 
 import {
   showSnackbar,
@@ -498,8 +499,16 @@ function onYouTubePlayerReady()
   utils.addListener('.playback-details-control',   'click', scrollPlayerIntoView);
   utils.addListener('.playback-thumbnail-control', 'click', scrollPlayerIntoView);
   utils.addListener('.playback-timer-control',     'click', (event) => m.autoplayToggle.toggle(event));
-  
   document.addEventListener('keydown', documentEventKeyDown);
+  
+  document.addEventListener('visibilitychange', () =>
+  {
+    if ((document.visibilityState === 'visible') && (m.settings.user.keepMobileScreenOn))
+      screenWakeLock.stateVisible();
+  });
+
+  if (m.settings.user.keepMobileScreenOn)
+    screenWakeLock.enable(m.settings);
 }
 
 function onYouTubePlayerStateChange(event)

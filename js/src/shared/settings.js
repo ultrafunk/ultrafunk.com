@@ -43,7 +43,7 @@ const PREF_PLAYER = {
 // ************************************************************************************************
 
 const playbackSchema = {
-  version: { description: '', type: INTEGER, values: [1, 999999], default: 28, valueStrings: [] },
+  version: { description: '', type: INTEGER, values: [1, 999999], default: 29, valueStrings: [] },
   user: {
     keyboardShortcuts:       { description: 'Keyboard Shortcuts',                 type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
     masterVolume:            { description: 'Master Volume',                      type: INTEGER, values: [0, 25, 50, 75, 100],    default: 100,   valueStrings: ['0%', '25%', '50%', '75%', '100%'] },
@@ -56,7 +56,6 @@ const playbackSchema = {
     smoothScrolling:         { description: 'Smooth Scrolling to next track',     type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
     autoExitFullscreen:      { description: 'Exit Fullscreen on next track',      type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
     animateNowPlayingIcon:   { description: 'Animate Playing Track Icon',         type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
-    autoResumePlayback:      { description: 'Auto Resume Playback on focus',      type: BOOLEAN, values: [true, false],           default: false, valueStrings: ['ON', 'OFF'] },
     trackCrossfadeDefPreset: { description: 'Track Crossfade Def. Preset',        type: INTEGER, values: [0, 1, 2, 3, 4, 5],      default: 1,     valueStrings: ['10 sec EqPow (1)', '20 sec EqPow (2)', '30 sec EqPow (3)', '10 sec Linear (4)', '20 sec Linear (5)', '30 sec Linear (6)'] },
     timeRemainingWarning:    { description: 'Time Remaining Warning',             type: BOOLEAN, values: [true, false],           default: true,  valueStrings: ['ON', 'OFF'] },
     timeRemainingSeconds:    { description: 'Time Remaining Warning Seconds',     type: INTEGER, values: [15, 30, 45, 60],        default: 60,    valueStrings: ['15 sec', '30 sec', '45 sec', '60 sec'] },
@@ -87,7 +86,6 @@ const playbackSettings = {
     smoothScrolling:         playbackSchema.user.smoothScrolling.default,
     autoExitFullscreen:      playbackSchema.user.autoExitFullscreen.default,
     animateNowPlayingIcon:   playbackSchema.user.animateNowPlayingIcon.default,
-    autoResumePlayback:      playbackSchema.user.autoResumePlayback.default,
     trackCrossfadeDefPreset: playbackSchema.user.trackCrossfadeDefPreset.default,
     timeRemainingWarning:    playbackSchema.user.timeRemainingWarning.default,
     timeRemainingSeconds:    playbackSchema.user.timeRemainingSeconds.default,

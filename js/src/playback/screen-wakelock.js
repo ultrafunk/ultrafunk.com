@@ -56,7 +56,7 @@ async function enable(settings)
   else
   {
     debug.log('enable(): Screen Wake Lock is not supported');
-    showSnackbar('Keep Screen On is not supported', 5, 'Turn Off', () => settings.user.keepMobileScreenOn = false);
+    showSnackbar('Keep Screen On is not supported', 5, 'Disable', () => settings.user.keepMobileScreenOn = false);
   }
 }
 

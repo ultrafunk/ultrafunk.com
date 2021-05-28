@@ -232,7 +232,7 @@ function embed_iframe_setparams(string $cached_html) : string
 add_filter('embed_oembed_html', '\Ultrafunk\ThemeFunctions\embed_iframe_setparams', 10, 1);
 
 //
-// Add noindex meta tag to all shuffle pages
+// Add noindex meta tag to all 404 and shuffle pages
 //
 function wp_robots_noindex(array $robots) : array
 {
@@ -242,6 +242,20 @@ function wp_robots_noindex(array $robots) : array
   return $robots;
 }
 add_filter('wp_robots', '\Ultrafunk\ThemeFunctions\wp_robots_noindex');
+
+/*
+//
+// Add noindex header field to all 404 pages
+//
+function wp_headers_noindex(array $headers, object $wp)
+{
+  if (isset($wp->query_vars['error']) && ($wp->query_vars['error'] === '404'))
+    $headers['X-Robots-Tag'] = 'noindex';
+
+  return $headers;
+}
+add_filter('wp_headers', '\Ultrafunk\ThemeFunctions\wp_headers_noindex', 10, 2);
+*/
 
 //
 // Disable iframe lazy loading

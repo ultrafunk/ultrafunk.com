@@ -41,7 +41,7 @@ const siteMaxWidthMobile = window.matchMedia(`(max-width: ${getCssPropString('--
 
 
 // ************************************************************************************************
-// Misc. utility functions
+// Misc. shared utility functions
 // ************************************************************************************************
 
 function addListener(selectors, type, listener, data = null)
