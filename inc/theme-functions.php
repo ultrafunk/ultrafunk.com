@@ -243,20 +243,6 @@ function wp_robots_noindex(array $robots) : array
 }
 add_filter('wp_robots', '\Ultrafunk\ThemeFunctions\wp_robots_noindex');
 
-/*
-//
-// Add noindex header field to all 404 pages
-//
-function wp_headers_noindex(array $headers, object $wp)
-{
-  if (isset($wp->query_vars['error']) && ($wp->query_vars['error'] === '404'))
-    $headers['X-Robots-Tag'] = 'noindex';
-
-  return $headers;
-}
-add_filter('wp_headers', '\Ultrafunk\ThemeFunctions\wp_headers_noindex', 10, 2);
-*/
-
 //
 // Disable iframe lazy loading
 //
@@ -284,7 +270,7 @@ add_filter('get_search_form', '\Ultrafunk\ThemeFunctions\style_search_form');
 //
 // Get shuffle menu item URL from current context
 //
-function get_shuffle_menu_item_url() : string
+function get_shuffle_path() : string
 {
   $params = get_request_params();
 
@@ -326,7 +312,7 @@ function get_shuffle_menu_item_url() : string
 //
 // Get shuffle menu item title from current context
 //
-function get_shuffle_menu_item_title() : string
+function get_shuffle_title() : string
 {
   if (is_list_player())
     return ('Shuffle: ' . get_request_params()['title_parts']['title']);
@@ -346,46 +332,59 @@ function get_shuffle_menu_item_title() : string
 //
 function setup_nav_menu_item(object $menu_item) : object
 {
-  if (is_admin())
-    return $menu_item;
-
-  $menu_item_all_id     = get_dev_prod_const('menu_item_all_id');
-  $menu_item_shuffle_id = get_dev_prod_const('menu_item_shuffle_id');
-
-  if (is_list_player())
+  if (!is_admin())
   {
-    $params = get_request_params();
-
-    if ($menu_item->ID === $menu_item_all_id)
-      $menu_item->url = '/list/';
+    $menu_item_all_id     = get_dev_prod_const('menu_item_all_id');
+    $menu_item_shuffle_id = get_dev_prod_const('menu_item_shuffle_id');
+  
+    if (is_list_player())
+    {
+      $params = get_request_params();
+  
+      if ($menu_item->ID === $menu_item_all_id)
+        $menu_item->url = '/list/';
+      else
+        $menu_item->url = str_replace('ultrafunk.com', 'ultrafunk.com/list', $menu_item->url);
+  
+      if (($menu_item->ID === $menu_item_all_id) && ($params['is_list_player_all']))
+        $menu_item->classes[] = 'current-menu-item';
+    
+      if (($menu_item->ID === $menu_item_shuffle_id) && ($params['is_list_player_shuffle']))
+        $menu_item->classes[] = 'current-menu-item';
+  
+      if (isset($params['WP_Term']) && ($params['WP_Term']->term_id === intval($menu_item->object_id)))
+        $menu_item->classes[] = 'current-menu-item';
+    }
     else
-      $menu_item->url = str_replace('ultrafunk.com', 'ultrafunk.com/list', $menu_item->url);
-
-    if (($menu_item->ID === $menu_item_all_id) && ($params['is_list_player_all']))
-      $menu_item->classes[] = 'current-menu-item';
-  
-    if (($menu_item->ID === $menu_item_shuffle_id) && ($params['is_list_player_shuffle']))
-      $menu_item->classes[] = 'current-menu-item';
-
-    if (isset($params['WP_Term']) && ($params['WP_Term']->term_id === intval($menu_item->object_id)))
-      $menu_item->classes[] = 'current-menu-item';
+    {
+      if (($menu_item->ID === $menu_item_all_id) && is_front_page() && !is_shuffle())
+        $menu_item->classes[] = 'current-menu-item';
+    
+      if (($menu_item->ID === $menu_item_shuffle_id) && is_shuffle())
+        $menu_item->classes[] = 'current-menu-item';
+    }
   }
-  else
-  {
-    if (($menu_item->ID === $menu_item_all_id) && is_front_page() && !is_shuffle())
-      $menu_item->classes[] = 'current-menu-item';
-  
-    if (($menu_item->ID === $menu_item_shuffle_id) && is_shuffle())
-      $menu_item->classes[] = 'current-menu-item';
-  }
-  
-  if ($menu_item->ID === $menu_item_shuffle_id)
-  {
-    $menu_item->url        = esc_url(get_shuffle_menu_item_url());
-    $menu_item->attr_title = esc_attr(get_shuffle_menu_item_title());
-    $menu_item->classes[]  = 'reshuffle-menu-item';
-  }
-
+ 
   return $menu_item;
 }
 add_filter('wp_setup_nav_menu_item', '\Ultrafunk\ThemeFunctions\setup_nav_menu_item');
+
+//
+// Set data-attribute for shuffle menu item
+//
+function nav_menu_link_attributes(array $attributes, object $menu_item) : array
+{
+  if (!is_admin())
+  {
+    if ($menu_item->ID === get_dev_prod_const('menu_item_shuffle_id'))
+    {
+      $attributes['href']              = '#';
+      $attributes['data-shuffle-path'] = esc_url(get_shuffle_path());
+      $attributes['title']             = esc_attr(get_shuffle_title());
+      $attributes['class']             = 'reshuffle-menu-item';
+    }
+  }
+  
+  return $attributes;
+}
+add_filter('nav_menu_link_attributes', '\Ultrafunk\ThemeFunctions\nav_menu_link_attributes', 10, 2);

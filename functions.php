@@ -133,32 +133,6 @@ function ultrafunk_modify_script_tag(string $tag, string $handle, string $source
 add_filter('script_loader_tag', 'ultrafunk_modify_script_tag', 10, 3);
 
 //
-// Set custom "theme_color" in PWA app manifest JSON
-//
-function ultrafunk_web_app_manifest(array $manifest) : array
-{
-  $manifest['theme_color']      = '#0a1428';
-  $manifest['background_color'] = '#0a1428';
-  $manifest['display']          = 'standalone';
-  $manifest['short_name']       = 'Ultrafunk';
-
-  $manifest['icons'] = array_map
-  (
-    function($icon)
-    {
-      if (!isset($icon['purpose']))
-  			$icon['purpose'] = 'any maskable';
-  
-      return $icon;
-		},
-		$manifest['icons']
-	);
-
-  return $manifest;
-}
-add_filter('web_app_manifest', 'ultrafunk_web_app_manifest', 10, 3);
-
-//
 // Customize Admin interface
 //
 function ultrafunk_reusable_blocks_admin_menu() : void

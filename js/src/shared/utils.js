@@ -109,9 +109,9 @@ function replaceClass(element, removeClass, addClass)
 
 function shuffleClick(event)
 {
-  event?.preventDefault();
+  event.preventDefault();
   setCookie('UF_RESHUFFLE', 'true');
-  window.location.href = event.target.closest('a').href;
+  window.location.href = event.target.getAttribute('data-shuffle-path');
 }
 
 

@@ -111,7 +111,7 @@ function initShared()
   elements.crossfadeToggle = new CrossfadeToggle('footer-crossfade-toggle');
   elements.autoplayToggle  = new AutoplayToggle('footer-autoplay-toggle');
 
-  utils.addListener('.playback-shuffle-control', 'click', utils.shuffleClick);
+  utils.addListener('.playback-shuffle-control span', 'click', utils.shuffleClick);
 }
 
 

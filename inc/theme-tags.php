@@ -21,8 +21,8 @@ use function Ultrafunk\Globals\ {
 
 use function Ultrafunk\ThemeFunctions\ {
   get_title,
-  get_shuffle_menu_item_url,
-  get_shuffle_menu_item_title,
+  get_shuffle_path,
+  get_shuffle_title,
 };
 
 
@@ -203,8 +203,8 @@ function header_playback_controls() : void
     <div class="playback-play-pause-control state-disabled" title="Play / Pause (space)"><span class="material-icons">play_circle_filled</span></div>
     <div class="playback-next-control state-disabled" title="Next track (arrow right)"><span class="material-icons">skip_next</span></div>
     <div class="playback-repeat-control state-disabled" title="Repeat off" data-repeat-mode="0"><span class="material-icons">repeat</span></div>
-    <div class="playback-shuffle-control state-disabled" title="<?php echo esc_attr(get_shuffle_menu_item_title()); ?>">
-      <a href="<?php echo esc_url(get_shuffle_menu_item_url()); ?>"><span class="material-icons">shuffle</span></a>
+    <div class="playback-shuffle-control state-disabled" title="<?php echo esc_attr(get_shuffle_title()); ?>">
+      <span class="material-icons" data-shuffle-path="<?php echo esc_url(get_shuffle_path()); ?>">shuffle</span>
     </div>
     <div class="playback-mute-control state-disabled" title="Mute / Unmute (m)"><span class="material-icons">volume_up</span></div>
   </div>

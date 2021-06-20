@@ -46,7 +46,7 @@ function init(siteSettings)
   m.siteTheme     = new SiteThemeToggle('footer-site-theme-toggle');
   m.galleryLayout = new GalleryLayoutToggle('footer-gallery-layout-toggle');
 
-  utils.addListener('#menu-primary-menu .reshuffle-menu-item',      'click', utils.shuffleClick);
+  utils.addListener('#menu-primary-menu a.reshuffle-menu-item',     'click', utils.shuffleClick);
   utils.addListenerAll('.entry-meta-controls .track-share-control', 'click', trackShareControlClick);
 }
 

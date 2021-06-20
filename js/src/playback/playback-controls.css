@@ -179,6 +179,7 @@ body.autoplay-off .progress-bar-control {
 .playback-play-pause-control.state-disabled,
 .playback-next-control.state-disabled,
 .playback-repeat-control.state-disabled,
+.playback-shuffle-control.state-disabled,
 .playback-mute-control.state-disabled {
   opacity: var(--control-disabled-opacity);
   color: var(--primary-icon-color);
@@ -189,6 +190,7 @@ body.autoplay-off .progress-bar-control {
 .playback-play-pause-control.state-disabled:hover,
 .playback-next-control.state-disabled:hover,
 .playback-repeat-control.state-disabled:hover,
+.playback-shuffle-control.state-disabled:hover,
 .playback-mute-control.state-disabled:hover {
   opacity: var(--control-disabled-opacity);
   cursor: default;
@@ -226,6 +228,7 @@ body.autoplay-off .playback-play-pause-control.state-playing.time-remaining-warn
 .playback-prev-control,
 .playback-next-control,
 .playback-repeat-control,
+.playback-shuffle-control,
 .playback-mute-control {
   color: var(--primary-icon-color);
   cursor: pointer;
@@ -255,26 +258,8 @@ body.autoplay-off .playback-play-pause-control.state-playing.time-remaining-warn
   margin-left: 5px;
 }
 
-.playback-shuffle-control.state-disabled a {
-  opacity: var(--control-disabled-opacity);
-  color: var(--primary-icon-color);
-  display: inline-block;
-}
-
-.playback-shuffle-control.state-disabled a:hover {
-  opacity: var(--control-disabled-opacity);
-  color: var(--primary-icon-color);
-  display: inline-block;
-}
-
-.playback-shuffle-control.state-enabled a {
-  color: var(--primary-icon-color);
-  display: inline-block;
-}
-
-.playback-shuffle-control.state-enabled a:hover {
+.playback-shuffle-control:hover {
   color: var(--link-hover-color);
-  display: inline-block;
 }
 
 .playback-mute-control {
