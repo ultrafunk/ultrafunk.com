@@ -13,10 +13,11 @@ use function Ultrafunk\Globals\ {
   is_termlist,
   is_list_player,
   is_shuffle,
-  get_dev_prod_const,
+  get_dev_prod_env,
   get_perf_data,
   get_request_params,
   get_navigation_vars,
+  get_cached_home_url,
 };
 
 use function Ultrafunk\ThemeFunctions\ {
@@ -86,7 +87,7 @@ function head() : void
 
   if (is_front_page() && !is_paged() && !is_shuffle())
     echo $meta_description;
-  else if (get_the_ID() === get_dev_prod_const('page_about_id'))
+  else if (get_the_ID() === get_dev_prod_env('page_about_id'))
     echo $meta_description;
 
   if (!is_page() && !is_list_player() && !is_termlist())
@@ -134,7 +135,7 @@ function body_attributes() : void
   {
     foreach($wp_query->posts as $post)
     {
-      if ($post->post_type === 'post')
+      if ($post->post_type === 'uf_track')
         $gallery_track_count++;
     }
   }
@@ -178,7 +179,7 @@ function header_site_branding() : void
   ?>
   <div class="site-branding">
     <?php echo $nav_icons['menu']; ?>
-    <a href="<?php echo \Ultrafunk\Globals\is_list_player() ? esc_url(home_url('/list/')) : esc_url(home_url('/')); ?>" aria-label="Home">
+    <a href="<?php echo \Ultrafunk\Globals\is_list_player() ? get_cached_home_url('/list/') : get_cached_home_url('/'); ?>" aria-label="Home">
       <img src="<?php echo wp_get_attachment_image_src(get_theme_mod('custom_logo'), 'full')[0]; ?>" alt="">
     </a>
     <?php echo $nav_icons['search']; ?>
@@ -349,9 +350,9 @@ function nav_bar_title() : void
     $title      = get_search_query();
     $pagination = esc_html(get_search_hits());
   }
-  else if (is_tag())
+  else if (is_tax())
   {
-    $prefix = '<b>Artist: </b>';
+    $prefix = is_tax('uf_channel') ? '<b>Channel: </b>' : '<b>Artist: </b>';
   }
 
   echo '<div class="nav-bar-title">' . $prefix . $title . $pagination . '</div>';
@@ -367,9 +368,9 @@ function content_pagination() : void
     $prefix = 'Search results: ';
     $title  = get_search_query();
   }
-  else if (is_tag())
+  else if (is_tax())
   {
-    $prefix = 'Artist: ';
+    $prefix = is_tax('uf_channel') ? '<b>Channel: </b>' : '<b>Artist: </b>';
   }
 
   $title_pagination = get_the_posts_pagination(array(
@@ -393,13 +394,14 @@ function entry_title() : void
     esc_html(the_title(sprintf('<h2 class="entry-title"><a href="%s" rel="bookmark">', esc_url(get_permalink())), '</a></h2>'));
 }
 
-function meta_controls() : void
+function meta_controls(object $post) : void
 {
   ?>
   <div class="entry-meta-controls">
     <div class="track-share-control">
       <span class="material-icons" title="Share track / Play On"
-        data-artist-track-title="<?php echo esc_html(get_the_title()); ?>"
+        data-track-artist="<?php echo esc_html($post->track_artist); ?>"
+        data-track-title="<?php echo esc_html($post->track_title); ?>"
         data-track-url="<?php echo esc_url(get_permalink()); ?>">share</span>
     </div>
     <div class="crossfade-controls">
@@ -434,21 +436,21 @@ function intro_banner() : void
   if (is_front_page() && !is_shuffle())
   {
     $property    = 'showFrontpageIntro';
-    $post        = get_post(get_dev_prod_const('block_frontpage_intro_id'));
+    $post        = get_post(get_dev_prod_env('block_frontpage_intro_id'));
     $content     = apply_filters('the_content', wp_kses_post($post->post_content));
     $show_banner = true;
   }
-  else if (is_category('premium') && have_posts())
+  else if (is_tax('uf_channel', 'premium') && have_posts())
   {
     $property    = 'showPremiumIntro';
-    $post        = get_post(get_dev_prod_const('block_premium_intro_id'));
+    $post        = get_post(get_dev_prod_env('block_premium_intro_id'));
     $content     = apply_filters('the_content', wp_kses_post($post->post_content));
     $show_banner = true;
   }
-  else if (is_category('promo') && have_posts())
+  else if (is_tax('uf_channel', 'promo') && have_posts())
   {
     $property    = 'showPromoIntro';
-    $post        = get_post(get_dev_prod_const('block_promo_intro_id'));
+    $post        = get_post(get_dev_prod_env('block_promo_intro_id'));
     $content     = apply_filters('the_content', wp_kses_post($post->post_content));
     $show_banner = true;
   }

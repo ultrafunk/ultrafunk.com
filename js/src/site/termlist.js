@@ -5,17 +5,13 @@
 //
 
 
-import * as debugLogger   from '../shared/debuglogger.js';
-import * as termRest      from './term-rest.js';
-import { shareModal }     from './interaction.js';
-import { PREF_PLAYER }    from '../shared/settings.js';
-import { replaceClass }   from '../shared/utils.js';
-import { KEY, setCookie } from '../shared/storage.js';
-
-import {
-  setArtistTitle,
-  getYouTubeImgUrl,
-} from '../playback/mediaplayers.js';
+import * as debugLogger     from '../shared/debuglogger.js';
+import * as termRest        from './term-rest.js';
+import { shareModal }       from './interaction.js';
+import { PREF_PLAYER }      from '../shared/settings.js';
+import { replaceClass }     from '../shared/utils.js';
+import { KEY, setCookie }   from '../shared/storage.js';
+import { getYouTubeImgUrl } from '../playback/mediaplayers.js';
 
 
 export {
@@ -29,8 +25,8 @@ export {
 const debug  = debugLogger.newInstance('termlist');
 
 const m = {
-  settings:          {},
-  termlistContainer: null,
+  settings:      {},
+  listContainer: null,
 };
 
 
@@ -42,10 +38,10 @@ function init(siteSettings)
 {
   debug.log('init()');
 
-  m.settings          = siteSettings;
-  m.termlistContainer = document.getElementById('termlist-container');
+  m.settings      = siteSettings;
+  m.listContainer = document.getElementById('termlist-container');
 
-  m.termlistContainer.addEventListener('click', (event) =>
+  m.listContainer.addEventListener('click', (event) =>
   {
     const playButton = event.target.closest('div.play-button');
     if (playButton !== null ) return playButtonClick(event, playButton.querySelector('a').href);
@@ -155,7 +151,7 @@ function shareFindButtonClick(element)
 
 function playTrackButtonClick(event, element)
 {
-  const termPath = (m.termlistContainer.getAttribute('data-term-type') === 'categories') ? 'channel' : 'artist';
+  const termPath = (m.listContainer.getAttribute('data-term-type') === 'channels') ? 'channel' : 'artist';
   const termSlug = element.getAttribute('data-term-slug');
   const termUid  = element.getAttribute('data-term-uid');
 
@@ -199,12 +195,12 @@ function termlistHeaderClick(event)
 
 function fetchDataUpdateDOM(termlistEntry, termlistBody)
 {
-  const termType      = m.termlistContainer.getAttribute('data-term-type');
+  const termType      = m.listContainer.getAttribute('data-term-type');
   const termId        = parseInt(termlistEntry.getAttribute('data-term-id'));
   const termSlug      = termlistEntry.getAttribute('data-term-slug');
-  const isAllChannels = (termType === 'categories');
+  const isAllChannels = (termType === 'channels');
 
-  termRest.fetchPosts(termType, termId, (isAllChannels ? 10 : 50), (termData) => 
+  termRest.fetchTracks(termType, termId, (isAllChannels ? 10 : 50), (termData) => 
   {
     let header  = isAllChannels ? 'Latest Tracks' : 'All Tracks';
     let element = termlistBody.querySelector('.body-left');
@@ -218,8 +214,8 @@ function fetchDataUpdateDOM(termlistEntry, termlistBody)
     {
       termRest.fetchMeta(termData, termId, 50, (metaType, metadata) =>
       {
-        header  = (metaType === 'tags') ? 'Related Artists' : 'In Channels';
-        element = (metaType === 'tags') ? termlistBody.querySelector('.artists') : termlistBody.querySelector('.channels');
+        header  = (metaType === 'artists') ? 'Related Artists' : 'In Channels';
+        element = (metaType === 'artists') ? termlistBody.querySelector('.artists') : termlistBody.querySelector('.channels');
 
         if (metadata !== null)
           insertLinksHtml(header, metadata, element);
@@ -232,29 +228,24 @@ function fetchDataUpdateDOM(termlistEntry, termlistBody)
 
 
 // ************************************************************************************************
-//
+// Render fetched track and meta-data as HTML
 // ************************************************************************************************
 
-const artistTitleRegEx = /\s{1,}[–·-]\s{1,}|\s{1,}(&#8211;)\s{1,}/;
-const iframeSrcRegEx   = /(?<=src=").*?(?=[?"])/i;
-
-function getThumbnail(contentHtml)
+function getThumbnail(trackSourceUrl)
 {
-  if (contentHtml.includes('id="soundcloud-uid'))
-    return { src: '/wp-content/themes/ultrafunk/inc/img/soundcloud_icon.png', class: 'type-soundcloud' };
-  else
-    return getYouTubeImgUrl(contentHtml.match(iframeSrcRegEx));
+  if (trackSourceUrl.includes('youtube.com/'))
+    return getYouTubeImgUrl(trackSourceUrl);
+
+  return { src: '/wp-content/themes/ultrafunk/inc/img/soundcloud_icon.png', class: 'type-soundcloud' };
 }
 
 function insertThumbnailListHtml(header, termSlug, termData, destElement)
 {
-  const artistTitle = {};
   let html = `<b>${header}</b>`;
 
   termData.forEach(item =>
   {
-    setArtistTitle(item.title.rendered, artistTitle, artistTitleRegEx);
-    const thumbnail   = getThumbnail(item.content.rendered);
+    const thumbnail   = getThumbnail(item.meta.track_source_data);
     const dataTermUid = (thumbnail?.uid !== undefined) ? `data-term-uid="${thumbnail.uid}"` : '' ;
 
     html += `
@@ -263,7 +254,7 @@ function insertThumbnailListHtml(header, termSlug, termData, destElement)
         <img src="${thumbnail.src}">
       </div>
       <div class="artist-title text-nowrap-ellipsis">
-        <a href="${item.link}" title="Go to track"><span><b>${artistTitle.artist}</b></span><br><span>${artistTitle.title}</span></a>
+        <a href="${item.link}" title="Go to track"><span><b>${item.meta.track_artist}</b></span><br><span>${item.meta.track_title}</span></a>
       </div>
     </div>`;
   });

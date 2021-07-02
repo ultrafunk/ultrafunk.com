@@ -59,10 +59,10 @@ function settingsUpdated(updatedSettings)
 
 function trackShareControlClick(event)
 {
-  const artistTrackTitle = event.target.getAttribute('data-artist-track-title');
-  const trackUrl         = event.target.getAttribute('data-track-url');
+  const artistTitle = `${event.target.getAttribute('data-track-artist')} - ${event.target.getAttribute('data-track-title')}`;
+  const trackUrl    = event.target.getAttribute('data-track-url');
  
-  shareModal.show({ string: artistTrackTitle, filterString: true, url: trackUrl });
+  shareModal.show({ string: artistTitle, filterString: true, url: trackUrl });
 }
 
 

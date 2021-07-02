@@ -112,6 +112,11 @@
   color: var(--primary-icon-color);
 }
 
+.modal-dialog-single-choice.primary {
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
 .modal-dialog-single-choice .material-icons {
   font-size: 28px;
   margin-right: 15px;

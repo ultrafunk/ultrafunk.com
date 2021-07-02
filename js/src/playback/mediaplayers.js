@@ -13,7 +13,6 @@ export {
   YouTube,
   SoundCloud,
   Playlist,
-  setArtistTitle,
   getYouTubeImgUrl,
   getInstance,
 };
@@ -86,11 +85,11 @@ class MediaPlayer
 
 class YouTube extends MediaPlayer
 {
-  constructor(trackId, iframeId, embeddedPlayer, iframeSrc)
+  constructor(trackId, iframeId, embeddedPlayer, trackSourceUrl)
   {
     super(trackId, iframeId, embeddedPlayer);
     this.previousPlayerState = -1;
-    super.setThumbnail(getYouTubeImgUrl(iframeSrc));
+    super.setThumbnail(getYouTubeImgUrl(trackSourceUrl));
   }
 
   pause() { this.embeddedPlayer.pauseVideo(); }
@@ -278,10 +277,9 @@ class Playlist extends MediaPlayer
   getNumTracks()    { return this.numTracks;      }
   getCurrentTrack() { return this.currentTrack;   }
 
-  setArtistTitleThumbnail(artistTitle, video_id)
+  setThumbnail(video_id)
   {
-    setArtistTitle(artistTitle, this);
-    super.setThumbnail(getYouTubeImgUrl(`https://www.youtube.com/embed/${video_id}`));
+    super.setThumbnail(getYouTubeImgUrl(`youtube.com/watch?v=${video_id}`));
   }
 
   getStatus()
@@ -301,48 +299,28 @@ class Playlist extends MediaPlayer
 // MediaPlayer class support functions
 // ************************************************************************************************
 
-// Used to split details string into Artist and Title strings
-const artistTitleRegEx = /\s{1,}[–·-]\s{1,}/;
+// Default / fallback track thumbnail object
+const defThumbnailObj = { src: '/wp-content/themes/ultrafunk/inc/img/photo_filled_grey.png', class: 'type-default' };
+const youTubeIdRegEx  = /[0-9A-Za-z_-]{10}[048AEIMQUYcgkosw]/;
 
-function setArtistTitle(artistTitle, destination, matchRegEx = artistTitleRegEx)
+function getYouTubeImgUrl(trackSourceUrl)
 {
-  if ((artistTitle !== null) && (artistTitle.length > 0))
-  {
-    destination.artist = artistTitle;
-    destination.title  = '';
+  const video_id = trackSourceUrl.match(youTubeIdRegEx);
 
-    const match = artistTitle.match(matchRegEx);
+  if (video_id !== null)
+    return { src: `https://img.youtube.com/vi/${video_id[0]}/default.jpg`, class: 'type-youtube', uid: video_id[0] };
 
-    if (match !== null)
-    {
-      destination.artist = artistTitle.slice(0, match.index);
-      destination.title  = artistTitle.slice(match.index + match[0].length);
-    }
-  }
+  return defThumbnailObj;
 }
 
-// Default / fallback track thumbnail image URL
-const defThumbnailSrc = '/wp-content/themes/ultrafunk/inc/img/photo_filled_grey.png';
-
-function getYouTubeImgUrl(iframeSrc, defaultSrc = defThumbnailSrc)
-{
-  const iframeSrcParts = new URL(decodeURIComponent(iframeSrc));
-  const pathnameParts  = iframeSrcParts.pathname.split('/embed/');
-
-  if ((pathnameParts.length === 2) && (pathnameParts[1].length === 11))
-    return { src: `https://img.youtube.com/vi/${pathnameParts[1]}/default.jpg`, class: 'type-youtube', uid: pathnameParts[1] };
-  else
-    return { src: defaultSrc, class: 'type-default' };
-}
-
-function getSoundCloudImgUrl(soundObject, defaultSrc = defThumbnailSrc)
+function getSoundCloudImgUrl(soundObject)
 {
   const thumbnailSrc = (soundObject.artwork_url !== null) ? soundObject.artwork_url : soundObject.user.avatar_url;
 
   if ((thumbnailSrc !== null) && (thumbnailSrc !== undefined))
     return { src: thumbnailSrc, class: 'type-soundcloud' };
-  else
-    return { src: defaultSrc, class: 'type-default' };
+
+  return defThumbnailObj;
 }
 
 

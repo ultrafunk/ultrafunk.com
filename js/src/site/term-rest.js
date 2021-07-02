@@ -10,7 +10,7 @@ import { KEY }          from '../shared/storage.js';
 
 
 export {
-  fetchPosts,
+  fetchTracks,
   fetchMeta,
   readCache,
   writeCache,
@@ -30,20 +30,20 @@ const m = {
 
 
 // ************************************************************************************************
-// Fetch tracks (posts) for a given termType with termId (taxonomy: category or tag)
+// Fetch tracks for a given termType with termId (taxonomy: channel or artist)
 // ************************************************************************************************
 
-function fetchPosts(termType, termId, maxItems, callback)
+function fetchTracks(termType, termId, maxItems, callback)
 { 
   if (termId in m.termCache)
   {
-    callback(m.termCache[termId].posts);
+    callback(m.termCache[termId].tracks);
   }
   else
   {
-    debug.log(`fetchPosts() - termType: ${termType} - termId: ${termId} - maxItems: ${maxItems}`);
+    debug.log(`fetchTracks() - termType: ${termType} - termId: ${termId} - maxItems: ${maxItems}`);
 
-    fetch(`/wp-json/wp/v2/posts?${termType}=${termId}&per_page=${maxItems}&_fields=title,link,content,tags,categories`)
+    fetch(`/wp-json/wp/v2/tracks?${termType}=${termId}&per_page=${maxItems}&_fields=link,artists,channels,meta`)
     .then(response => 
     {
       if (!response.ok)
@@ -56,7 +56,7 @@ function fetchPosts(termType, termId, maxItems, callback)
     })
     .then(data =>
     {
-      m.termCache[termId] = { posts: data };
+      m.termCache[termId] = { tracks: data };
       callback(data);
     })
     .catch(reason =>
@@ -74,26 +74,26 @@ function fetchPosts(termType, termId, maxItems, callback)
 
 function fetchMeta(termData, termId, maxItems, callback)
 {
-  if (('categories' in m.termCache[termId]) && ('tags' in m.termCache[termId]))
+  if (('channels' in m.termCache[termId]) && ('artists' in m.termCache[termId]))
   {
-    callback('categories', m.termCache[termId].categories);
-    callback('tags',       m.termCache[termId].tags);
+    callback('channels', m.termCache[termId].channels);
+    callback('artists',  m.termCache[termId].artists);
   }
   else
   {
-    const categories = [];
-    let   tags       = [];
+    const channels = [];
+    let   artists  = [];
   
     termData.forEach(item =>
     {
-      categories.push.apply(categories, item.categories);
-      tags.push.apply(tags, item.tags);
+      channels.push.apply(channels, item.channels);
+      artists.push.apply(artists, item.artists);
     });
   
-    tags = tags.filter(item => (item !== termId));
+    artists = artists.filter(item => (item !== termId));
   
-    fetchMetadata('categories', termId, [...new Set(categories)], maxItems, callback);
-    fetchMetadata('tags',       termId, [...new Set(tags)],       maxItems, callback);
+    fetchMetadata('channels', termId, [...new Set(channels)], maxItems, callback);
+    fetchMetadata('artists',  termId, [...new Set(artists)],  maxItems, callback);
   }
 }
 

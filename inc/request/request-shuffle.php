@@ -29,7 +29,7 @@ class RequestShuffle
   public $params = array(
     'is_shuffle' => true,
     'type'       => 'all',
-    'slug'       => '',
+    'slug'       => null,
     'slug_name'  => null,
     'path'       => 'all',
     'page_num'   => 0,
@@ -38,9 +38,9 @@ class RequestShuffle
   //
   // Constructor -- Set all private class data / variables
   //
-  public function __construct(object $wp_env, string $matched_route, array $url_parts)
+  public function __construct(object $wp_env, object $route_request)
   {
-    switch ($matched_route)
+    switch ($route_request->matched_route)
     {
       case 'shuffle_all':
         $this->shuffle_all = true;
@@ -48,22 +48,22 @@ class RequestShuffle
 
       case 'shuffle_all_page':
         $this->shuffle_all_page   = true;
-        $this->params['page_num'] = intval($url_parts[3]);
+        $this->params['page_num'] = intval($route_request->path_parts[3]);
         break;
 
       case 'shuffle_slug':
         $this->shuffle_slug   = true;
-        $this->params['slug'] = sanitize_title($url_parts[2]);
+        $this->params['slug'] = sanitize_title($route_request->path_parts[2]);
         break;
 
       case 'shuffle_slug_page':
         $this->shuffle_slug_page  = true;
-        $this->params['slug']     = sanitize_title($url_parts[2]);
-        $this->params['page_num'] = intval($url_parts[4]);
+        $this->params['slug']     = sanitize_title($route_request->path_parts[2]);
+        $this->params['page_num'] = intval($route_request->path_parts[4]);
         break;
     }
 
-    $this->params['type'] = $url_parts[1];
+    $this->params['type'] = sanitize_title($route_request->path_parts[1]);
 
     if ($this->shuffle_slug || $this->shuffle_slug_page)
       $this->params['path'] = ($this->params['type'] . '/' . $this->params['slug']);
@@ -89,41 +89,28 @@ class RequestShuffle
   }
 
   //
-  // Create get_posts() args with optional 'tag_id' or 'cat'
+  // Create get_posts() args with optional ['tax_query']
   //
-  private function get_posts_args() : ?array
+  private function get_posts_args() : array
   {
     $args = array(
       'fields'         => 'ids',
+      'post_type'      => 'uf_track',
       'posts_per_page' => -1,
     );
     
     if ($this->shuffle_slug)
     {
-      if ($this->params['type'] === 'artist')
-        $args['tag_id'] = $this->get_term_field_from_slug($this->params['slug'], 'post_tag', 'term_id');
-
-      if ($this->params['type'] === 'channel')
-        $args['cat'] = $this->get_term_field_from_slug($this->params['slug'], 'category', 'term_id');
-
-      if (!isset($args['tag_id']) && !isset($args['cat']))
-        return null;
+      $args['tax_query'] = array(
+        array(
+          'taxonomy' => 'uf_' . $this->params['type'],
+          'field'    => 'slug',
+          'terms'    => $this->params['slug'],
+        )
+      );
     }
 
     return $args;
-  }
-
-  //
-  // Get term field from slug
-  //
-  private function get_term_field_from_slug(string $slug, string $taxonomy, string $field)
-  {
-    $wp_term = get_term_by('slug', $slug, $taxonomy);
-
-    if ($wp_term !== false)
-      return $wp_term->$field;
-
-    return null;
   }
 
   //
@@ -131,11 +118,10 @@ class RequestShuffle
   //
   public function set_slug_name() : void
   {
-    if ($this->params['type'] === 'artist')
-      $this->params['slug_name'] = $this->get_term_field_from_slug($this->params['slug'], 'post_tag', 'name');
+    $wp_term = get_term_by('slug', $this->params['slug'], 'uf_' . $this->params['type']);
 
-    if ($this->params['type'] === 'channel')
-      $this->params['slug_name'] = $this->get_term_field_from_slug($this->params['slug'], 'category', 'name');
+    if ($wp_term !== false)
+      $this->params['slug_name'] = $wp_term->name;
   }
 
   //
@@ -159,30 +145,25 @@ class RequestShuffle
   //
   public function create_transient()
   {
-    $args = $this->get_posts_args();
+    $posts_array['shuffle'] = $this->params['path'];
+    $posts_array['postIds'] = get_posts($this->get_posts_args());
 
-    if ($args !== null)
+    if (!empty($posts_array['postIds']) && (shuffle($posts_array['postIds']) === true))
     {
-      $posts_array['shuffle'] = $this->params['path'];
-      $posts_array['postIds'] = get_posts($args);
-
-      if (shuffle($posts_array['postIds']) === true)
+      $transient_name = $this->get_transient_name();
+      
+      if (empty($transient_name))
       {
-        $transient_name = $this->get_transient_name();
-        
-        if (empty($transient_name))
-        {
-          $uid            = uniqid('', true);
-          $transient_name = sprintf('random_shuffle_%s', $uid);
-          $this->set_cookie($uid);
-        }
-    
-        delete_transient($transient_name);
-        
-        if (set_transient($transient_name, $posts_array, DAY_IN_SECONDS) === true)
-          return $posts_array;
-      }  
-    }
+        $uid            = uniqid('', true);
+        $transient_name = sprintf('random_shuffle_%s', $uid);
+        $this->set_cookie($uid);
+      }
+  
+      delete_transient($transient_name);
+      
+      if (set_transient($transient_name, $posts_array, DAY_IN_SECONDS) === true)
+        return $posts_array;
+    }  
     
     return false;
   }
@@ -211,9 +192,9 @@ class RequestShuffle
 /**************************************************************************************************************************/
 
 
-function shuffle_callback(bool $do_parse, object $wp_env, string $matched_route, array $url_parts) : bool
+function shuffle_callback(bool $do_parse, object $wp_env, object $route_request) : bool
 {
-  $shuffle = new RequestShuffle($wp_env, $matched_route, $url_parts);
+  $shuffle = new RequestShuffle($wp_env, $route_request);
   $paged   = $shuffle->get_page_num(9999);
 
   if ($paged !== 0)
@@ -246,11 +227,12 @@ function shuffle_callback(bool $do_parse, object $wp_env, string $matched_route,
       set_request_params($shuffle->params);
 
       $wp_env->query_vars = array(
-        'orderby'  => 'post__in',
-        'post__in' => $transient['postIds'],
-        'paged'    => $paged, 
+        'orderby'   => 'post__in',
+        'post_type' => 'uf_track',
+        'post__in'  => $transient['postIds'],
+        'paged'     => $paged, 
       );
-    
+
       // return false = We have parsed / handled this request, continue with our query_vars
       // https://developer.wordpress.org/reference/hooks/do_parse_request/
       return false;

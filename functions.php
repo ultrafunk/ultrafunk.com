@@ -7,29 +7,6 @@
 // Minimal global stuff for the theme
 require get_template_directory() . '/inc/globals.php';
 
-// Remove WP-Emoji for visitors
-remove_action('wp_head', 'print_emoji_detection_script', 7);
-remove_action('wp_print_styles', 'print_emoji_styles');
-
-// Remove WP-Emoji for admins
-remove_action('admin_print_scripts', 'print_emoji_detection_script');
-remove_action('admin_print_styles', 'print_emoji_styles');
-
-// Remove support for embedding WordPress content
-remove_action('wp_head', 'wp_oembed_add_host_js');
-
-// Remove wlwmanifest.xml (needed to support windows live writer)
-remove_action('wp_head', 'wlwmanifest_link');
-
-// Remove Gutenberg CSS for visitors
-remove_action('wp_enqueue_scripts', 'wp_common_block_scripts_and_styles');
-
-// Remove RSD link
-remove_action('wp_head', 'rsd_link');
-
-// Remove Shortlink
-remove_action('wp_head', 'wp_shortlink_wp_head');
-
 //
 // Theme setup
 //
@@ -45,7 +22,9 @@ function ultrafunk_theme_setup() : void
 }
 add_action('after_setup_theme', 'ultrafunk_theme_setup');
 
+//
 // Add custom footer logo
+//
 function ultrafunk_customizer_setting(object $wp_customize) : void
 {
   $wp_customize->add_setting('ultrafunk_footer_logo', array('sanitize_callback' => 'esc_url_raw'));
@@ -60,8 +39,10 @@ function ultrafunk_customizer_setting(object $wp_customize) : void
   $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'ultrafunk_footer_logo', $customize_options));
 }
 add_action('customize_register', 'ultrafunk_customizer_setting');
-  
+
+//
 // Add theme taxonomy widget
+//
 function ultrafunk_widgets_init() : void
 {
   register_sidebar(
@@ -77,7 +58,9 @@ function ultrafunk_widgets_init() : void
 }
 add_action('widgets_init', 'ultrafunk_widgets_init');
 
+//
 // Limit number of entries shown by the built-in Archive widget
+//
 function ultrafunk_limit_archives(array $args) : array
 {
   $args['limit'] = 15;
@@ -122,7 +105,9 @@ function ultrafunk_scripts() : void
 }
 add_action('wp_enqueue_scripts', 'ultrafunk_scripts');
 
+//
 // Customize enqueued script tags when needeed
+//
 function ultrafunk_modify_script_tag(string $tag, string $handle, string $source) : string
 {
   if (($handle === 'interaction-script') || ($handle === 'ultrafunk-script'))

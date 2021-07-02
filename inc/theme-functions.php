@@ -19,7 +19,7 @@ use function Ultrafunk\Globals\ {
   get_request_params,
   get_cached_title,
   set_cached_title,
-  get_dev_prod_const,
+  get_dev_prod_env,
 };
 
 
@@ -37,7 +37,7 @@ function get_navigation_vars() : array
     'next' => null,
     'listItemsPerPage'    => isset($params['items_per_page'])
                              ? $params['items_per_page']
-                             : get_dev_prod_const('player_items_per_page'),
+                             : get_dev_prod_env('player_items_per_page'),
     'galleryItemsPerPage' => (is_shuffle() || (is_list_player() && $params['is_list_player_shuffle']))
                              ? get_cookie_value('UF_TRACKS_PER_PAGE', 3, 24, intval(get_option('posts_per_page', 12)))
                              : intval(get_option('posts_per_page', 12)),
@@ -83,6 +83,42 @@ function get_navigation_vars() : array
 }
 
 //
+// Set custom post type(s) as default
+//
+function set_get_posts_type(object $query) : void
+{
+  if (!is_admin() && $query->is_main_query())
+  {
+    if ($query->is_home() || $query->is_archive())
+      $query->set('post_type', array('uf_track'));
+  }
+}
+add_action('pre_get_posts', '\Ultrafunk\ThemeFunctions\set_get_posts_type');
+
+//
+// Set number of posts (tracks) per page for Search + Shuffle based on user setting
+//
+function set_posts_per_page(object $query) : void
+{
+  if (!is_admin() && $query->is_main_query())
+  {
+    if ($query->is_search || is_shuffle())
+      $query->set('posts_per_page', get_cookie_value('UF_TRACKS_PER_PAGE', 3, 24, intval(get_option('posts_per_page', 12))));
+  }
+}
+add_action('pre_get_posts', '\Ultrafunk\ThemeFunctions\set_posts_per_page', 1);
+
+//
+// Show custom post type(s) for archive pages
+//
+function custom_getarchives_where(string $where) : string
+{
+  $where = str_replace("post_type = 'post'", "post_type IN ('uf_track')", $where);
+  return $where;
+}
+add_filter('getarchives_where', '\Ultrafunk\ThemeFunctions\custom_getarchives_where');
+
+//
 // Enhance search results by replacing special chars in query string
 // This should be done by default in WordPress?
 //
@@ -124,19 +160,6 @@ function get_cookie_value(string $cookie_name, int $min_val, int $max_val, int $
 }
 
 //
-// Set number of posts (tracks) per page for Search + Shuffle based on user setting
-//
-function set_posts_per_page(object $query) : void
-{
-  if (!is_admin() && $query->is_main_query())
-  {
-    if ($query->is_search || is_shuffle())
-      $query->set('posts_per_page', get_cookie_value('UF_TRACKS_PER_PAGE', 3, 24, intval(get_option('posts_per_page', 12))));
-  }
-}
-add_action('pre_get_posts', '\Ultrafunk\ThemeFunctions\set_posts_per_page', 1);
-
-//
 // Get current title from context
 //
 function get_title() : string
@@ -161,13 +184,17 @@ function get_title() : string
   {
     $title = $params['title_parts']['title'];
   }
+  else if (is_tax())
+  {
+    $title = single_term_title('', false);
+  }
+  else if (is_archive())
+  {
+    $title = wp_title('', false);
+  }
   else
   {
-    // wp_title() always returns spaces at the start of the result string!
-    $title = trim(wp_title('', false));
-
-    if (empty($title))
-      $title = 'All Tracks';
+    $title = 'All Tracks';
   }
 
   set_cached_title($title);
@@ -184,9 +211,7 @@ function customize_title(array $title) : array
 
   if (is_shuffle())
   {
-    $title['title']   = esc_html('Shuffle: ' . get_title());
-    $title['tagline'] = '';
-    $title['site']    = esc_html(get_bloginfo('name'));
+    $title['title'] = esc_html('Shuffle: ' . get_title());
   }
   else if (is_termlist())
   {
@@ -199,7 +224,7 @@ function customize_title(array $title) : array
   {
     $title_parts = $params['is_list_player_shuffle'] ? ($params['title_parts']['prefix'] . ': ' . get_title()) : get_title();
 
-    if ($params['max_pages'] > 1)
+    if ($params['current_page'] > 1)
       $title_parts .= ' - Page ' . $params['current_page'];
 
     $title['title'] = esc_html($title_parts);
@@ -218,7 +243,7 @@ function embed_iframe_setparams(string $cached_html) : string
   {
   //$cached_html = str_ireplace('<iframe', sprintf('<iframe id="youtube-uid-%s" loading="eager"', uniqid()), $cached_html);
     $cached_html = str_ireplace('<iframe', sprintf('<iframe id="youtube-uid-%s"', uniqid()), $cached_html);
-    $cached_html = str_ireplace('?feature=oembed', sprintf('?feature=oembed&enablejsapi=1&origin=%s', get_dev_prod_const('iframe_origin')), $cached_html);
+    $cached_html = str_ireplace('?feature=oembed', sprintf('?feature=oembed&enablejsapi=1&origin=%s', get_dev_prod_env('iframe_origin')), $cached_html);
   }
   else if (stripos($cached_html, 'soundcloud.com/') !== false)
   {
@@ -298,10 +323,9 @@ function get_shuffle_path() : string
 
     if (isset($queried_object) && isset($queried_object->taxonomy) && isset($queried_object->slug))
     {
-      if ($queried_object->taxonomy === 'category')
+      if ($queried_object->taxonomy === 'uf_channel')
         $request_path = '/shuffle/channel/' . $queried_object->slug . '/';
-  
-      if ($queried_object->taxonomy === 'post_tag')
+      else if ($queried_object->taxonomy === 'uf_artist')
         $request_path = '/shuffle/artist/' . $queried_object->slug . '/';
     }
   }
@@ -334,8 +358,8 @@ function setup_nav_menu_item(object $menu_item) : object
 {
   if (!is_admin())
   {
-    $menu_item_all_id     = get_dev_prod_const('menu_item_all_id');
-    $menu_item_shuffle_id = get_dev_prod_const('menu_item_shuffle_id');
+    $menu_item_all_id     = get_dev_prod_env('menu_item_all_id');
+    $menu_item_shuffle_id = get_dev_prod_env('menu_item_shuffle_id');
   
     if (is_list_player())
     {
@@ -348,23 +372,20 @@ function setup_nav_menu_item(object $menu_item) : object
   
       if (($menu_item->ID === $menu_item_all_id) && ($params['is_list_player_all']))
         $menu_item->classes[] = 'current-menu-item';
-    
-      if (($menu_item->ID === $menu_item_shuffle_id) && ($params['is_list_player_shuffle']))
+      else if (($menu_item->ID === $menu_item_shuffle_id) && ($params['is_list_player_shuffle']))
         $menu_item->classes[] = 'current-menu-item';
-  
-      if (isset($params['WP_Term']) && ($params['WP_Term']->term_id === intval($menu_item->object_id)))
+      else if (isset($params['wp_term']) && ($params['wp_term']->term_id === intval($menu_item->object_id)))
         $menu_item->classes[] = 'current-menu-item';
     }
     else
     {
       if (($menu_item->ID === $menu_item_all_id) && is_front_page() && !is_shuffle())
-        $menu_item->classes[] = 'current-menu-item';
-    
-      if (($menu_item->ID === $menu_item_shuffle_id) && is_shuffle())
+        $menu_item->classes[] = 'current-menu-item';    
+      else if (($menu_item->ID === $menu_item_shuffle_id) && is_shuffle())
         $menu_item->classes[] = 'current-menu-item';
     }
   }
- 
+
   return $menu_item;
 }
 add_filter('wp_setup_nav_menu_item', '\Ultrafunk\ThemeFunctions\setup_nav_menu_item');
@@ -376,7 +397,7 @@ function nav_menu_link_attributes(array $attributes, object $menu_item) : array
 {
   if (!is_admin())
   {
-    if ($menu_item->ID === get_dev_prod_const('menu_item_shuffle_id'))
+    if ($menu_item->ID === get_dev_prod_env('menu_item_shuffle_id'))
     {
       $attributes['href']              = '#';
       $attributes['data-shuffle-path'] = esc_url(get_shuffle_path());

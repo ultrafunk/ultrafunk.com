@@ -10,7 +10,7 @@ namespace Ultrafunk\SharedRequest;
 
 use function Ultrafunk\Globals\ {
   console_log,
-  get_dev_prod_const,
+  get_dev_prod_env,
   get_request_params,
 };
 
@@ -20,15 +20,19 @@ use function Ultrafunk\Globals\ {
 
 abstract class Request
 {
-  protected $is_valid = false;
+  protected $wp_env        = null;
+  protected $route_request = null;
+  protected $is_valid      = false;
   
   public $current_page = 1;
   public $max_pages    = 1;
   public $query_args   = array();
   
-  public function __construct()
+  public function __construct(object $wp_env, object $route_request)
   {
-    $this->items_per_page = get_dev_prod_const('player_items_per_page');
+    $this->wp_env         = $wp_env;
+    $this->route_request  = $route_request;
+    $this->items_per_page = get_dev_prod_env('player_items_per_page');
   }
 
   protected function set_request_params(array $bool_params = array(), array $null_params = array()) : void
@@ -50,20 +54,23 @@ abstract class Request
 
   abstract public function is_valid() : bool;
 
-  public function render_content(object $wp_env, string $template_name, string $template_function) : void
+  public function render_content(string $template_name, string $template_function) : void
   {
-  //console_log($this);
-  //console_log(get_request_params());
+    if ($this->is_valid())
+    {
+    //console_log($this);
+    //console_log(get_request_params());
 
-    require_once get_template_directory() . '/template-parts/' . $template_name;
+      require_once get_template_directory() . '/template-parts/' . $template_name;
 
-    $wp_env->send_headers();
-    
-    get_header();
-    $template_function($this);
-    get_footer();
-
-    exit;
+      $this->wp_env->send_headers();
+      
+      get_header();
+      $template_function($this);
+      get_footer();
+  
+      exit;
+    }
   }
 }
 

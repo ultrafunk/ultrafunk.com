@@ -111,7 +111,7 @@ function getAllPlayers()
         }
       });
 
-      player = new mediaPlayers.YouTube(entry.id, iframe.id, embeddedPlayer, iframe.src);
+      player = new mediaPlayers.YouTube(entry.id, iframe.id, embeddedPlayer, entry.getAttribute('data-track-source-data'));
     }
     else if (config.soundCloudIframeIdRegEx.test(iframe.id))
     {
@@ -135,7 +135,8 @@ function getAllPlayers()
 
     if (player !== null)
     {
-      mediaPlayers.setArtistTitle(entry.getAttribute('data-artist-track-title'), player);
+      player.setTitle(entry.getAttribute('data-track-title'));
+      player.setArtist(entry.getAttribute('data-track-artist'));
       m.players.add(player);
     }
   });

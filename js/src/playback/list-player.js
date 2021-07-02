@@ -152,24 +152,25 @@ function documentEventKeyDown(event)
 
 function sharePlayOnButtonClick(element)
 {
-  const artistTrackTitle = element.closest('div.track-entry').getAttribute('data-artist-track-title');
-  const trackUrl         = element.closest('div.track-entry').getAttribute('data-track-url');
+  const trackEntry  = element.closest('div.track-entry');
+  const artistTitle = `${trackEntry.getAttribute('data-track-artist')} - ${trackEntry.getAttribute('data-track-title')}`;
+  const trackUrl    = trackEntry.getAttribute('data-track-url');
 
-  shareModal.show({ string: artistTrackTitle, filterString: true, url: trackUrl });
+  shareModal.show({ string: artistTitle, filterString: true, url: trackUrl });
 }
 
 function moreButtonOnClick(element)
 {
-  const entryList   = [];
-  const artistTitle = {};
-  const artists     = element.closest('div.track-entry').querySelector('.track-artists-links').querySelectorAll('a');
-  const channels    = element.closest('div.track-entry').querySelector('.track-channels-links').querySelectorAll('a');
+  const entryList  = [];
+  const trackEntry = element.closest('div.track-entry');
+  const artist     = trackEntry.getAttribute('data-track-artist');
+  const title      = trackEntry.getAttribute('data-track-title');
+  const artists    = trackEntry.querySelector('.track-artists-links').querySelectorAll('a');
+  const channels   = trackEntry.querySelector('.track-channels-links').querySelectorAll('a');
 
-  mediaPlayers.setArtistTitle(element.closest('div.track-entry').getAttribute('data-artist-track-title'), artistTitle);
-
-  entryList.push({ id: null, class: 'dialog-body-text', text: `<b>${artistTitle.artist}</b><br><span class="light-text">${artistTitle.title}</span>` });
+  entryList.push({ id: null, class: 'dialog-body-text', text: `<b>${artist}</b><br><span class="light-text">${title}</span>` });
   entryList.push({ id: null, class: 'dialog-body-title', text: 'Artists' });
-  artists.forEach(item => entryList.push({ id: `modal-item-id-${entryList.length + 1}`, text: item.innerText, link: item.href, icon: 'link' }));
+  artists.forEach(item => entryList.push({ id: `modal-item-id-${entryList.length + 1}`, class: item.classList[0], text: item.innerText, link: item.href, icon: 'link' }));
   entryList.push({ id: null, class: 'dialog-body-title', text: 'Channels' });
   channels.forEach(item => entryList.push({ id: `modal-item-id-${entryList.length + 1}`, text: item.innerText, link: item.href, icon: 'link' }));
 
@@ -287,7 +288,7 @@ function getNextPlayableId(startElement = current.element)
 function setCurrentTrack(nextTrackId, playNextTrack = true, isPointerClick = false)
 {
 //https://wordpress.ultrafunk.com/list/page/21/
-//Unable to play last track in list needs better error handling / state reset if autoplay is disabled
+//ToDo: Unable to play last track in list needs better error handling / state reset if autoplay is disabled
 
   debug.log(`setCurrentTrack() - nextTrackId: ${(nextTrackId.length !== 0) ? nextTrackId : 'N/A' } - playNextTrack: ${playNextTrack} - isPointerClick: ${isPointerClick}`);
 
@@ -322,7 +323,9 @@ function setCurrentTrack(nextTrackId, playNextTrack = true, isPointerClick = fal
 
 function loadOrCueCurrentTrack(playTrack)
 {
-  m.player.setArtistTitleThumbnail(current.element.getAttribute('data-artist-track-title'), current.trackId);
+  m.player.setArtist(current.element.getAttribute('data-track-artist'));
+  m.player.setTitle(current.element.getAttribute('data-track-title'));
+  m.player.setThumbnail(current.trackId);
   
   if (playTrack)
   {

@@ -100,13 +100,14 @@ function setSingleChoiceList(singleChoiceList)
 
   singleChoiceList.forEach(entry =>
   {
-    const entryIcon      = (entry.icon !== undefined) ? `<span class="material-icons">${entry.icon}</span>` : '';
-    const entryIconClass = (entryIcon.length !== 0)   ? 'icon'                                              : '';
+    const entryIcon      = (entry.icon !== undefined)  ? `<span class="material-icons">${entry.icon}</span>` : '';
+    const entryIconClass = (entryIcon.length !== 0)    ? 'icon'                                              : '';
+    const entryClass     = (entry.class !== undefined) ? entry.class                                         : '';
 
     if (entry.id === null)
       listHtml += `<div class="${config.id}-${entry.class} ${entryIconClass}">${entryIcon}${entry.text}</div>`;
     else
-      listHtml += `<div id="${entry.id}" class="${config.id}-dialog-single-choice ${entryIconClass}">${entryIcon}<span class="text">${entry.text}</span></div>`;
+      listHtml += `<div id="${entry.id}" class="${config.id}-dialog-single-choice ${entryIconClass} ${entryClass}">${entryIcon}<span class="text">${entry.text}</span></div>`;
   });
   
   elements.body.innerHTML = listHtml;

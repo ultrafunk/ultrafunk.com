@@ -8,7 +8,7 @@
 namespace Ultrafunk\ContentTermlist;
 
 
-use function Ultrafunk\Globals\console_log;
+use function Ultrafunk\Globals\get_cached_home_url;
 use function Ultrafunk\SharedRequest\request_pagination;
 
 
@@ -56,13 +56,13 @@ function content_termlist(object $request) : void
 function termlist_entries(object $request, array $terms) : void
 {
   $odd_even = $request->is_termlist_artists ? 1 : 0;
-  $home_url = esc_url(home_url());
+  $home_url = get_cached_home_url();
 
   foreach($terms as $term)
   {
     $row_class = (($odd_even++ % 2) === 1) ? 'odd' : 'even';
     $term_name = esc_html($term->name);
-    $term_slug = substr(esc_url($term->slug, ['http']), strlen('http://'));
+    $term_slug = esc_html($term->slug);
 
     ?>
     <div id="<?php echo "term-$term->term_id"; ?>" class="termlist-entry" data-term-id="<?php echo $term->term_id; ?>" data-term-slug="<?php echo $term_slug; ?>">
@@ -86,11 +86,11 @@ function termlist_entries(object $request, array $terms) : void
       </div>
       <div class="termlist-body <?php echo $row_class; ?>">
         <div class="body-left">
-          <?php echo (($request->term_type === 'tags') ? '<b>All Tracks<br>' : '<b>Latest Tracks<br>'); ?>&#8226;&#8226;&#8226;</b>
+          <?php echo (($request->term_type === 'artists') ? '<b>All Tracks<br>' : '<b>Latest Tracks<br>'); ?>&#8226;&#8226;&#8226;</b>
         </div>
         <div class="body-right">
           <div class="permalink"><b>Permalink</b><br><a href="<?php echo "/$request->term_path/$term_slug/"; ?>"><?php echo $term_name?></a></div>
-          <?php if ($request->term_type === 'tags') { ?>
+          <?php if ($request->term_type === 'artists') { ?>
             <div class="artists"><b>Related Artists<br>&#8226;&#8226;&#8226;</b></div>
             <div class="channels"><b>In Channels<br>&#8226;&#8226;&#8226;</b></div>
           <?php } ?>
