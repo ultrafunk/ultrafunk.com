@@ -320,12 +320,16 @@ const navMenu = (() =>
     {
       modalOverlay.className = '';
       modalOverlay.classList.add('show');
+      /*
       elements.siteHeader.classList.add('no-backdrop-blur');
+      */
       setTimeout(() => modalOverlay.classList.add('fadein'), 50);
     }
     else
     {
+      /*
       elements.siteHeader.classList.remove('no-backdrop-blur');
+      */
       modalOverlay.classList.add('fadeout');
     }
   }
@@ -336,8 +340,10 @@ const navMenu = (() =>
     {
       modalOverlay.className = '';
       navMenu.style.display  = '';
-    //ToDo: This is probably not needed...?
-    //elements.siteHeader.classList.remove('no-backdrop-blur');
+      /*
+      //ToDo: This is probably not needed...?
+      elements.siteHeader.classList.remove('no-backdrop-blur');
+      */
     }
   }
 })();

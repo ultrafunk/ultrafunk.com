@@ -5,7 +5,7 @@ Plugin URI:  https://github.com/ultrafunk/ultrafunk.com
 Description: Ultrafunk theme extended functionality plug-in
 Author:      Ultrafunk
 Author URI:  https://ultrafunk.com
-Version:     1.30.1
+Version:     1.30.2
 License:     Apache License 2.0
 License URI: https://www.apache.org/licenses/LICENSE-2.0
 */

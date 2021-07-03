@@ -233,7 +233,7 @@ function fetchDataUpdateDOM(termlistEntry, termlistBody)
 
 function getThumbnail(trackSourceUrl)
 {
-  if (trackSourceUrl.includes('youtube.com/'))
+  if (trackSourceUrl.trim().startsWith('youtube.com/'))
     return getYouTubeImgUrl(trackSourceUrl);
 
   return { src: '/wp-content/themes/ultrafunk/inc/img/soundcloud_icon.png', class: 'type-soundcloud' };
