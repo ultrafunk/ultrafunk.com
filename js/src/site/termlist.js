@@ -231,10 +231,10 @@ function fetchDataUpdateDOM(termlistEntry, termlistBody)
 // Render fetched track and meta-data as HTML
 // ************************************************************************************************
 
-function getThumbnail(trackSourceUrl)
+function getThumbnail(metaData)
 {
-  if (trackSourceUrl.trim().startsWith('youtube.com/'))
-    return getYouTubeImgUrl(trackSourceUrl);
+  if (metaData.track_source_type === 1)
+    return getYouTubeImgUrl(metaData.track_source_data);
 
   return { src: '/wp-content/themes/ultrafunk/inc/img/soundcloud_icon.png', class: 'type-soundcloud' };
 }
@@ -245,7 +245,7 @@ function insertThumbnailListHtml(header, termSlug, termData, destElement)
 
   termData.forEach(item =>
   {
-    const thumbnail   = getThumbnail(item.meta.track_source_data);
+    const thumbnail   = getThumbnail(item.meta);
     const dataTermUid = (thumbnail?.uid !== undefined) ? `data-term-uid="${thumbnail.uid}"` : '' ;
 
     html += `

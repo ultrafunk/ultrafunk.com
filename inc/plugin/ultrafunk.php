@@ -5,7 +5,7 @@ Plugin URI:  https://github.com/ultrafunk/ultrafunk.com
 Description: Ultrafunk theme extended functionality plug-in
 Author:      Ultrafunk
 Author URI:  https://ultrafunk.com
-Version:     1.30.2
+Version:     1.30.3
 License:     Apache License 2.0
 License URI: https://www.apache.org/licenses/LICENSE-2.0
 */
@@ -77,6 +77,10 @@ function cleanup_wp_header() : void
   remove_action('wp_head', 'wp_shortlink_wp_head');
 }
 
+
+/**************************************************************************************************************************/
+
+
 //
 // Register Ultrafunk custom post types
 //
@@ -145,6 +149,10 @@ function custom_post_type_link(string $post_link, object $post) : string
 }
 add_filter('post_type_link', 'Ultrafunk\Plugin\custom_post_type_link', 10, 2);
 */
+
+
+/**************************************************************************************************************************/
+
 
 //
 // Register Ultrafunk custom taxonomies
@@ -219,39 +227,222 @@ function register_custom_taxonomies()
 }
 add_action('init', '\Ultrafunk\Plugin\register_custom_taxonomies');
 
+
+/**************************************************************************************************************************/
+
+
 //
 // Register meta fields for REST API fetch
 //
 function register_meta_fields()
 {
-  register_meta('post', 'track_artist',
+  register_post_meta('uf_track', 'track_artist',
     array(
-      'object_subtype' => 'uf_track',
-      'type'           => 'string',
-      'description'    => 'track_artist',
-      'single'         => true,
-      'show_in_rest'   => true,
+      'type'          => 'string',
+      'description'   => 'track_artist',
+      'single'        => true,
+      'show_in_rest'  => true,
+    //'default'       => '',
+    //'auth_callback' => function() { return current_user_can('edit_posts'); },
     )
   );
 
-  register_meta('post', 'track_title',
+  register_post_meta('uf_track', 'track_artist_id',
     array(
-      'object_subtype' => 'uf_track',
-      'type'           => 'string',
-      'description'    => 'track_title',
-      'single'         => true,
-      'show_in_rest'   => true,
+      'type'          => 'number',
+      'description'   => 'track_artist_id',
+      'single'        => true,
+      'show_in_rest'  => true,
+    //'default'       => -1,
+    //'auth_callback' => function() { return current_user_can('edit_posts'); },
     )
   );
 
-  register_meta('post', 'track_source_data',
+  /*
+  register_post_meta('uf_track', 'track_artist_slug',
     array(
-      'object_subtype' => 'uf_track',
-      'type'           => 'string',
-      'description'    => 'track_source_data',
-      'single'         => true,
-      'show_in_rest'   => true,
+      'type'          => 'string',
+      'description'   => 'track_artist_slug',
+      'single'        => true,
+      'show_in_rest'  => true,
+    //'default'       => '',
+    //'auth_callback' => function() { return current_user_can('edit_posts'); },
+    )
+  );
+  */
+
+  register_post_meta('uf_track', 'track_source_type',
+    array(
+      'type'          => 'number',
+      'description'   => 'track_source_type',
+      'single'        => true,
+      'show_in_rest'  => true,
+    //'default'       => -1,
+    //'auth_callback' => function() { return current_user_can('edit_posts'); },
+    )
+  );
+
+  register_post_meta('uf_track', 'track_source_data',
+    array(
+      'type'          => 'string',
+      'description'   => 'track_source_data',
+      'single'        => true,
+      'show_in_rest'  => true,
+    //'default'       => '',
+    //'auth_callback' => function() { return current_user_can('edit_posts'); },
+    )
+  );
+
+  register_post_meta('uf_track', 'track_title',
+    array(
+      'type'          => 'string',
+      'description'   => 'track_title',
+      'single'        => true,
+      'show_in_rest'  => true,
+    //'default'       => '',
+    //'auth_callback' => function() { return current_user_can('edit_posts'); },
     )
   );
 }
 add_action('rest_api_init', '\Ultrafunk\Plugin\register_meta_fields');
+
+
+/**************************************************************************************************************************/
+
+
+//
+// Automatically populate meta fields based on current edited $post object on save
+//
+function on_save_set_meta(int $post_id, object $post, bool $update) : void
+{
+  // Don't update meta fields on autosave...
+  if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
+    return;
+
+  // Don't update meta fields on creation or when trashed...
+  if (($post->post_status === 'auto-draft') || ($post->post_status === 'trash'))
+    return;
+
+  $track_source_data  = get_track_source_data($post->post_content);
+  $track_artist_title = preg_split('/\s{1,}[–·-]\s{1,}/u', $post->post_title);
+
+  if (($track_source_data  !== null)  &&
+      ($track_artist_title !== false) &&
+      (count($track_artist_title) === 2))
+  {
+    update_post_meta($post->ID, 'track_artist',      $track_artist_title[0]);
+    update_post_meta($post->ID, 'track_title',       $track_artist_title[1]);
+    update_post_meta($post->ID, 'track_source_type', $track_source_data[0]);
+    update_post_meta($post->ID, 'track_source_data', $track_source_data[1]);
+
+    $track_artist_slug = sanitize_title($track_artist_title[0]);
+    $track_artist_term = get_term_by('slug', $track_artist_slug, 'uf_artist');
+
+    if ($track_artist_term !== false)
+    {
+      update_post_meta($post->ID, 'track_artist_id',   $track_artist_term->term_id);
+      update_post_meta($post->ID, 'track_artist_slug', $track_artist_slug);
+    }
+    else
+    {
+      set_admin_notice($post->ID, 'notice-warning', "Unable to set <b>track_artist_id</b> for slug: <b>$track_artist_slug</b> ($post->post_title)");
+    }
+  }
+  else
+  {
+    set_admin_notice($post->ID, 'notice-error', "Unable to set track metadata for post: $post->post_title ($post->ID)");
+  }
+}
+add_action('save_post_uf_track', '\Ultrafunk\Plugin\on_save_set_meta', 10, 3);
+
+//
+// Parse and return track source data from the post content
+//
+function get_track_source_data(string $post_content) : ?array
+{
+  $youtube_id_prefixes = array('/watch?v=', '/embed/', 'youtu.be/');
+
+  foreach($youtube_id_prefixes as $find_string)
+  {
+    $find_pos = strripos($post_content, $find_string);
+
+    if ($find_pos !== false)
+      return array(1, 'youtube.com/watch?v=' . substr($post_content, ($find_pos + strlen($find_string)), 11));
+  }
+
+  $find_pos = stripos($post_content, 'soundcloud.com/');
+
+  if ($find_pos !== false)
+    return array(2, substr($post_content, $find_pos, (strpos($post_content, '"', $find_pos) - $find_pos)));
+
+  return null;
+}
+
+/*
+//ToDo: Use track artist term ID if $track_artist_slug is invalid and there is only 1 artist term?
+if ($track_artist_term === false)
+{
+  $artist_terms = get_the_terms($post, 'uf_artist');
+
+  if (count($artist_terms) === 1)
+    $track_artist_term = $artist_terms[0];
+}
+*/
+/*
+function set_default_custom_fields(int $post_id, object $post, bool $update) : void
+{
+  if (($post->post_status === 'auto-draft') && ($post->post_type === 'uf_track'))
+  {
+    add_post_meta($post_id, 'track_artist',      '', true);
+    add_post_meta($post_id, 'track_artist_id',   -1, true);
+    add_post_meta($post_id, 'track_artist_slug', '', true);
+    add_post_meta($post_id, 'track_source_type', -1, true);
+    add_post_meta($post_id, 'track_source_data', '', true);
+    add_post_meta($post_id, 'track_title',       '', true);
+  
+  //error_log("set_default_custom_fields(): $post_id");
+  }
+}
+add_action('wp_insert_post', '\Ultrafunk\Plugin\set_default_custom_fields', 10, 3);
+*/
+
+
+/**************************************************************************************************************************/
+
+
+const SET_META_NOTICE_TRANSIENT = 'on_save_set_meta_notice';
+
+//
+// Set transient notice information for admin notices
+//
+function set_admin_notice(int $post_id, string $type = 'notice-error', string $text = 'Unknown error!') : void
+{
+  set_transient(SET_META_NOTICE_TRANSIENT, array('post_id' => $post_id, 'type' => $type, 'text' => $text), (60 * 5));
+}
+
+//
+// Show admin notice if transient is set and we are on the correct screen
+//
+function show_admin_notice()
+{
+  $screen = get_current_screen();
+
+  // Notices do not work on Gutenberg edit screens
+  if (isset($screen) && ($screen->base === 'post') && ($screen->post_type === 'uf_track'))
+    return;
+
+  $notice_data = get_transient(SET_META_NOTICE_TRANSIENT);
+
+  if ($notice_data !== false)
+  {
+    delete_transient(SET_META_NOTICE_TRANSIENT);
+
+    ?>
+    <div class="notice <?php echo esc_attr($notice_data['type']); ?> is-dismissible">
+      <style>b { font-weight: 700; }</style>
+      <p><?php echo wp_kses_post($notice_data['text']); ?>&nbsp;&nbsp;&nbsp;<a href="/wp-admin/post.php?post=<?php echo absint($notice_data['post_id']); ?>&action=edit"><b>EDIT TRACK</b></a></p>
+    </div>
+    <?php
+  }
+}
+add_action('admin_notices', '\Ultrafunk\Plugin\show_admin_notice');

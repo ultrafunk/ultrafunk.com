@@ -23,7 +23,7 @@ Globals::$cached_home_url = esc_url(home_url());
 
 class Globals
 {
-  const VERSION = '1.30.2';
+  const VERSION = '1.30.3';
 
   const DEV_PROD_ENV = array(
     'menu_item_all_id'         => WP_DEBUG ?  115 :  115,

@@ -342,6 +342,7 @@ function nav_bar_title() : void
   else if (is_404())
   {
     $prefix     = '<b>Error / 404: </b>';
+    $title      = 'Page not found';
     $pagination = '';
   }
   else if (is_search())
