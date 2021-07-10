@@ -1,11 +1,11 @@
-<?php 
+<?php declare(strict_types=1);
 /*
 Plugin Name: Ultrafunk Theme Extender
 Plugin URI:  https://github.com/ultrafunk/ultrafunk.com
 Description: Ultrafunk theme extended functionality plug-in
 Author:      Ultrafunk
 Author URI:  https://ultrafunk.com
-Version:     1.30.3
+Version:     1.30.4
 License:     Apache License 2.0
 License URI: https://www.apache.org/licenses/LICENSE-2.0
 */
@@ -242,8 +242,6 @@ function register_meta_fields()
       'description'   => 'track_artist',
       'single'        => true,
       'show_in_rest'  => true,
-    //'default'       => '',
-    //'auth_callback' => function() { return current_user_can('edit_posts'); },
     )
   );
 
@@ -253,23 +251,8 @@ function register_meta_fields()
       'description'   => 'track_artist_id',
       'single'        => true,
       'show_in_rest'  => true,
-    //'default'       => -1,
-    //'auth_callback' => function() { return current_user_can('edit_posts'); },
     )
   );
-
-  /*
-  register_post_meta('uf_track', 'track_artist_slug',
-    array(
-      'type'          => 'string',
-      'description'   => 'track_artist_slug',
-      'single'        => true,
-      'show_in_rest'  => true,
-    //'default'       => '',
-    //'auth_callback' => function() { return current_user_can('edit_posts'); },
-    )
-  );
-  */
 
   register_post_meta('uf_track', 'track_source_type',
     array(
@@ -277,8 +260,6 @@ function register_meta_fields()
       'description'   => 'track_source_type',
       'single'        => true,
       'show_in_rest'  => true,
-    //'default'       => -1,
-    //'auth_callback' => function() { return current_user_can('edit_posts'); },
     )
   );
 
@@ -288,8 +269,6 @@ function register_meta_fields()
       'description'   => 'track_source_data',
       'single'        => true,
       'show_in_rest'  => true,
-    //'default'       => '',
-    //'auth_callback' => function() { return current_user_can('edit_posts'); },
     )
   );
 
@@ -299,8 +278,6 @@ function register_meta_fields()
       'description'   => 'track_title',
       'single'        => true,
       'show_in_rest'  => true,
-    //'default'       => '',
-    //'auth_callback' => function() { return current_user_can('edit_posts'); },
     )
   );
 }
@@ -315,6 +292,10 @@ add_action('rest_api_init', '\Ultrafunk\Plugin\register_meta_fields');
 //
 function on_save_set_meta(int $post_id, object $post, bool $update) : void
 {
+  // Don't update on REST requests to avoid save_post_uf_track triggering twice using the Gutenberg editor...
+  if (defined('REST_REQUEST') && REST_REQUEST)
+    return;
+
   // Don't update meta fields on autosave...
   if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
     return;
@@ -338,19 +319,21 @@ function on_save_set_meta(int $post_id, object $post, bool $update) : void
     $track_artist_slug = sanitize_title($track_artist_title[0]);
     $track_artist_term = get_term_by('slug', $track_artist_slug, 'uf_artist');
 
-    if ($track_artist_term !== false)
+    if (($track_artist_term !== false) && ($track_artist_slug !== $post->track_artist_slug))
     {
       update_post_meta($post->ID, 'track_artist_id',   $track_artist_term->term_id);
       update_post_meta($post->ID, 'track_artist_slug', $track_artist_slug);
+
+      set_admin_notice($post->ID, 'notice-success', "<b>\"$post->post_title\"</b> saved with <b>track_artist_id:</b> $track_artist_term->term_id and <b>track_artist_slug:</b> $track_artist_slug");
     }
     else
     {
-      set_admin_notice($post->ID, 'notice-warning', "Unable to set <b>track_artist_id</b> for slug: <b>$track_artist_slug</b> ($post->post_title)");
+      validate_id_and_slug($post);
     }
   }
   else
   {
-    set_admin_notice($post->ID, 'notice-error', "Unable to set track metadata for post: $post->post_title ($post->ID)");
+    set_admin_notice($post->ID, 'notice-error', "Unable to set track metadata for <b>\"$post->post_title\"</b> with track_id: $post->ID");
   }
 }
 add_action('save_post_uf_track', '\Ultrafunk\Plugin\on_save_set_meta', 10, 3);
@@ -378,33 +361,40 @@ function get_track_source_data(string $post_content) : ?array
   return null;
 }
 
-/*
-//ToDo: Use track artist term ID if $track_artist_slug is invalid and there is only 1 artist term?
-if ($track_artist_term === false)
+//
+// Validate and match track_artist_id and track_artist_slug as best we can...
+//
+function validate_id_and_slug(object $post) : void
 {
-  $artist_terms = get_the_terms($post, 'uf_artist');
+  if (empty($post->track_artist_id))
+    update_post_meta($post->ID, 'track_artist_id', -1);
+    
+  if (empty($post->track_artist_slug))
+    update_post_meta($post->ID, 'track_artist_slug', 'N/A');
 
-  if (count($artist_terms) === 1)
-    $track_artist_term = $artist_terms[0];
-}
-*/
-/*
-function set_default_custom_fields(int $post_id, object $post, bool $update) : void
-{
-  if (($post->post_status === 'auto-draft') && ($post->post_type === 'uf_track'))
+  if (((int)$post->track_artist_id === -1) && ($post->track_artist_slug === 'N/A'))
   {
-    add_post_meta($post_id, 'track_artist',      '', true);
-    add_post_meta($post_id, 'track_artist_id',   -1, true);
-    add_post_meta($post_id, 'track_artist_slug', '', true);
-    add_post_meta($post_id, 'track_source_type', -1, true);
-    add_post_meta($post_id, 'track_source_data', '', true);
-    add_post_meta($post_id, 'track_title',       '', true);
-  
-  //error_log("set_default_custom_fields(): $post_id");
+    set_admin_notice($post->ID, 'notice-error', "<b>\"$post->post_title\"</b> has no valid <b>track_artist_id</b> and <b>track_artist_slug</b>");
+  }
+  else
+  {
+    $track_artist_id_term   = get_term_by('id',   $post->track_artist_id,   'uf_artist');
+    $track_artist_slug_term = get_term_by('slug', $post->track_artist_slug, 'uf_artist');
+
+    if (($track_artist_id_term !== false) && ($track_artist_slug_term !== false))
+    {
+      if ($track_artist_id_term->term_id !== $track_artist_slug_term->term_id)
+        set_admin_notice($post->ID, 'notice-error', "<b>track_artist_id:</b> $post->track_artist_id and <b>track_artist_slug:</b> $post->track_artist_slug does not match for track: <b>\"$post->post_title\"</b>");
+    }
+    else
+    {
+      if ($track_artist_id_term === false)
+        set_admin_notice($post->ID, 'notice-error', "Invalid <b>track_artist_id:</b> $post->track_artist_id for track: <b>\"$post->post_title\"</b>");
+      else if ($track_artist_slug_term === false)
+        set_admin_notice($post->ID, 'notice-error', "Invalid <b>track_artist_slug:</b> $post->track_artist_slug for track: <b>\"$post->post_title\"</b>");
+    }
   }
 }
-add_action('wp_insert_post', '\Ultrafunk\Plugin\set_default_custom_fields', 10, 3);
-*/
 
 
 /**************************************************************************************************************************/
@@ -440,7 +430,12 @@ function show_admin_notice()
     ?>
     <div class="notice <?php echo esc_attr($notice_data['type']); ?> is-dismissible">
       <style>b { font-weight: 700; }</style>
-      <p><?php echo wp_kses_post($notice_data['text']); ?>&nbsp;&nbsp;&nbsp;<a href="/wp-admin/post.php?post=<?php echo absint($notice_data['post_id']); ?>&action=edit"><b>EDIT TRACK</b></a></p>
+      <p>
+        <?php echo wp_kses_post($notice_data['text']); ?>
+        <?php if ($notice_data['type'] !== 'notice-success') { ?>
+          &nbsp;&nbsp;&nbsp;<a href="/wp-admin/post.php?post=<?php echo absint($notice_data['post_id']); ?>&action=edit"><b>EDIT TRACK</b></a>
+        <?php } ?>
+      </p>
     </div>
     <?php
   }
