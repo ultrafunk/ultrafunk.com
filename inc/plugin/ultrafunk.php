@@ -5,7 +5,7 @@ Plugin URI:  https://github.com/ultrafunk/ultrafunk.com
 Description: Ultrafunk theme extended functionality plug-in
 Author:      Ultrafunk
 Author URI:  https://ultrafunk.com
-Version:     1.30.4
+Version:     1.30.5
 License:     Apache License 2.0
 License URI: https://www.apache.org/licenses/LICENSE-2.0
 */
@@ -135,6 +135,23 @@ function register_custom_post_types() : void
 //add_rewrite_rule('^track\/([0-9]+)$', 'index.php?post_type=uf_track&p=$matches[1]', 'top');
 }
 add_action('init', '\Ultrafunk\Plugin\register_custom_post_types');
+
+//
+// Swap admin menu item positions for Posts and Tracks = Tracks first
+//
+function swap_admin_menu_items()
+{
+  global $menu;
+  
+  if ($menu[5][5] === 'menu-posts')
+  {
+    $posts_menu  = $menu[5];
+    $tracks_menu = $menu[6];
+    $menu[5]     = $tracks_menu;
+    $menu[6]     = $posts_menu;
+  }
+}
+add_action('admin_menu', '\Ultrafunk\Plugin\swap_admin_menu_items');
 
 /*
 //
@@ -305,7 +322,7 @@ function on_save_set_meta(int $post_id, object $post, bool $update) : void
     return;
 
   $track_source_data  = get_track_source_data($post->post_content);
-  $track_artist_title = preg_split('/\s{1,}[–·-]\s{1,}/u', $post->post_title);
+  $track_artist_title = preg_split('/\s{1,}[–·-]\s{1,}/u', $post->post_title, 2);
 
   if (($track_source_data  !== null)  &&
       ($track_artist_title !== false) &&

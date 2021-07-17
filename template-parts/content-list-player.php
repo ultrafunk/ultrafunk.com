@@ -123,7 +123,7 @@ function tracklist_entries(object $request, array $tracks) : void
       <div class="track-more">
         <div class="track-duration"></div>
         <div class="share-playon-button" title="Share Track / Play On"><span class="material-icons">share</span></div>
-        <div class="menu-button" title="More Track Options"><span class="material-icons">more_vert</span></div>
+        <div class="menu-button" title="Track Details"><span class="material-icons">more_vert</span></div>
       </div>
     </div>
     <?php
